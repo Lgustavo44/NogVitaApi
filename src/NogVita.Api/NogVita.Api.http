@@ -1,0 +1,6 @@
+@NogVita.Api_HostAddress = http://localhost:5157
+
+GET {{NogVita.Api_HostAddress}}/health/
+Accept: application/json
+
+###

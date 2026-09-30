@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NogVita.Api/NogVita.Api.csproj" />
+    <Project Path="src/NogVita.Application/NogVita.Application.csproj" />
+    <Project Path="src/NogVita.Domain/NogVita.Domain.csproj" />
+    <Project Path="src/NogVita.Infrastructure/NogVita.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NogVita.IntegrationTests/NogVita.IntegrationTests.csproj" />
+    <Project Path="tests/NogVita.UnitTests/NogVita.UnitTests.csproj" />
+  </Folder>
+</Solution>
