@@ -28,4 +28,3 @@ tests/
 └── NogVita.IntegrationTests
 ```
 
-As decisões arquiteturais do projeto estão registradas em [`docs/decisoes-arquiteturais.md`](docs/decisoes-arquiteturais.md).
