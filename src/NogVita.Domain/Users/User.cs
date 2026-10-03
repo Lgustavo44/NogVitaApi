@@ -10,6 +10,7 @@ namespace NogVita.Domain.Users
         public string? PasswordHash { get; private set; }
         public bool IsActive { get; private set; }
         public bool IsAdmin { get; private set; }
+        public PatientProfile? PatientProfile { get; private set; }
 
         private User() { } // usado pelo EF Core
 
@@ -24,6 +25,15 @@ namespace NogVita.Domain.Users
             Name = name.Trim();
             Email = email.Trim().ToLowerInvariant();
             Cpf = cpf.Trim();
+        }
+
+        public PatientProfile CreatePatientProfile(DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)
+        {
+            if (PatientProfile is not null)
+                throw new DomainException("O usuário já possui perfil de paciente.");
+
+            PatientProfile = new PatientProfile(Id, birthDate, biologicalSex, heightInCm, goal);
+            return PatientProfile;
         }
 
         public void SetPasswordHash(string passwordHash)
