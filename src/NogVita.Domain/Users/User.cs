@@ -11,6 +11,7 @@ namespace NogVita.Domain.Users
         public bool IsActive { get; private set; }
         public bool IsAdmin { get; private set; }
         public PatientProfile? PatientProfile { get; private set; }
+        public NutritionistProfile? NutritionistProfile { get; private set; }
 
         private User() { } // usado pelo EF Core
 
@@ -34,6 +35,14 @@ namespace NogVita.Domain.Users
 
             PatientProfile = new PatientProfile(Id, birthDate, biologicalSex, heightInCm, goal);
             return PatientProfile;
+        }
+
+        public NutritionistProfile CreateNutritionistProfile(int crnRegion, string crnNumber)
+        {
+            if (NutritionistProfile is not null)
+                throw new DomainException("O usuário já possui perfil de nutricionista.");
+            NutritionistProfile = new NutritionistProfile(Id, crnRegion, crnNumber);
+            return NutritionistProfile;
         }
 
         public void SetPasswordHash(string passwordHash)
