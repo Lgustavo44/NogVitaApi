@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NogVita.Application.Abstractions;
+using NogVita.Application.Common.Validation;
 using NogVita.Domain.Users;
 
 namespace NogVita.Infrastructure.Persistence.Seed;
@@ -10,7 +11,7 @@ public sealed class AdminSeeder(
     IPasswordHasher passwordHasher,
     ILogger<AdminSeeder> logger)
 {
-    private const int MinPasswordLength = 12;
+    private const int MinPasswordLength = PasswordRules.MinLength;
 
     public async Task SeedAsync(AdminSeedSettings? settings, CancellationToken cancellationToken = default)
     {
