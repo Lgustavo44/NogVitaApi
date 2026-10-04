@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NogVita.Application.Abstractions;
 using NogVita.Infrastructure.Persistence;
+using NogVita.Infrastructure.Security;
 
 namespace NogVita.Infrastructure;
 
@@ -13,6 +15,7 @@ public static class DependencyInjection
                    .UseSnakeCaseNamingConvention());
 
         services.AddHealthChecks().AddDbContextCheck<NogVitaDbContext>();
+        services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
 
         return services;
     }
