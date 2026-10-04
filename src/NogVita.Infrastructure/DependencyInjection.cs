@@ -12,6 +12,8 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString)
                    .UseSnakeCaseNamingConvention());
 
+        services.AddHealthChecks().AddDbContextCheck<NogVitaDbContext>();
+
         return services;
     }
 }

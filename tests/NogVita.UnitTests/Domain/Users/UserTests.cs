@@ -69,4 +69,16 @@ public class UserTests
 
         Assert.Throws<DomainException>(() => user.Activate());
     }
+
+    [Fact]
+    public void Should_Grant_Admin_To_Active_User()
+    {
+        var user = new User(ValidName, ValidEmail, ValidCpf);
+        user.SetPasswordHash("hash");
+        user.Activate();
+
+        user.GrantAdmin();
+
+        Assert.True(user.IsAdmin);
+    }
 }

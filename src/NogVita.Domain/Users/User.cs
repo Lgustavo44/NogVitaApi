@@ -64,5 +64,13 @@ namespace NogVita.Domain.Users
         {
             IsActive = false;
         }
+
+        public void GrantAdmin()
+        {
+            if (!IsActive)
+                throw new DomainException("Somente usuários ativos podem ser administradores.");
+
+            IsAdmin = true;
+        }
     }
 }
