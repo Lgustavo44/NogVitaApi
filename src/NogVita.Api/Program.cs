@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using NogVita.Api.Filters;
 using NogVita.Api.OpenApi;
 using NogVita.Application;
 using NogVita.Application.Auth;
@@ -9,8 +10,10 @@ using NogVita.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddHealthChecks();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidationFilter>();
+}); builder.Services.AddHealthChecks();
 
 builder.Services.AddOpenApi(options =>
 {

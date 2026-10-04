@@ -86,3 +86,20 @@ Content-Type: application/json
 {
   "refreshToken": "{{login.response.body.$.refreshToken}}"
 }
+
+### 12. E-mail inválido (deve dar 400, com o erro no campo Email)
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria-sem-arroba",
+  "password": "qualquer-senha"
+}
+
+### 13. Refresh token vazio (deve dar 400)
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": ""
+}

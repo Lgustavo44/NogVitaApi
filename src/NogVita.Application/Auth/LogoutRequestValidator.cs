@@ -1,5 +1,4 @@
 using FluentValidation;
-using NogVita.Application.Common.Validation;
 
 namespace NogVita.Application.Auth;
 
