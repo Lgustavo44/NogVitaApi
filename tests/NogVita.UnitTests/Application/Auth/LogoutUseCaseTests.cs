@@ -16,7 +16,7 @@ public class LogoutUseCaseTests
 
     private static User CreateActiveUser()
     {
-        var user = new User("Maria Silva", "maria@email.com", "12345678909");
+        var user = new User("Maria Silva", "maria@email.com", TestData.ValidCpf);
         user.SetPasswordHash("hash");
         user.Activate();
         return user;

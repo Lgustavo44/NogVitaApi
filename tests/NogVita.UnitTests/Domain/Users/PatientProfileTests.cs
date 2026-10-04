@@ -8,7 +8,7 @@ namespace NogVita.UnitTests.Domain.Users
         [Fact]
         public void Should_Not_Create_Patient_With_Future_BirthDate()
         {
-            var user = new User("Maria Silva", "maria@email.com", "12345678909");
+            var user = new User("Maria Silva", "maria@email.com", TestData.ValidCpf);
             var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
 
             Assert.Throws<DomainException>(() =>

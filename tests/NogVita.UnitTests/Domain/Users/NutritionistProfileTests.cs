@@ -8,7 +8,7 @@ public class NutritionistProfileTests
     private const int ValidCrnRegion = 10;
     private const string ValidCrnNumber = "12345";
 
-    private static User CreateUser() => new("Maria Silva", "maria@email.com", "12345678909");
+    private static User CreateUser() => new("Maria Silva", "maria@email.com", TestData.ValidCpf);
 
     [Fact]
     public void Should_Create_Nutritionist_Profile_Inactive()

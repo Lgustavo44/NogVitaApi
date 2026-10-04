@@ -13,7 +13,7 @@ public class LoginUseCaseTests
 
     private static User CreateUserWithPassword()
     {
-        var user = new User("Maria Silva", ValidEmail, "12345678909");
+        var user = TestData.CreateUser();
         user.SetPasswordHash(PasswordHasher.Hash(ValidPassword));
         return user;
     }

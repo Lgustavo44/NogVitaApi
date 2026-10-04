@@ -22,6 +22,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired();
 
         builder.Property(u => u.Cpf)
+            .HasConversion(cpf => cpf.Value, value => Cpf.Create(value))
             .HasMaxLength(11)
             .IsRequired();
 

@@ -28,7 +28,7 @@ public sealed class AdminSeeder(
             throw new InvalidOperationException($"A senha deve ter pelo menos {MinPasswordLength} caracteres.");
         }
 
-        var admin = new User(settings.Name, settings.Email, settings.Cpf);
+        var admin = new User(settings.Name, settings.Email, Cpf.Create(settings.Cpf));
         admin.SetPasswordHash(passwordHasher.Hash(settings.Password));
         admin.Activate();
         admin.GrantAdmin();

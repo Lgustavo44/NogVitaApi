@@ -6,7 +6,7 @@ namespace NogVita.Domain.Users
     {
         public string Name { get; private set; } = null!;
         public string Email { get; private set; } = null!;
-        public string Cpf { get; private set; } = null!;
+        public Cpf Cpf { get; private set; } = null!;
         public string? PasswordHash { get; private set; }
         public bool IsActive { get; private set; }
         public bool IsAdmin { get; private set; }
@@ -15,17 +15,16 @@ namespace NogVita.Domain.Users
 
         private User() { } // usado pelo EF Core
 
-        public User(string name, string email, string cpf)
+        public User(string name, string email, Cpf cpf)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new DomainException("O nome é obrigatório.");
             if (string.IsNullOrWhiteSpace(email))
                 throw new DomainException("O email é obrigatório.");
-            if (string.IsNullOrWhiteSpace(cpf))
-                throw new DomainException("O CPF é obrigatório.");
+            ArgumentNullException.ThrowIfNull(cpf);
             Name = name.Trim();
             Email = NormalizeEmail(email);
-            Cpf = cpf.Trim();
+            Cpf = cpf;
         }
 
         public PatientProfile CreatePatientProfile(DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)

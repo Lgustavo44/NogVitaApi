@@ -7,18 +7,16 @@ public class UserTests
 {
     private const string ValidName = "Maria Silva";
     private const string ValidEmail = "maria@email.com";
-    private const string ValidCpf = "12345678909";
+    private static readonly Cpf ValidCpf = TestData.ValidCpf;
 
-    // Tipo 1: verificar um valor
     [Fact]
     public void Should_Normalize_Email_On_Creation()
     {
-        var user = new User(ValidName, "  Maria@Email.COM ", ValidCpf);
+        var user = TestData.CreateUser();
 
         Assert.Equal("maria@email.com", user.Email);
     }
 
-    // Tipo 2: verificar que uma regra lança exceção, com vários valores
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
@@ -38,7 +36,7 @@ public class UserTests
     [InlineData("   ")]
     public void Should_Not_Create_User_Without_CPF(string cpf)
     {
-        Assert.Throws<DomainException>(() => new User(ValidName, ValidEmail, cpf));
+        Assert.Throws<DomainException>(() => new User(ValidName, ValidEmail, Cpf.Create(cpf)));
     }
 
 
@@ -46,7 +44,7 @@ public class UserTests
     [Fact]
     public void Should_Activate_User_With_Password()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
         user.SetPasswordHash("password123");
         user.Activate();
         Assert.True(user.IsActive);
@@ -54,7 +52,7 @@ public class UserTests
     [Fact]
     public void Should_Deactivate_User()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
         user.SetPasswordHash("password123");
         user.Activate();
         Assert.True(user.IsActive);
@@ -65,7 +63,7 @@ public class UserTests
     [Fact]
     public void Should_Not_Activate_User_Without_Password()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
 
         Assert.Throws<DomainException>(() => user.Activate());
     }
@@ -73,7 +71,7 @@ public class UserTests
     [Fact]
     public void Should_Grant_Admin_To_Active_User()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
         user.SetPasswordHash("hash");
         user.Activate();
 
@@ -85,7 +83,7 @@ public class UserTests
     [Fact]
     public void Should_Return_Admin_Role()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
         user.SetPasswordHash("hash");
         user.Activate();
         user.GrantAdmin();
@@ -96,7 +94,7 @@ public class UserTests
     [Fact]
     public void Should_Return_Patient_Role()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
         user.SetPasswordHash("hash");
         user.Activate();
         user.CreatePatientProfile(DateOnly.FromDateTime(DateTime.Today), BiologicalSex.Female, 170, Goal.WeightLoss);
@@ -107,7 +105,7 @@ public class UserTests
     [Fact]
     public void Should_Return_Nutritionist_Role()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
         user.SetPasswordHash("hash");
         user.Activate();
         var profile = user.CreateNutritionistProfile(1, "123456");
@@ -123,7 +121,7 @@ public class UserTests
     [Fact]
     public void Should_Not_Return_Nutritionist_Role_When_Profile_Inactive()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
         user.SetPasswordHash("hash");
         user.Activate();
         var nutritionistProfile = user.CreateNutritionistProfile(1, "123456");
@@ -135,7 +133,7 @@ public class UserTests
     [Fact]
     public void Should_Return_Nutritionist_Role_When_Profile_Active()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
         user.SetPasswordHash("hash");
         user.Activate();
         var nutritionistProfile = user.CreateNutritionistProfile(1, "123456");
@@ -147,7 +145,7 @@ public class UserTests
     [Fact]
     public void Should_Return_No_Roles_For_New_User()
     {
-        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var user = TestData.CreateUser();
         var roles = user.GetRoles();
         Assert.Empty(roles);
     }
