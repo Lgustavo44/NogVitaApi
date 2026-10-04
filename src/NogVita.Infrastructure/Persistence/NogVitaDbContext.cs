@@ -1,14 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NogVita.Application.Abstractions;
+using NogVita.Domain.Auth;
 using NogVita.Domain.Common;
 using NogVita.Domain.Users;
 
 namespace NogVita.Infrastructure.Persistence;
 
-public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbContext(options)
+public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbContext(options), IUnitOfWork
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
     public DbSet<NutritionistProfile> NutritionistProfiles => Set<NutritionistProfile>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

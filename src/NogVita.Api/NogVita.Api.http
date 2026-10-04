@@ -1,5 +1,88 @@
-@NogVita.Api_HostAddress = http://localhost:5157
+@host = https://localhost:7194
 
-GET {{NogVita.Api_HostAddress}}/health
+### Health
+GET {{host}}/health
 
-###
+### 1. Login do Admin (deve dar 200)
+# @name login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### 2. Quem sou eu, com o token (deve dar 200)
+GET {{host}}/api/v1/auth/me
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 3. Quem sou eu, sem token (deve dar 401)
+GET {{host}}/api/v1/auth/me
+
+### 4. Senha errada (deve dar 401)
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "senha-errada-qualquer"
+}
+
+### 5. E-mail inexistente (deve dar 401, com a MESMA mensagem do item 4)
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "ninguem@nogvita.local",
+  "password": "senha-errada-qualquer"
+}
+
+### 6. Sem senha no corpo (deve dar 400)
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}"
+}
+
+### 7. Renovar com o refresh token do login (deve dar 200, com um par NOVO)
+# @name refresh
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.$.refreshToken}}"
+}
+
+### 8. REUSO: renovar de novo com o token do LOGIN, que já foi usado (deve dar 401)
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.$.refreshToken}}"
+}
+
+### 9. Depois do reuso, até o token NOVO (do item 7) foi revogado (deve dar 401)
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refresh.response.body.$.refreshToken}}"
+}
+
+### 10. Logout (deve dar 204). Antes, rode o item 1 de novo, para ter uma sessão nova.
+POST {{host}}/api/v1/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.$.refreshToken}}"
+}
+
+### 11. Renovar depois do logout (deve dar 401)
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.$.refreshToken}}"
+}

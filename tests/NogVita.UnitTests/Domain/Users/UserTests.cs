@@ -81,4 +81,74 @@ public class UserTests
 
         Assert.True(user.IsAdmin);
     }
+
+    [Fact]
+    public void Should_Return_Admin_Role()
+    {
+        var user = new User(ValidName, ValidEmail, ValidCpf);
+        user.SetPasswordHash("hash");
+        user.Activate();
+        user.GrantAdmin();
+        var roles = user.GetRoles();
+        Assert.Contains(Roles.Admin, roles);
+    }
+
+    [Fact]
+    public void Should_Return_Patient_Role()
+    {
+        var user = new User(ValidName, ValidEmail, ValidCpf);
+        user.SetPasswordHash("hash");
+        user.Activate();
+        user.CreatePatientProfile(DateOnly.FromDateTime(DateTime.Today), BiologicalSex.Female, 170, Goal.WeightLoss);
+        var roles = user.GetRoles();
+        Assert.Contains(Roles.Patient, roles);
+    }
+
+    [Fact]
+    public void Should_Return_Nutritionist_Role()
+    {
+        var user = new User(ValidName, ValidEmail, ValidCpf);
+        user.SetPasswordHash("hash");
+        user.Activate();
+        var profile = user.CreateNutritionistProfile(1, "123456");
+        profile.Activate();
+
+        var roles = user.GetRoles();
+
+        Assert.Contains(Roles.Nutritionist, roles);
+    }
+
+
+
+    [Fact]
+    public void Should_Not_Return_Nutritionist_Role_When_Profile_Inactive()
+    {
+        var user = new User(ValidName, ValidEmail, ValidCpf);
+        user.SetPasswordHash("hash");
+        user.Activate();
+        var nutritionistProfile = user.CreateNutritionistProfile(1, "123456");
+        nutritionistProfile.Deactivate();
+        var roles = user.GetRoles();
+        Assert.DoesNotContain(Roles.Nutritionist, roles);
+    }
+
+    [Fact]
+    public void Should_Return_Nutritionist_Role_When_Profile_Active()
+    {
+        var user = new User(ValidName, ValidEmail, ValidCpf);
+        user.SetPasswordHash("hash");
+        user.Activate();
+        var nutritionistProfile = user.CreateNutritionistProfile(1, "123456");
+        nutritionistProfile.Activate();
+        var roles = user.GetRoles();
+        Assert.Contains(Roles.Nutritionist, roles);
+    }
+
+    [Fact]
+    public void Should_Return_No_Roles_For_New_User()
+    {
+        var user = new User(ValidName, ValidEmail, ValidCpf);
+        var roles = user.GetRoles();
+        Assert.Empty(roles);
+    }
 }

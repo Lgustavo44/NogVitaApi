@@ -24,7 +24,7 @@ namespace NogVita.Domain.Users
             if (string.IsNullOrWhiteSpace(cpf))
                 throw new DomainException("O CPF é obrigatório.");
             Name = name.Trim();
-            Email = email.Trim().ToLowerInvariant();
+            Email = NormalizeEmail(email);
             Cpf = cpf.Trim();
         }
 
@@ -71,6 +71,25 @@ namespace NogVita.Domain.Users
                 throw new DomainException("Somente usuários ativos podem ser administradores.");
 
             IsAdmin = true;
+        }
+
+        public static string NormalizeEmail(string email)
+        {
+            return email.Trim().ToLowerInvariant();
+        }
+
+        public IReadOnlyList<string> GetRoles()
+        {
+            var roles = new List<string>();
+
+            if (IsAdmin)         
+                roles.Add(Roles.Admin);
+            if (PatientProfile is not null)
+                roles.Add(Roles.Patient);
+            if (NutritionistProfile is not null && NutritionistProfile.IsActive)
+                roles.Add(Roles.Nutritionist); 
+
+            return roles;
         }
     }
 }
