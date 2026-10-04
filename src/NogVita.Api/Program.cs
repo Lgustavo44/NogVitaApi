@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using NogVita.Api.OpenApi;
 using NogVita.Application;
 using NogVita.Application.Auth;
 using NogVita.Infrastructure;
@@ -11,7 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 
-builder.Services.AddOpenApi();  
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 
 var connectionString = builder.Configuration.GetConnectionString("NogVita")
     ?? throw new InvalidOperationException("Connection string 'NogVita' não configurada.");
@@ -66,6 +70,10 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "NogVita v1");
+    });
 }
 
 app.UseHttpsRedirection();
