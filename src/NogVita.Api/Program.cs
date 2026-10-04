@@ -1,4 +1,5 @@
 using NogVita.Infrastructure;
+using NogVita.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,16 @@ var connectionString = builder.Configuration.GetConnectionString("NogVita")
 builder.Services.AddInfrastructure(connectionString);
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<AdminSeeder>();
+    var adminSeedSettings = app.Configuration
+        .GetSection(AdminSeedSettings.SectionName)
+        .Get<AdminSeedSettings>();
+
+    await seeder.SeedAsync(adminSeedSettings);
+}
 
 if (app.Environment.IsDevelopment())
 {
