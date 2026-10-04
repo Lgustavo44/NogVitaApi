@@ -1,9 +1,16 @@
+using NogVita.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi();  
+
+var connectionString = builder.Configuration.GetConnectionString("NogVita")
+    ?? throw new InvalidOperationException("Connection string 'NogVita' não configurada.");
+
+builder.Services.AddInfrastructure(connectionString);
 
 var app = builder.Build();
 
