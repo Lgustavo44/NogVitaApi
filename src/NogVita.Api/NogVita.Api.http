@@ -201,3 +201,65 @@ Authorization: Bearer {{login.response.body.$.accessToken}}
 ### 27. Paciente tentando a área do Admin (deve dar 403)
 GET {{host}}/api/v1/admin/users
 Authorization: Bearer {{registerPatient.response.body.$.accessToken}}
+
+### 28. João faz login (deve dar 200)
+# @name joaoLogin
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "joao@nogvita.local",
+  "password": "cafe-com-pao-de-queijo"
+}
+
+### 29. Admin encontra o João (pega o Id dele)
+# @name listPatients
+GET {{host}}/api/v1/admin/patients?search=joao
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 30. Admin DESATIVA o João (deve dar 204)
+POST {{host}}/api/v1/admin/users/{{listPatients.response.body.$.items[0].id}}/deactivate
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 31. João tenta RENOVAR a sessão (deve dar 401: as sessões foram revogadas)
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{joaoLogin.response.body.$.refreshToken}}"
+}
+
+### 32. João tenta fazer LOGIN de novo (deve dar 401: a conta está inativa)
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "joao@nogvita.local",
+  "password": "cafe-com-pao-de-queijo"
+}
+
+### 33. João usa o token de ACESSO antigo (atenção ao resultado!)
+GET {{host}}/api/v1/patients/me
+Authorization: Bearer {{joaoLogin.response.body.$.accessToken}}
+
+### 34. Admin descobre o próprio Id
+# @name adminMe
+GET {{host}}/api/v1/auth/me
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 35. Admin tenta desativar a SI MESMO (deve dar 409)
+POST {{host}}/api/v1/admin/users/{{adminMe.response.body.$.userId}}/deactivate
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 36. Admin REATIVA o João (deve dar 204)
+POST {{host}}/api/v1/admin/users/{{listPatients.response.body.$.items[0].id}}/activate
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 37. João volta a conseguir fazer login (deve dar 200)
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "joao@nogvita.local",
+  "password": "cafe-com-pao-de-queijo"
+}

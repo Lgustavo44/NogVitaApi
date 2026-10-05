@@ -46,8 +46,7 @@ public sealed class AdminUsersController(IAdminUserQueries adminUserQueries, Dea
     [HttpPost("{id:guid}/activate")]
     public async Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken)
     {
-        var result = await activateUserUseCase.ExecuteAsync(User.GetUserId(), cancellationToken);
-
+        var result = await activateUserUseCase.ExecuteAsync(id, cancellationToken);
         return result switch
         {
             ActivateUserResult.Success => NoContent(),
