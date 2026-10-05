@@ -36,6 +36,14 @@ namespace NogVita.Domain.Users
             return PatientProfile;
         }
 
+        public void UpdatePatientProfile(DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)
+        {
+            if (PatientProfile is null)
+                throw new DomainException("O usuário não possui perfil de paciente.");
+
+            PatientProfile.Update(birthDate, biologicalSex, heightInCm, goal);
+        }
+
         public NutritionistProfile CreateNutritionistProfile(int crnRegion, string crnNumber)
         {
             if (NutritionistProfile is not null)
