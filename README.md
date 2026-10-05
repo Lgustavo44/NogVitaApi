@@ -17,10 +17,11 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Validação de entrada:** requisições inválidas respondem 400 com os erros por campo
 - **CPF validado:** normalização e verificação matemática dos dígitos verificadores
 - **Política de senha** baseada na recomendação do NIST (SP 800-63B-4)
+- **Cadastro de paciente:** conta e perfil em uma única etapa, com login automático
+- **Perfil do paciente:** consulta e atualização dos próprios dados, com idade calculada
 
 ### Em desenvolvimento
 
-- Cadastro de pacientes
 - Gestão de nutricionistas pelo administrador, com convite
 - Solicitações de acompanhamento
 - Planos alimentares com cálculo nutricional
@@ -35,6 +36,9 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/auth/logout` | Encerra a sessão |
 | `GET` | `/api/v1/auth/me` | Dados do usuário autenticado |
 | `GET` | `/health` | Saúde da API e do banco |
+| `POST` | `/api/v1/auth/register/patient` | Cadastra um paciente e devolve os tokens |
+| `GET` | `/api/v1/patients/me` | Perfil do paciente autenticado |
+| `PUT` | `/api/v1/patients/me` | Atualiza o perfil do paciente autenticado |
 
 ## Stack
 
@@ -73,6 +77,8 @@ tests/
 - Limite de tamanho em senhas e tokens, protegendo o servidor contra entradas gigantes
 - Segredos fora do código (User Secrets em desenvolvimento)
 - Nenhum dado pessoal nos tokens nem nos logs
+- - Autorização por papel (`Patient`, `Nutritionist`, `Admin`) e acesso aos próprios dados sempre pelo token, nunca por Ids enviados pelo cliente
+- Conflitos de cadastro com mensagem genérica, sem revelar se um CPF ou e-mail já tem conta (LGPD)
 
 ## Como rodar (desenvolvimento)
 
