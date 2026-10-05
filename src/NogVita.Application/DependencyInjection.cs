@@ -16,6 +16,8 @@ public static class DependencyInjection
         services.AddScoped<RefreshTokenUseCase>();
         services.AddScoped<LogoutUseCase>();
         services.AddScoped<RegisterPatientUseCase>();
+        services.AddScoped<GetMyPatientProfileUseCase>();
+        services.AddScoped<UpdateMyPatientProfileUseCase>();
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         return services;

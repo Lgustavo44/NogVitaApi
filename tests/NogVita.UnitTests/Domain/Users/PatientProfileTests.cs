@@ -12,6 +12,22 @@ namespace NogVita.UnitTests.Domain.Users
 
             Assert.Throws<DomainException>(() => user.UpdatePatientProfile(DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-31), BiologicalSex.Female, 165, Goal.WeightLoss));
         }
+
+        [Theory]
+        [InlineData("1995-03-10", "2026-03-10", 31)]
+        [InlineData("1995-03-10", "2026-03-09", 30)]
+        [InlineData("1995-03-10", "2026-12-31", 31)]
+        [InlineData("2000-02-29", "2026-02-28", 25)]
+        public void Should_Calculate_Age_At_Date(string birthDate, string date, int expectedAge)
+        {
+            var user = new User("Maria Silva", "maria@email.com", Cpf.Create("12345678909"));
+            var profile = user.CreatePatientProfile(DateOnly.Parse(birthDate), BiologicalSex.Female, 165, Goal.Maintenance);
+
+            var age = profile.GetAgeAt(DateOnly.Parse(date));
+
+            Assert.Equal(expectedAge, age);
+        }
+
         [Fact]
         public void Should_Not_Update_With_Future_BirthDate()
         {

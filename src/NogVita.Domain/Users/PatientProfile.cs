@@ -42,5 +42,15 @@ namespace NogVita.Domain.Users
             if (!Enum.IsDefined(typeof(Goal), goal))
                 throw new DomainException("Objetivo inválido.");
         }
+
+        public int GetAgeAt(DateOnly date)
+        {
+            var age = date.Year - BirthDate.Year;
+            if (date.Month < BirthDate.Month || (date.Month == BirthDate.Month && date.Day < BirthDate.Day))
+            {
+                age--;
+            }
+            return age;
+        }
     }
 }
