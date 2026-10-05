@@ -77,7 +77,7 @@ tests/
 - Limite de tamanho em senhas e tokens, protegendo o servidor contra entradas gigantes
 - Segredos fora do código (User Secrets em desenvolvimento)
 - Nenhum dado pessoal nos tokens nem nos logs
-- - Autorização por papel (`Patient`, `Nutritionist`, `Admin`) e acesso aos próprios dados sempre pelo token, nunca por Ids enviados pelo cliente
+- Autorização por papel (`Patient`, `Nutritionist`, `Admin`) e acesso aos próprios dados sempre pelo token, nunca por Ids enviados pelo cliente
 - Conflitos de cadastro com mensagem genérica, sem revelar se um CPF ou e-mail já tem conta (LGPD)
 
 ## Como rodar (desenvolvimento)
