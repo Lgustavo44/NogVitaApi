@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NogVita.Application.Abstractions;
+using NogVita.Application.Admin;
 using NogVita.Application.Auth;
 using NogVita.Infrastructure.Persistence;
 using NogVita.Infrastructure.Persistence.Repositories;
 using NogVita.Infrastructure.Persistence.Seed;
+using NogVita.Infrastructure.Queries;
 using NogVita.Infrastructure.Security;
 
 namespace NogVita.Infrastructure;
@@ -22,7 +24,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
         services.AddScoped<AdminSeeder>();
         services.AddScoped<IUserRepository, UserRepository>();
-
+        services.AddScoped<IAdminUserQueries, AdminUserQueries>();
 
         //jwt
         services.AddSingleton(jwtSettings);
