@@ -7,13 +7,19 @@ using NogVita.Application.Auth;
 using NogVita.Infrastructure;
 using NogVita.Infrastructure.Persistence.Seed;
 using NogVita.Infrastructure.Security;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<ValidationFilter>();
-}); builder.Services.AddHealthChecks();
+builder.Services
+    .AddControllers(options =>
+    {
+        options.Filters.Add<ValidationFilter>();
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddOpenApi(options =>
 {

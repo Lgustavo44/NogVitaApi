@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NogVita.Application.Auth;
+using NogVita.Application.Patients;
 
 namespace NogVita.Api.Controllers;
 
@@ -9,7 +10,9 @@ namespace NogVita.Api.Controllers;
 public sealed class AuthController(
     LoginUseCase loginUseCase,
     RefreshTokenUseCase refreshTokenUseCase,
-    LogoutUseCase logoutUseCase) : ControllerBase
+    LogoutUseCase logoutUseCase,
+    RegisterPatientUseCase registerPatientUseCase
+    ) : ControllerBase
 {
     [HttpPost("login")]
     [AllowAnonymous]
@@ -52,5 +55,17 @@ public sealed class AuthController(
         await logoutUseCase.ExecuteAsync(request, cancellationToken);
 
         return NoContent();
+    }
+
+    [HttpPost("register/patient")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RegisterPatient(RegisterPatientRequest request, CancellationToken cancellationToken)
+    {
+        var response = await registerPatientUseCase.ExecuteAsync(request, cancellationToken);
+
+        if (response is null)
+            return Problem(statusCode: StatusCodes.Status409Conflict, title: "Não foi possível concluir o cadastro com esses dados.");
+
+        return Created("/api/v1/patients/me", response);
     }
 }
