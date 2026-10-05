@@ -23,4 +23,21 @@ public sealed class UserRepository(NogVitaDbContext context) : IUserRepository
             .Include(u => u.NutritionistProfile)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
+
+    public Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var normalizedEmail = User.NormalizeEmail(email);
+
+        return context.Users.AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
+    }
+
+    public Task<bool> ExistsByCpfAsync(Cpf cpf, CancellationToken cancellationToken = default)
+    {
+        return context.Users.AnyAsync(u => u.Cpf == cpf, cancellationToken);
+    }
+
+    public void Add(User user)
+    {
+        context.Users.Add(user);
+    }
 }
