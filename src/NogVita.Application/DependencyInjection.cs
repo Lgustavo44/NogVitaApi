@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using NogVita.Application.Admin;
 using NogVita.Application.Auth;
 using NogVita.Application.Patients;
 
@@ -18,6 +19,8 @@ public static class DependencyInjection
         services.AddScoped<RegisterPatientUseCase>();
         services.AddScoped<GetMyPatientProfileUseCase>();
         services.AddScoped<UpdateMyPatientProfileUseCase>();
+        services.AddScoped<DeactivateUserUseCase>();
+        services.AddScoped<ActivateUserUseCase>();
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         return services;
