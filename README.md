@@ -19,6 +19,8 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Política de senha** baseada na recomendação do NIST (SP 800-63B-4)
 - **Cadastro de paciente:** conta e perfil em uma única etapa, com login automático
 - **Perfil do paciente:** consulta e atualização dos próprios dados, com idade calculada
+- **Painel do administrador:** listagens paginadas de usuários, pacientes e nutricionistas, com busca e filtros
+- **Ativação e desativação de contas:** desativar revoga todas as sessões do usuário
 
 ### Em desenvolvimento
 
@@ -39,6 +41,14 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/auth/register/patient` | Cadastra um paciente e devolve os tokens |
 | `GET` | `/api/v1/patients/me` | Perfil do paciente autenticado |
 | `PUT` | `/api/v1/patients/me` | Atualiza o perfil do paciente autenticado |
+| `GET` | `/api/v1/admin/users` | Lista usuários (paginado, com busca e filtro) |
+| `GET` | `/api/v1/admin/users/{id}` | Detalhes de um usuário |
+| `POST` | `/api/v1/admin/users/{id}/deactivate` | Desativa a conta e revoga as sessões |
+| `POST` | `/api/v1/admin/users/{id}/activate` | Reativa a conta |
+| `GET` | `/api/v1/admin/patients` | Lista pacientes (paginado) |
+| `GET` | `/api/v1/admin/patients/{id}` | Detalhes de um paciente |
+| `GET` | `/api/v1/admin/nutritionists` | Lista nutricionistas (paginado) |
+| `GET` | `/api/v1/admin/nutritionists/{id}` | Detalhes de um nutricionista |
 
 ## Stack
 
@@ -67,6 +77,8 @@ tests/
 **Duas camadas de validação:**
 - **Entrada (FluentValidation):** verifica se a requisição está bem preenchida e devolve todos os erros de uma vez
 - **Domínio (entidades e value objects):** garante que nenhum objeto inválido exista, como um CPF com dígitos verificadores errados
+
+**Leitura e escrita separadas (CQRS leve):** as operações que alteram dados passam por casos de uso e pelas regras do domínio. As listagens usam serviços de consulta que projetam direto do banco para o DTO, com paginação e sem carregar entidades inteiras.
 
 ## Segurança
 
