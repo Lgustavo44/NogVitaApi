@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img src="docs/assets/logo.svg" alt="NogVita" width="360">
+  </picture>
+</p>
+
 # NogVita
 
 Plataforma de acompanhamento nutricional que conecta **pacientes**, **nutricionistas** e **administradores**.
@@ -91,6 +98,22 @@ tests/
 - Nenhum dado pessoal nos tokens nem nos logs
 - Autorização por papel (`Patient`, `Nutritionist`, `Admin`) e acesso aos próprios dados sempre pelo token, nunca por Ids enviados pelo cliente
 - Conflitos de cadastro com mensagem genérica, sem revelar se um CPF ou e-mail já tem conta (LGPD)
+
+## Identidade visual
+
+<img src="docs/assets/icon.svg" alt="Ícone NogVita" width="64" align="left">
+
+O logotipo é só o nome, com o "o" trocado por uma fatia de laranja. A fatia sozinha também funciona como ícone do app.
+
+<br clear="left">
+
+| Cor | Hex | Uso |
+|---|---|---|
+| ![#F28C28](https://placehold.co/16x16/F28C28/F28C28.png) Laranja | `#F28C28` | Casca e gomos da fatia |
+| ![#FFD08A](https://placehold.co/16x16/FFD08A/FFD08A.png) Polpa | `#FFD08A` | Interior da fatia |
+| ![#1D2A24](https://placehold.co/16x16/1D2A24/1D2A24.png) Verde-escuro | `#1D2A24` | Texto do logotipo |
+
+Os arquivos ficam em [`docs/assets/`](docs/assets/): `logo.svg` (fundo claro), `logo-dark.svg` (fundo escuro) e `icon.svg` (ícone).
 
 ## Como rodar (desenvolvimento)
 

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="NogVita">
+  <circle cx="256" cy="256" r="240" fill="#F28C28"/>
+  <circle cx="256" cy="256" r="192.00" fill="#FFD08A"/>
+  <g stroke="#F28C28" stroke-width="19.20" stroke-linecap="round">
+    <line x1="64.00" y1="256.00" x2="448.00" y2="256.00"/>
+    <line x1="120.24" y1="120.24" x2="391.76" y2="391.76"/>
+    <line x1="256.00" y1="64.00" x2="256.00" y2="448.00"/>
+    <line x1="391.76" y1="120.24" x2="120.24" y2="391.76"/>
+  </g>
+</svg>
