@@ -8,6 +8,8 @@ public sealed class GetMyPatientProfileUseCase(IUserRepository userRepository, T
     {
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
 
+        if (user is null || !user.IsActive || user.PatientProfile is null)
+            return null;
         if (user?.PatientProfile is null)
             return null;
 

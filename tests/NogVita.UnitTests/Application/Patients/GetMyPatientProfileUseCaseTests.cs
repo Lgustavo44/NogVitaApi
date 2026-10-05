@@ -16,6 +16,18 @@ public class GetMyPatientProfileUseCaseTests
     }
 
     [Fact]
+    public async Task Should_Return_Null_When_User_Is_Inactive()
+    {
+        var user = CreatePatient();
+        user.Deactivate();
+        var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), _timeProvider);
+
+        var response = await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+
+        Assert.Null(response);
+    }
+
+    [Fact]
     public async Task Should_Return_Profile_With_Age_And_Formatted_Cpf()
     {
         var user = CreatePatient();
