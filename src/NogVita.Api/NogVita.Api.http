@@ -172,3 +172,32 @@ Authorization: Bearer {{login.response.body.$.accessToken}}
 
 ### 20. Perfil de paciente sem token (deve dar 401)
 GET {{host}}/api/v1/patients/me
+
+### 21. Admin: listar usuários (deve dar 200, paginado)
+# @name listUsers
+GET {{host}}/api/v1/admin/users?page=1&pageSize=20
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 22. Admin: buscar por nome ou e-mail (deve trazer só o João)
+GET {{host}}/api/v1/admin/users?search=JOAO
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 23. Admin: só os ativos, de 1 em 1 (veja o totalPages)
+GET {{host}}/api/v1/admin/users?isActive=true&pageSize=1
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 24. Admin: pageSize acima do máximo (deve dar 400)
+GET {{host}}/api/v1/admin/users?pageSize=101
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 25. Admin: detalhe do primeiro usuário da lista (deve dar 200, com CPF formatado)
+GET {{host}}/api/v1/admin/users/{{listUsers.response.body.$.items[0].id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 26. Admin: Id que não existe (deve dar 404)
+GET {{host}}/api/v1/admin/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### 27. Paciente tentando a área do Admin (deve dar 403)
+GET {{host}}/api/v1/admin/users
+Authorization: Bearer {{registerPatient.response.body.$.accessToken}}
