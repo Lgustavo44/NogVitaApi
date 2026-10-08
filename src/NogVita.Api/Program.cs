@@ -10,6 +10,7 @@ using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Persistence.Seed;
 using NogVita.Infrastructure.Security;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +75,30 @@ frontendSettings.Validate();
 builder.Services.AddApplication(refreshTokenSettings);
 builder.Services.AddSingleton(frontendSettings);
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
 
 var app = builder.Build();
 
@@ -87,7 +112,9 @@ using (var scope = app.Services.CreateScope())
     await seeder.SeedAsync(adminSeedSettings);
 }
 
-if (app.Environment.IsDevelopment())
+app.UseForwardedHeaders();
+
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     app.MapOpenApi();
     app.UseSwaggerUI(options =>
@@ -97,6 +124,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

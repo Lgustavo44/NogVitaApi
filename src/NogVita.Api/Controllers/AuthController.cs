@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using NogVita.Application.Auth;
 using NogVita.Application.Patients;
 
 namespace NogVita.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting("auth")]
 [Route("api/v1/auth")]
 public sealed class AuthController(
     LoginUseCase loginUseCase,

@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using NogVita.Application.Nutritionists;
 
 namespace NogVita.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting("auth")]
 [Route("api/v1/auth/invitations")]
 public sealed class InvitationsController(AcceptNutritionistInvitationUseCase acceptNutritionistInvitationUseCase) : ControllerBase
 {
