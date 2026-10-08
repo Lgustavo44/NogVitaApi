@@ -28,13 +28,15 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Perfil do paciente:** consulta e atualização dos próprios dados, com idade calculada
 - **Painel do administrador:** listagens paginadas de usuários, pacientes e nutricionistas, com busca e filtros
 - **Ativação e desativação de contas:** desativar revoga todas as sessões do usuário
+- **Pré-cadastro de nutricionistas pelo administrador**, com convite enviado por e-mail (link de uso único, válido por 72 horas)
+- **Aceite do convite:** um usuário novo define a senha; um usuário que já é paciente só ativa o novo papel, sem trocar a senha
 
 ### Em desenvolvimento
 
-- Gestão de nutricionistas pelo administrador, com convite
 - Solicitações de acompanhamento
 - Planos alimentares com cálculo nutricional
 - Registro de peso
+- Confirmação de e-mail no cadastro de paciente
 
 ## Endpoints
 
@@ -56,6 +58,9 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `GET` | `/api/v1/admin/patients/{id}` | Detalhes de um paciente |
 | `GET` | `/api/v1/admin/nutritionists` | Lista nutricionistas (paginado) |
 | `GET` | `/api/v1/admin/nutritionists/{id}` | Detalhes de um nutricionista |
+| `POST` | `/api/v1/admin/nutritionists` | Pré-cadastra um nutricionista e envia o convite |
+| `POST` | `/api/v1/admin/nutritionists/{id}/invitation` | Reenvia o convite (invalida os anteriores) |
+| `POST` | `/api/v1/auth/invitations/accept` | Aceita o convite |
 
 ## Stack
 
@@ -98,6 +103,9 @@ tests/
 - Nenhum dado pessoal nos tokens nem nos logs
 - Autorização por papel (`Patient`, `Nutritionist`, `Admin`) e acesso aos próprios dados sempre pelo token, nunca por Ids enviados pelo cliente
 - Conflitos de cadastro com mensagem genérica, sem revelar se um CPF ou e-mail já tem conta (LGPD)
+- Tokens de convite armazenados apenas como hash, com validade e uso único
+- O link do convite leva o token no fragmento da URL, que nunca é enviado a servidores
+- O aceite do convite nunca altera a senha de uma conta existente
 
 ## Identidade visual
 
@@ -123,6 +131,12 @@ Os arquivos ficam em [`docs/assets/`](docs/assets/): `logo.svg` (fundo claro), `
 
    ```bash
    docker run -d --name nogvita-postgres -e "POSTGRES_USER=nogvita" -e "POSTGRES_PASSWORD=<senha>" -e "POSTGRES_DB=nogvita" -p 127.0.0.1:5432:5432 -v nogvita-pgdata:/var/lib/postgresql/data postgres:17
+   ```
+
+   Suba também o servidor de e-mail de desenvolvimento (os e-mails aparecem em `http://localhost:8025`):
+
+   ```bash
+   docker run -d --name nogvita-mailpit -p 127.0.0.1:1025:1025 -p 127.0.0.1:8025:8025 axllent/mailpit:v1.31.4
    ```
 
 2. Configure os segredos com `dotnet user-secrets` no projeto `src/NogVita.Api`:
