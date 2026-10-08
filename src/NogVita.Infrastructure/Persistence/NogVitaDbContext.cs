@@ -2,6 +2,7 @@
 using NogVita.Application.Abstractions;
 using NogVita.Domain.Auth;
 using NogVita.Domain.Common;
+using NogVita.Domain.Invitations;
 using NogVita.Domain.Users;
 
 namespace NogVita.Infrastructure.Persistence;
@@ -12,6 +13,7 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
     public DbSet<NutritionistProfile> NutritionistProfiles => Set<NutritionistProfile>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<NutritionistInvitation> NutritionistInvitations => Set<NutritionistInvitation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

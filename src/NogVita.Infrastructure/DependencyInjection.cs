@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<AdminSeeder>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAdminUserQueries, AdminUserQueries>();
+        services.AddScoped<IInvitationRepository, InvitationRepository>();
 
         //jwt
         services.AddSingleton(jwtSettings);
