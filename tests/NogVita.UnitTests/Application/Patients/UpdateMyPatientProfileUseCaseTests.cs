@@ -15,6 +15,8 @@ public class UpdateMyPatientProfileUseCaseTests
     private static User CreatePatient()
     {
         var user = new User("Maria Silva", "maria@email.com", Cpf.Create("52998224725"));
+        user.SetPasswordHash("hash");
+        user.Activate();
         user.CreatePatientProfile(new DateOnly(1995, 3, 10), BiologicalSex.Female, 165, Goal.WeightLoss);
         return user;
     }
