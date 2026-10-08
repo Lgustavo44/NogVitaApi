@@ -4,6 +4,7 @@ using NogVita.Api.Filters;
 using NogVita.Api.OpenApi;
 using NogVita.Application;
 using NogVita.Application.Auth;
+using NogVita.Application.Common;
 using NogVita.Infrastructure;
 using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Persistence.Seed;
@@ -66,7 +67,12 @@ var refreshTokenSettings = builder.Configuration.GetSection(RefreshTokenSettings
     ?? throw new InvalidOperationException("Seção 'RefreshToken' não configurada.");
 refreshTokenSettings.Validate();
 
+var frontendSettings = builder.Configuration.GetSection(FrontendSettings.SectionName).Get<FrontendSettings>()
+    ?? throw new InvalidOperationException("Seção 'Frontend' não configurada.");
+frontendSettings.Validate();
+
 builder.Services.AddApplication(refreshTokenSettings);
+builder.Services.AddSingleton(frontendSettings);
 
 
 var app = builder.Build();

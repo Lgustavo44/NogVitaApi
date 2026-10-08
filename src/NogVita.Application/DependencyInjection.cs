@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using NogVita.Application.Admin;
 using NogVita.Application.Auth;
+using NogVita.Application.Nutritionists;
 using NogVita.Application.Patients;
 
 namespace NogVita.Application;
@@ -25,6 +26,9 @@ public static class DependencyInjection
         services.AddScoped<RegisterPatientUseCase>();
         services.AddScoped<GetMyPatientProfileUseCase>();
         services.AddScoped<UpdateMyPatientProfileUseCase>();
+
+        // Nutricionistas
+        services.AddScoped<PreRegisterNutritionistUseCase>();
 
         // Admin
         services.AddScoped<DeactivateUserUseCase>();

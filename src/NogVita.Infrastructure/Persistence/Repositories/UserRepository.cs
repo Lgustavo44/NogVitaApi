@@ -6,22 +6,26 @@ namespace NogVita.Infrastructure.Persistence.Repositories;
 
 public sealed class UserRepository(NogVitaDbContext context) : IUserRepository
 {
+    private IQueryable<User> UsersWithProfiles =>
+        context.Users
+            .Include(u => u.PatientProfile)
+            .Include(u => u.NutritionistProfile);
+
+    public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return UsersWithProfiles.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+    }
+
     public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         var normalizedEmail = User.NormalizeEmail(email);
 
-        return context.Users
-            .Include(u => u.PatientProfile)
-            .Include(u => u.NutritionistProfile)
-            .FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
+        return UsersWithProfiles.FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
     }
 
-    public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public Task<User?> GetByCpfAsync(Cpf cpf, CancellationToken cancellationToken = default)
     {
-        return context.Users
-            .Include(u => u.PatientProfile)
-            .Include(u => u.NutritionistProfile)
-            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        return UsersWithProfiles.FirstOrDefaultAsync(u => u.Cpf == cpf, cancellationToken);
     }
 
     public Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
@@ -34,6 +38,17 @@ public sealed class UserRepository(NogVitaDbContext context) : IUserRepository
     public Task<bool> ExistsByCpfAsync(Cpf cpf, CancellationToken cancellationToken = default)
     {
         return context.Users.AnyAsync(u => u.Cpf == cpf, cancellationToken);
+    }
+
+    public Task<bool> ExistsByCrnAsync(int crnRegion, string crnNumber, CancellationToken cancellationToken = default)
+    {
+        var normalizedNumber = crnNumber.Trim();
+
+        return context.Users.AnyAsync(u =>
+            u.NutritionistProfile != null &&
+            u.NutritionistProfile.CrnRegion == crnRegion &&
+            u.NutritionistProfile.CrnNumber == normalizedNumber,
+            cancellationToken);
     }
 
     public void Add(User user)

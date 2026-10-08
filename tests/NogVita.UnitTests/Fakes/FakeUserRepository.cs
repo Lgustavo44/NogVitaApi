@@ -13,6 +13,21 @@ public sealed class FakeUserRepository : IUserRepository
             Users.Add(user);
     }
 
+    public Task<User?> GetByCpfAsync(Cpf cpf, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(Users.FirstOrDefault(u => u.Cpf == cpf));
+    }
+
+    public Task<bool> ExistsByCrnAsync(int crnRegion, string crnNumber, CancellationToken cancellationToken = default)
+    {
+        var normalizedNumber = crnNumber.Trim();
+
+        return Task.FromResult(Users.Any(u =>
+            u.NutritionistProfile is not null &&
+            u.NutritionistProfile.CrnRegion == crnRegion &&
+            u.NutritionistProfile.CrnNumber == normalizedNumber));
+    }
+
     public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         var normalizedEmail = User.NormalizeEmail(email);
