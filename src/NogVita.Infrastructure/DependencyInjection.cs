@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Admin;
 using NogVita.Application.Auth;
+using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Persistence;
 using NogVita.Infrastructure.Persistence.Repositories;
 using NogVita.Infrastructure.Persistence.Seed;
@@ -13,7 +14,7 @@ namespace NogVita.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, JwtSettings jwtSettings)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, JwtSettings jwtSettings, EmailSettings emailSettings)
     {
         services.AddDbContext<NogVitaDbContext>(options =>
             options.UseNpgsql(connectionString)
@@ -26,6 +27,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAdminUserQueries, AdminUserQueries>();
         services.AddScoped<IInvitationRepository, InvitationRepository>();
+        services.AddSingleton(emailSettings);
+        services.AddScoped<IEmailSender, MailKitEmailSender>();
 
         //jwt
         services.AddSingleton(jwtSettings);

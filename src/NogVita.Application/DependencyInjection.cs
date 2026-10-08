@@ -10,18 +10,25 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services, RefreshTokenSettings refreshTokenSettings)
     {
-        services.AddScoped<LoginUseCase>();
+        // Configurações e serviços compartilhados
         services.AddSingleton(refreshTokenSettings);
         services.AddSingleton(TimeProvider.System);
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+        // Autenticação
         services.AddScoped<TokenIssuer>();
+        services.AddScoped<LoginUseCase>();
         services.AddScoped<RefreshTokenUseCase>();
         services.AddScoped<LogoutUseCase>();
+
+        // Pacientes
         services.AddScoped<RegisterPatientUseCase>();
         services.AddScoped<GetMyPatientProfileUseCase>();
         services.AddScoped<UpdateMyPatientProfileUseCase>();
+
+        // Admin
         services.AddScoped<DeactivateUserUseCase>();
         services.AddScoped<ActivateUserUseCase>();
-        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         return services;
     }

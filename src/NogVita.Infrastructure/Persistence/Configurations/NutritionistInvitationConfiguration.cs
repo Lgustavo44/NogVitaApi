@@ -27,7 +27,7 @@ public class NutritionistInvitationConfiguration : IEntityTypeConfiguration<Nutr
             .IsRequired();
         builder.Property(t => t.RevokedAtUtc)
             .IsRequired(false);
-        builder.Property(t => t.UsedAtUtc   )
+        builder.Property(t => t.UsedAtUtc)
             .IsRequired(false);
         builder.HasIndex(t => t.TokenHash)
             .IsUnique();

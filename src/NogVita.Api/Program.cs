@@ -5,6 +5,7 @@ using NogVita.Api.OpenApi;
 using NogVita.Application;
 using NogVita.Application.Auth;
 using NogVita.Infrastructure;
+using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Persistence.Seed;
 using NogVita.Infrastructure.Security;
 using System.Text.Json.Serialization;
@@ -34,6 +35,10 @@ var jwtSettings = builder.Configuration
     .Get<JwtSettings>() ?? throw new InvalidOperationException("Jwt settings not configured.");
 jwtSettings.Validate();
 
+var emailSettings = builder.Configuration.GetSection(EmailSettings.SectionName).Get<EmailSettings>()
+    ?? throw new InvalidOperationException("Seção 'Email' não configurada.");
+emailSettings.Validate();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -56,7 +61,7 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddInfrastructure(connectionString, jwtSettings);
+builder.Services.AddInfrastructure(connectionString, jwtSettings, emailSettings);
 var refreshTokenSettings = builder.Configuration.GetSection(RefreshTokenSettings.SectionName).Get<RefreshTokenSettings>()
     ?? throw new InvalidOperationException("Seção 'RefreshToken' não configurada.");
 refreshTokenSettings.Validate();
