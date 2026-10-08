@@ -20,16 +20,18 @@ public class PreRegisterNutritionistUseCaseTests
     private static PreRegisterNutritionistRequest CreateRequest(string cpf = AnaCpf, string email = AnaEmail, string crnNumber = "12345") =>
         new("Ana Lima", email, cpf, 3, crnNumber);
 
-    private PreRegisterNutritionistUseCase CreateUseCase() =>
-        new(
-            _userRepository,
+    private PreRegisterNutritionistUseCase CreateUseCase()
+    {
+        var invitationService = new NutritionistInvitationService(
             _invitationRepository,
             _secureTokenService,
             _emailSender,
-            _unitOfWork,
             new FrontendSettings { BaseUrl = "http://localhost:4200" },
             TimeProvider.System,
-            NullLogger<PreRegisterNutritionistUseCase>.Instance);
+            NullLogger<NutritionistInvitationService>.Instance);
+
+        return new PreRegisterNutritionistUseCase(_userRepository, _unitOfWork, invitationService);
+    }
 
     private static User CreateActivePatient(string cpf, string email)
     {

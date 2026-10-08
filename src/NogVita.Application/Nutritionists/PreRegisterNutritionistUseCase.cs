@@ -1,7 +1,4 @@
-using Microsoft.Extensions.Logging;
 using NogVita.Application.Abstractions;
-using NogVita.Application.Common;
-using NogVita.Domain.Invitations;
 using NogVita.Domain.Users;
 
 namespace NogVita.Application.Nutritionists;
@@ -22,16 +19,9 @@ public sealed record PreRegisterNutritionistResult(
 
 public sealed class PreRegisterNutritionistUseCase(
     IUserRepository userRepository,
-    IInvitationRepository invitationRepository,
-    ISecureTokenService secureTokenService,
-    IEmailSender emailSender,
     IUnitOfWork unitOfWork,
-    FrontendSettings frontendSettings,
-    TimeProvider timeProvider,
-    ILogger<PreRegisterNutritionistUseCase> logger)
+    NutritionistInvitationService invitationService)
 {
-    public static readonly TimeSpan InvitationLifetime = TimeSpan.FromHours(72);
-
     public async Task<PreRegisterNutritionistResult> ExecuteAsync(PreRegisterNutritionistRequest request, CancellationToken cancellationToken = default)
     {
         var cpf = Cpf.Create(request.Cpf);
@@ -43,13 +33,11 @@ public sealed class PreRegisterNutritionistUseCase(
         var userByEmail = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
 
         User user;
-        bool isNewUser;
 
         if (userByCpf is null && userByEmail is null)
         {
             user = new User(request.Name, request.Email, cpf);
             userRepository.Add(user);
-            isNewUser = true;
         }
         else if (userByCpf is not null && userByCpf.Id == userByEmail?.Id)
         {
@@ -57,7 +45,6 @@ public sealed class PreRegisterNutritionistUseCase(
                 return PreRegisterNutritionistResult.Conflict();
 
             user = userByCpf;
-            isNewUser = false;
         }
         else
         {
@@ -66,31 +53,11 @@ public sealed class PreRegisterNutritionistUseCase(
 
         user.CreateNutritionistProfile(request.CrnRegion, request.CrnNumber);
 
-        var now = timeProvider.GetUtcNow().UtcDateTime;
-        var token = secureTokenService.GenerateToken();
-        var invitation = new NutritionistInvitation(user.Id, secureTokenService.Hash(token), now.Add(InvitationLifetime), now);
-        invitationRepository.Add(invitation);
-
+        var token = invitationService.CreateInvitation(user);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var emailSent = await TrySendInvitationAsync(user, token, isNewUser, cancellationToken);
+        var emailSent = await invitationService.TrySendAsync(user, token, cancellationToken);
 
         return new PreRegisterNutritionistResult(PreRegisterNutritionistStatus.Created, user.Id, emailSent);
-    }
-
-    private async Task<bool> TrySendInvitationAsync(User user, string token, bool isNewUser, CancellationToken cancellationToken)
-    {
-        var link = $"{frontendSettings.BaseUrl.TrimEnd('/')}/nutri/convite#token={token}";
-
-        try
-        {
-            await emailSender.SendAsync(InvitationEmail.Create(user.Email, user.Name, link, isNewUser), cancellationToken);
-            return true;
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Falha ao enviar o convite de nutricionista para o usuário {UserId}.", user.Id);
-            return false;
-        }
     }
 }

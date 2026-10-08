@@ -28,6 +28,9 @@ public static class DependencyInjection
         services.AddScoped<UpdateMyPatientProfileUseCase>();
 
         // Nutricionistas
+        services.AddScoped<NutritionistInvitationService>();
+        services.AddScoped<PreRegisterNutritionistUseCase>();
+        services.AddScoped<ResendNutritionistInvitationUseCase>();
         services.AddScoped<PreRegisterNutritionistUseCase>();
 
         // Admin
