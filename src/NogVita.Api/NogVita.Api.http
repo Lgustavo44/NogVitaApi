@@ -263,3 +263,112 @@ Content-Type: application/json
   "email": "joao@nogvita.local",
   "password": "cafe-com-pao-de-queijo"
 }
+
+### 38. Admin pré-cadastra a Ana, que é NOVA (deve dar 201, com invitationEmailSent = true)
+POST {{host}}/api/v1/admin/nutritionists
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Ana Lima",
+  "email": "ana@nogvita.local",
+  "cpf": "111.444.777-35",
+  "crnRegion": 3,
+  "crnNumber": "12345"
+}
+
+### 39. Ana aceita o convite definindo a senha (deve dar 204)
+# Cole aqui o token do e-mail no Mailpit (o texto depois de "#token=")
+@inviteTokenAna = COLE_O_TOKEN_AQUI
+POST {{host}}/api/v1/auth/invitations/accept
+Content-Type: application/json
+
+{
+  "token": "{{inviteTokenAna}}",
+  "password": "cha-de-hortela-com-limao"
+}
+
+### 40. O MESMO convite de novo (deve dar 400: já foi usado, RN09)
+POST {{host}}/api/v1/auth/invitations/accept
+Content-Type: application/json
+
+{
+  "token": "{{inviteTokenAna}}",
+  "password": "cha-de-hortela-com-limao"
+}
+
+### 41. Ana faz login (deve dar 200)
+# @name anaLogin
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "ana@nogvita.local",
+  "password": "cha-de-hortela-com-limao"
+}
+
+### 42. Quem é a Ana? (deve mostrar o papel Nutritionist)
+GET {{host}}/api/v1/auth/me
+Authorization: Bearer {{anaLogin.response.body.$.accessToken}}
+
+### 43. Admin pré-cadastra o JOÃO, que já é paciente (deve dar 201)
+POST {{host}}/api/v1/admin/nutritionists
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "João Souza",
+  "email": "joao@nogvita.local",
+  "cpf": "123.456.789-09",
+  "crnRegion": 2,
+  "crnNumber": "777"
+}
+
+### 44. João aceita SEM mandar senha (deve dar 204: ele já tem senha)
+@inviteTokenJoao = COLE_O_TOKEN_AQUI
+POST {{host}}/api/v1/auth/invitations/accept
+Content-Type: application/json
+
+{
+  "token": "{{inviteTokenJoao}}"
+}
+
+### 45. João entra com a senha DE SEMPRE e agora tem dois papéis
+# @name joaoLogin2
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "joao@nogvita.local",
+  "password": "cafe-com-pao-de-queijo"
+}
+
+### 46. Quem é o João? (deve mostrar Patient E Nutritionist)
+GET {{host}}/api/v1/auth/me
+Authorization: Bearer {{joaoLogin2.response.body.$.accessToken}}
+
+### 47. CPF do João com OUTRO e-mail (deve dar 409: dados não conferem)
+POST {{host}}/api/v1/admin/nutritionists
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Alguém",
+  "email": "outro@nogvita.local",
+  "cpf": "123.456.789-09",
+  "crnRegion": 4,
+  "crnNumber": "888"
+}
+
+### 48. Paciente/nutricionista tentando pré-cadastrar (deve dar 403: só o Admin, RN07)
+POST {{host}}/api/v1/admin/nutritionists
+Authorization: Bearer {{joaoLogin2.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Teste",
+  "email": "teste@nogvita.local",
+  "cpf": "111.444.777-35",
+  "crnRegion": 1,
+  "crnNumber": "1"
+}
