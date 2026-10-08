@@ -28,7 +28,22 @@ public static class DependencyInjection
         services.AddScoped<IAdminUserQueries, AdminUserQueries>();
         services.AddScoped<IInvitationRepository, InvitationRepository>();
         services.AddSingleton(emailSettings);
-        services.AddScoped<IEmailSender, MailKitEmailSender>();
+        services.AddSingleton(emailSettings);
+
+        if (emailSettings.UsesBrevoApi)
+        {
+            services.AddHttpClient<IEmailSender, BrevoApiEmailSender>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.brevo.com/");
+                client.DefaultRequestHeaders.Add("api-key", emailSettings.ApiKey);
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
+        }
+        else
+        {
+            services.AddScoped<IEmailSender, MailKitEmailSender>();
+        }
+
 
         //jwt
         services.AddSingleton(jwtSettings);
