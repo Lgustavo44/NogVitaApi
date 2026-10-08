@@ -18,15 +18,6 @@ public sealed class EmailSettings
 
     public void Validate()
     {
-        if (string.IsNullOrWhiteSpace(Host) || Port <= 0)
-            throw new InvalidOperationException("Email: Host e Port são obrigatórios.");
-
-        if (string.IsNullOrWhiteSpace(FromAddress))
-            throw new InvalidOperationException("Email: FromAddress é obrigatório.");
-
-        if (!string.IsNullOrWhiteSpace(Username) && string.IsNullOrWhiteSpace(Password))
-            throw new InvalidOperationException("Email: Password é obrigatório quando Username é informado.");
-
         if (string.IsNullOrWhiteSpace(FromAddress))
             throw new InvalidOperationException("Email: FromAddress é obrigatório.");
 
