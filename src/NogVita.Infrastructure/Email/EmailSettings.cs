@@ -14,6 +14,9 @@ public sealed class EmailSettings
     public string Provider { get; init; } = "Smtp";
     public string? ApiKey { get; init; }
 
+    // URL pública da logo, usada no lugar do anexo inline (a API da Brevo não aceita imagens cid:).
+    public string? LogoUrl { get; init; }
+
     public bool UsesBrevoApi => Provider.Equals("BrevoApi", StringComparison.OrdinalIgnoreCase);
 
     public void Validate()
@@ -25,6 +28,9 @@ public sealed class EmailSettings
         {
             if (string.IsNullOrWhiteSpace(ApiKey))
                 throw new InvalidOperationException("Email: ApiKey é obrigatória para o provedor BrevoApi.");
+
+            if (!Uri.TryCreate(LogoUrl, UriKind.Absolute, out var logoUri) || logoUri.Scheme != Uri.UriSchemeHttps)
+                throw new InvalidOperationException("Email: LogoUrl precisa ser uma URL https absoluta para o provedor BrevoApi.");
 
             return;
         }
