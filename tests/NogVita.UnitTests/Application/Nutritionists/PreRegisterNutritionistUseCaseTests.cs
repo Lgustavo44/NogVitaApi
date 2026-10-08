@@ -26,7 +26,7 @@ public class PreRegisterNutritionistUseCaseTests
             _invitationRepository,
             _secureTokenService,
             _emailSender,
-            new FrontendSettings { BaseUrl = "http://localhost:4200" },
+            new FrontendSettings { BaseUrl = "http://localhost:5173" },
             TimeProvider.System,
             NullLogger<NutritionistInvitationService>.Instance);
 
