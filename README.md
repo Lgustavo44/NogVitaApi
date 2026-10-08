@@ -62,6 +62,27 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/admin/nutritionists/{id}/invitation` | Reenvia o convite (invalida os anteriores) |
 | `POST` | `/api/v1/auth/invitations/accept` | Aceita o convite |
 
+> 📘 Formatos de requisição e resposta, erros e fluxos estão no **[guia de consumo da API](docs/API.md)**.
+
+## Ambiente de staging
+
+A API de testes está publicada em:
+
+- **API:** `https://nogvitaapi.onrender.com`
+- **Swagger:** `https://nogvitaapi.onrender.com/swagger`
+
+> O ambiente usa o plano gratuito da Render: depois de 15 minutos sem uso, ele "dorme", e a primeira requisição pode levar cerca de 1 minuto. Use **apenas dados de teste**.
+
+### Para o frontend
+
+- **Origem liberada no CORS:** `http://localhost:5173` (o padrão do Vite). Acesse sempre por `localhost`, e não por `127.0.0.1`.
+- **Autenticação:** envie o token de acesso no header `Authorization: Bearer <accessToken>`. O token de acesso dura 15 minutos; use o `POST /api/v1/auth/refresh` com o `refreshToken` para obter um par novo. Faça **uma renovação por vez**: duas renovações simultâneas com o mesmo refresh token encerram todas as sessões (detecção de reuso).
+- **Erros:** todas as respostas de erro seguem o formato `ProblemDetails` (`title`, `status` e, em erros de validação, `errors` por campo).
+- **Enums:** trafegam como texto (ex.: `"goal": "MuscleGain"`).
+- **Convite de nutricionista:** o e-mail leva para `/nutri/convite#token=...`. O Vue Router precisa usar `createWebHistory()` (e não o modo hash). A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/invitations/accept`.
+
+O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.md).
+
 ## Stack
 
 **Em uso:** C# · .NET 10 · ASP.NET Core Web API · Entity Framework Core · PostgreSQL · JWT · FluentValidation · xUnit · Docker (banco de dados) · OpenAPI / Swagger UI
