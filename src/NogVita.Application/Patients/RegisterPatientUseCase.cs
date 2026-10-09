@@ -16,8 +16,16 @@ public sealed class RegisterPatientUseCase(
 
         var existingUser = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
 
-        if (existingUser != null)
+        if (existingUser is not null)
         {
+            if (existingUser.PasswordHash is not null && !existingUser.IsEmailConfirmed)
+            {
+                var renewedToken = await emailConfirmationService.RenewTokenAsync(existingUser, cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                await emailConfirmationService.TrySendConfirmationAsync(existingUser, renewedToken, cancellationToken);
+                return;
+            }
+
             await emailConfirmationService.TrySendAlreadyRegisteredAsync(existingUser, cancellationToken);
             return;
         }

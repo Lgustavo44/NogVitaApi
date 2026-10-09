@@ -26,6 +26,14 @@ public sealed class EmailConfirmationService(
         return token;
     }
 
+    public async Task<string> RenewTokenAsync(User user, CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        await tokenRepository.RevokePendingForUserAsync(user.Id, now, cancellationToken);
+
+        return CreateToken(user);
+    }
+
     public Task<bool> TrySendConfirmationAsync(User user, string token, CancellationToken cancellationToken)
     {
         var link = $"{frontendSettings.BaseUrl.TrimEnd('/')}/confirmar-email#token={token}";

@@ -38,6 +38,8 @@ public static class DependencyInjection
         // Admin
         services.AddScoped<DeactivateUserUseCase>();
         services.AddScoped<ActivateUserUseCase>();
+        services.AddScoped<ConfirmEmailUseCase>();
+        services.AddScoped<ResendEmailConfirmationUseCase>();
 
         return services;
     }

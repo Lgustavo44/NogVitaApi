@@ -53,6 +53,8 @@ public class RegisterPatientUseCaseTests
     public async Task Should_Notify_Owner_When_Email_Already_Exists()
     {
         var owner = new User("Dono da Conta", "joao@email.com", Cpf.Create("12345678909"));
+        owner.SetPasswordHash("hash-do-dono");
+        owner.ConfirmEmail(DateTime.UtcNow);
         _userRepository.Add(owner);
         var useCase = CreateUseCase();
 
@@ -65,6 +67,25 @@ public class RegisterPatientUseCaseTests
         Assert.Equal("joao@email.com", email.To);
         Assert.Contains("Dono da Conta", email.TextBody);
         Assert.DoesNotContain("João Souza", email.TextBody);
+    }
+
+    [Fact]
+    public async Task Should_Resend_Confirmation_When_Email_Exists_But_Is_Not_Confirmed()
+    {
+        var pending = new User("João Souza", "joao@email.com", Cpf.Create("529.982.247-25"));
+        pending.SetPasswordHash("senha-original");
+        _userRepository.Add(pending);
+        var useCase = CreateUseCase();
+
+        await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+
+        Assert.Equal("senha-original", pending.PasswordHash);
+        Assert.Single(_userRepository.Users);
+        Assert.Single(_tokenRepository.Tokens);
+        Assert.Equal(1, _unitOfWork.SaveChangesCount);
+
+        var email = Assert.Single(_emailSender.SentMessages);
+        Assert.Contains("/confirmar-email#token=", email.TextBody);
     }
 
     [Fact]
