@@ -61,6 +61,7 @@ public class AcceptNutritionistInvitationUseCaseTests
         Assert.Equal(AcceptInvitationResult.Accepted, result);
         Assert.Equal(_passwordHasher.Hash(NewPassword), user.PasswordHash);
         Assert.True(user.IsActive);
+        Assert.True(user.IsEmailConfirmed);
         Assert.True(user.NutritionistProfile!.IsActive);
         Assert.True(invitation.IsUsed);
         Assert.Contains(Roles.Nutritionist, user.GetRoles());

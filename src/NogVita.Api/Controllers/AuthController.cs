@@ -20,12 +20,18 @@ public sealed class AuthController(
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
-        var response = await loginUseCase.ExecuteAsync(request, cancellationToken);
+        var result = await loginUseCase.ExecuteAsync(request, cancellationToken);
 
-        if (response is null)
-            return Problem(statusCode: StatusCodes.Status401Unauthorized, title: "E-mail ou senha inválidos.");
-
-        return Ok(response);
+        return result.Status switch
+        {
+            LoginStatus.Succeeded => Ok(result.Tokens),
+            LoginStatus.EmailNotConfirmed => Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Confirme seu e-mail antes de entrar."),
+            _ => Problem(
+                statusCode: StatusCodes.Status401Unauthorized,
+                title: "E-mail ou senha inválidos.")
+        };
     }
 
     [HttpGet("me")]

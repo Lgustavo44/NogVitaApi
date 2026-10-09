@@ -37,7 +37,7 @@ public sealed class AcceptNutritionistInvitationUseCase(
                 return AcceptInvitationResult.PasswordRequired;
 
             user.SetPasswordHash(passwordHasher.Hash(request.Password));
-            user.Activate();
+            user.ConfirmEmail(now);
         }
 
         invitation.MarkAsUsed(now);

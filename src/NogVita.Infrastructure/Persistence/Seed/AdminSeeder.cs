@@ -31,7 +31,7 @@ public sealed class AdminSeeder(
 
         var admin = new User(settings.Name, settings.Email, Cpf.Create(settings.Cpf));
         admin.SetPasswordHash(passwordHasher.Hash(settings.Password));
-        admin.Activate();
+        admin.ConfirmEmail(DateTime.UtcNow);
         admin.GrantAdmin();
 
         context.Users.Add(admin);

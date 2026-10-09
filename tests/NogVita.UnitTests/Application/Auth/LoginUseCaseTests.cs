@@ -18,10 +18,11 @@ public class LoginUseCaseTests
         return user;
     }
 
+    // Confirmar o e-mail também ativa a conta.
     private static User CreateActiveUser()
     {
         var user = CreateUserWithPassword();
-        user.Activate();
+        user.ConfirmEmail(DateTime.UtcNow);
         return user;
     }
 
@@ -47,54 +48,84 @@ public class LoginUseCaseTests
         var user = CreateActiveUser();
         var useCase = CreateUseCase(user);
 
-        var response = await useCase.ExecuteAsync(
+        var result = await useCase.ExecuteAsync(
             new LoginRequest(ValidEmail, ValidPassword),
             TestContext.Current.CancellationToken);
 
-        Assert.NotNull(response);
-        Assert.Equal($"token-for-{user.Id}", response.AccessToken);
+        Assert.Equal(LoginStatus.Succeeded, result.Status);
+        Assert.NotNull(result.Tokens);
+        Assert.Equal($"token-for-{user.Id}", result.Tokens.AccessToken);
     }
 
     [Fact]
-    public async Task Should_Return_Null_When_User_Not_Found()
+    public async Task Should_Return_Invalid_Credentials_When_User_Not_Found()
     {
         var useCase = CreateUseCase(null);
 
-        var response = await useCase.ExecuteAsync(
+        var result = await useCase.ExecuteAsync(
             new LoginRequest(ValidEmail, ValidPassword),
             TestContext.Current.CancellationToken);
 
-        Assert.Null(response);
+        Assert.Equal(LoginStatus.InvalidCredentials, result.Status);
         Assert.Empty(_refreshTokenRepository.Tokens);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
     }
 
     [Fact]
-    public async Task Should_Return_Null_When_Password_Is_Wrong()
+    public async Task Should_Return_Invalid_Credentials_When_Password_Is_Wrong()
     {
         var useCase = CreateUseCase(CreateActiveUser());
 
-        var response = await useCase.ExecuteAsync(
+        var result = await useCase.ExecuteAsync(
             new LoginRequest(ValidEmail, "senha-errada"),
             TestContext.Current.CancellationToken);
 
-        Assert.Null(response);
+        Assert.Equal(LoginStatus.InvalidCredentials, result.Status);
         Assert.Empty(_refreshTokenRepository.Tokens);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
     }
 
     [Fact]
-    public async Task Should_Return_Null_When_User_Is_Inactive()
+    public async Task Should_Return_Invalid_Credentials_When_User_Is_Inactive()
     {
-        var useCase = CreateUseCase(CreateUserWithPassword());
+        var user = CreateActiveUser();
+        user.Deactivate();
+        var useCase = CreateUseCase(user);
 
-        var response = await useCase.ExecuteAsync(
+        var result = await useCase.ExecuteAsync(
             new LoginRequest(ValidEmail, ValidPassword),
             TestContext.Current.CancellationToken);
 
-        Assert.Null(response);
+        Assert.Equal(LoginStatus.InvalidCredentials, result.Status);
         Assert.Empty(_refreshTokenRepository.Tokens);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Return_Email_Not_Confirmed_When_Password_Is_Correct()
+    {
+        var useCase = CreateUseCase(CreateUserWithPassword());
+
+        var result = await useCase.ExecuteAsync(
+            new LoginRequest(ValidEmail, ValidPassword),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(LoginStatus.EmailNotConfirmed, result.Status);
+        Assert.Null(result.Tokens);
+        Assert.Empty(_refreshTokenRepository.Tokens);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Not_Reveal_Unconfirmed_Email_When_Password_Is_Wrong()
+    {
+        var useCase = CreateUseCase(CreateUserWithPassword());
+
+        var result = await useCase.ExecuteAsync(
+            new LoginRequest(ValidEmail, "senha-errada"),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(LoginStatus.InvalidCredentials, result.Status);
     }
 
     [Fact]
@@ -103,15 +134,16 @@ public class LoginUseCaseTests
         var user = CreateActiveUser();
         var useCase = CreateUseCase(user);
 
-        var response = await useCase.ExecuteAsync(
+        var result = await useCase.ExecuteAsync(
             new LoginRequest(ValidEmail, ValidPassword),
             TestContext.Current.CancellationToken);
 
-        Assert.NotNull(response);
-        Assert.Equal($"token-for-{user.Id}", response.AccessToken);
+        Assert.Equal(LoginStatus.Succeeded, result.Status);
+        Assert.NotNull(result.Tokens);
+        Assert.Equal($"token-for-{user.Id}", result.Tokens.AccessToken);
 
         var savedToken = Assert.Single(_refreshTokenRepository.Tokens);
-        Assert.Equal(_secureTokenService.Hash(response.RefreshToken), savedToken.TokenHash);
+        Assert.Equal(_secureTokenService.Hash(result.Tokens.RefreshToken), savedToken.TokenHash);
         Assert.Equal(1, _unitOfWork.SaveChangesCount);
     }
 }
