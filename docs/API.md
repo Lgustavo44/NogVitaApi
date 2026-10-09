@@ -14,6 +14,7 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
   - [Auth](#auth)
   - [Confirmação de e-mail](#confirmação-de-e-mail)
   - [Paciente](#paciente)
+  - [Nutricionista](#nutricionista)
   - [Convite de nutricionista](#convite-de-nutricionista)
   - [Administração](#administração)
 - [Fluxos](#fluxos)
@@ -126,7 +127,7 @@ As mensagens (`title` e `errors`) já estão em português e podem ser mostradas
 
 ## Endpoints
 
-Legenda de acesso: 🌐 público · 🔒 qualquer usuário autenticado · 🧑 `Patient` · 🛡️ `Admin`
+Legenda de acesso: 🌐 público · 🔒 qualquer usuário autenticado · 🧑 `Patient` · 🥗 `Nutritionist` · 🛡️ `Admin`
 
 ### Auth
 
@@ -274,6 +275,71 @@ Atualiza os dados do perfil. Nome, e-mail e CPF **não** são alterados por aqui
 
 - `200` → o perfil atualizado (mesmo formato do `GET`)
 - `400` → erros de validação
+
+### Nutricionista
+
+#### `GET /api/v1/nutritionists` 🔒
+
+Lista os nutricionistas disponíveis, para o paciente escolher com quem fazer acompanhamento. Só aparecem nutricionistas com a conta ativa **e** o convite aceito, em ordem alfabética.
+
+| Parâmetro | Padrão | Descrição |
+|---|---|---|
+| `page` | `1` | Página, a partir de 1 |
+| `pageSize` | `20` | Itens por página, de 1 a 100 |
+| `search` | — | Busca **só no nome**, sem diferenciar maiúsculas (até 100 caracteres) |
+| `crnRegion` | — | Região do CRN (por exemplo, `3`) |
+
+Exemplo: `GET /api/v1/nutritionists?search=ana&crnRegion=3`
+
+```json
+{
+  "items": [
+    {
+      "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "Ana Souza",
+      "crnRegion": 3,
+      "crnNumber": "12345",
+      "bio": "Nutrição esportiva e emagrecimento."
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 1,
+  "totalPages": 1
+}
+```
+
+- A lista **não** traz e-mail nem CPF.
+- `bio` pode vir `null`: mostre um texto padrão, como "Sem apresentação".
+- Para exibir o CRN, monte `CRN-{crnRegion} {crnNumber}`, por exemplo `CRN-3 12345`.
+
+#### `GET /api/v1/nutritionists/me` 🥗
+
+```json
+{
+  "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "name": "Ana Souza",
+  "email": "ana@exemplo.com",
+  "crnRegion": 3,
+  "crnNumber": "12345",
+  "bio": "Nutrição esportiva e emagrecimento."
+}
+```
+
+- `403` → o usuário não tem o papel `Nutritionist` (ou ainda não aceitou o convite)
+- `404` → "Perfil de nutricionista não encontrado."
+
+#### `PUT /api/v1/nutritionists/me` 🥗
+
+Atualiza a apresentação. Nome, e-mail e CRN **não** são alterados por aqui.
+
+```json
+{ "bio": "Nutrição esportiva e emagrecimento." }
+```
+
+- `bio` aceita até **500 caracteres**. Os espaços nas pontas são removidos, e um texto vazio (ou `null`) **apaga** a apresentação.
+- `200` → o perfil atualizado (mesmo formato do `GET`)
+- `400` → "A apresentação pode ter no máximo 500 caracteres." Vale mostrar um contador de caracteres no campo.
 
 ### Convite de nutricionista
 

@@ -31,6 +31,8 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Ativação e desativação de contas:** desativar revoga todas as sessões do usuário
 - **Pré-cadastro de nutricionistas pelo administrador**, com convite enviado por e-mail (link de uso único, válido por 72 horas)
 - **Aceite do convite:** um usuário novo define a senha (o que também confirma o e-mail, já que o link chegou nele); um usuário que já é paciente só ativa o novo papel, sem trocar a senha
+- **Perfil do nutricionista:** consulta dos próprios dados e edição da apresentação (bio)
+- **Lista de nutricionistas:** para qualquer usuário logado, paginada, com busca por nome e filtro por região do CRN, sem expor e-mail nem CPF
 - **E-mails transacionais** com layout próprio (convite, confirmação e aviso de conta existente), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Em desenvolvimento
@@ -53,6 +55,9 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/auth/email-confirmation/resend` | Reenvia o link de confirmação (invalida os anteriores) |
 | `GET` | `/api/v1/patients/me` | Perfil do paciente autenticado |
 | `PUT` | `/api/v1/patients/me` | Atualiza o perfil do paciente autenticado |
+| `GET` | `/api/v1/nutritionists` | Lista os nutricionistas ativos (paginado, com busca e filtro) |
+| `GET` | `/api/v1/nutritionists/me` | Perfil do nutricionista autenticado |
+| `PUT` | `/api/v1/nutritionists/me` | Atualiza a apresentação do nutricionista autenticado |
 | `GET` | `/api/v1/admin/users` | Lista usuários (paginado, com busca e filtro) |
 | `GET` | `/api/v1/admin/users/{id}` | Detalhes de um usuário |
 | `POST` | `/api/v1/admin/users/{id}/deactivate` | Desativa a conta e revoga as sessões |
@@ -94,6 +99,18 @@ Decisões de segurança:
 - O login só informa "confirme seu e-mail" (`403`) depois de a senha estar correta.
 - Um cadastro repetido nunca altera a senha da conta pendente.
 - Os usuários que já existiam antes da confirmação de e-mail foram migrados como confirmados.
+
+### Nutricionista
+
+| Método | Rota | Acesso | Descrição |
+|---|---|---|---|
+| `GET` | `/api/v1/nutritionists` | Usuário logado | Lista paginada de nutricionistas ativos (`search` por nome, `crnRegion`) |
+| `GET` | `/api/v1/nutritionists/me` | Nutricionista | Perfil do próprio nutricionista |
+| `PUT` | `/api/v1/nutritionists/me` | Nutricionista | Atualiza a apresentação (`bio`, até 500 caracteres) |
+
+A lista nunca expõe e-mail nem CPF, e a busca considera apenas o nome. Só aparecem nutricionistas com a conta ativa **e** o convite aceito, em ordem alfabética.
+
+A apresentação é normalizada no domínio: espaços nas pontas são removidos, e um texto em branco vira `null`, o que apaga a apresentação.
 
 ## Ambiente de staging
 

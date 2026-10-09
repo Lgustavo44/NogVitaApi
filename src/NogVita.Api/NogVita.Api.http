@@ -423,3 +423,30 @@ Content-Type: application/json
 {
   "email": "paciente.teste@email.com"
 }
+
+  ### ===== Fase 12: Nutricionista =====
+
+### Lista de nutricionistas (qualquer usuário logado)
+GET {{NogVita.Api_HostAddress}}/api/v1/nutritionists?page=1&pageSize=20
+Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
+
+### Lista com busca e filtro de região
+GET {{NogVita.Api_HostAddress}}/api/v1/nutritionists?search=nutri&crnRegion=1
+Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
+
+### Busca com % (não pode devolver todo mundo)
+GET {{NogVita.Api_HostAddress}}/api/v1/nutritionists?search=%25
+Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
+
+### Meu perfil (nutricionista)
+GET {{NogVita.Api_HostAddress}}/api/v1/nutritionists/me
+Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
+
+### Atualizar minha apresentação (nutricionista)
+PUT {{NogVita.Api_HostAddress}}/api/v1/nutritionists/me
+Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
+Content-Type: application/json
+
+{
+  "bio": "Nutrição esportiva e reeducação alimentar."
+}
