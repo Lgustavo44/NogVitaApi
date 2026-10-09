@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<RegisterPatientUseCase>();
         services.AddScoped<GetMyPatientProfileUseCase>();
         services.AddScoped<UpdateMyPatientProfileUseCase>();
+        services.AddScoped<EmailConfirmationService>();
 
         // Nutricionistas
         services.AddScoped<NutritionistInvitationService>();

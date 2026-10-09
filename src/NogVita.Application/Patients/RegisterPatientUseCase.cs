@@ -7,26 +7,37 @@ namespace NogVita.Application.Patients;
 public sealed class RegisterPatientUseCase(
     IUserRepository userRepository,
     IPasswordHasher passwordHasher,
-    TokenIssuer tokenIssuer,
+    EmailConfirmationService emailConfirmationService,
     IUnitOfWork unitOfWork)
 {
-    public async Task<AuthResponse?> ExecuteAsync(RegisterPatientRequest request, CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(RegisterPatientRequest request, CancellationToken cancellationToken = default)
     {
         var cpf = Cpf.Create(request.Cpf);
 
-        if (await userRepository.ExistsByEmailAsync(request.Email, cancellationToken)
-            || await userRepository.ExistsByCpfAsync(cpf, cancellationToken))
-            return null;
+        var existingUser = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
+
+        if (existingUser != null)
+        {
+            await emailConfirmationService.TrySendAlreadyRegisteredAsync(existingUser, cancellationToken);
+            return;
+        }
+
+        var existingCpf = await userRepository.GetByCpfAsync(cpf, cancellationToken);
+
+        if (existingCpf != null)
+        {
+            return;
+        }
+
 
         var user = new User(request.Name, request.Email, cpf);
         user.SetPasswordHash(passwordHasher.Hash(request.Password));
-        user.Activate();
         user.CreatePatientProfile(request.BirthDate, request.BiologicalSex, request.HeightInCm, request.Goal);
 
         userRepository.Add(user);
-        var response = tokenIssuer.Issue(user);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return response;
+        var token = emailConfirmationService.CreateToken(user);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await emailConfirmationService.TrySendConfirmationAsync(user, token, cancellationToken);
     }
 }

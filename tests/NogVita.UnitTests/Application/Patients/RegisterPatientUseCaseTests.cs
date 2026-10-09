@@ -1,4 +1,5 @@
-using NogVita.Application.Auth;
+using Microsoft.Extensions.Logging.Abstractions;
+using NogVita.Application.Common;
 using NogVita.Application.Patients;
 using NogVita.Domain.Users;
 using NogVita.UnitTests.Fakes;
@@ -9,7 +10,8 @@ public class RegisterPatientUseCaseTests
 {
     private readonly FakeUserRepository _userRepository = new();
     private readonly FakePasswordHasher _passwordHasher = new();
-    private readonly FakeRefreshTokenRepository _refreshTokenRepository = new();
+    private readonly FakeEmailConfirmationTokenRepository _tokenRepository = new();
+    private readonly FakeEmailSender _emailSender = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
 
     private static RegisterPatientRequest CreateRequest(string email = "joao@email.com", string cpf = "529.982.247-25") =>
@@ -17,57 +19,77 @@ public class RegisterPatientUseCaseTests
 
     private RegisterPatientUseCase CreateUseCase()
     {
-        var tokenIssuer = new TokenIssuer(
-            new FakeJwtTokenGenerator(),
+        var emailConfirmationService = new EmailConfirmationService(
+            _tokenRepository,
             new FakeSecureTokenService(),
-            _refreshTokenRepository,
-            new RefreshTokenSettings { ExpirationDays = 7 },
-            TimeProvider.System);
+            _emailSender,
+            new FrontendSettings { BaseUrl = "http://localhost:5173" },
+            TimeProvider.System,
+            NullLogger<EmailConfirmationService>.Instance);
 
-        return new RegisterPatientUseCase(_userRepository, _passwordHasher, tokenIssuer, _unitOfWork);
+        return new RegisterPatientUseCase(_userRepository, _passwordHasher, emailConfirmationService, _unitOfWork);
     }
 
     [Fact]
-    public async Task Should_Register_Active_Patient_And_Return_Tokens()
+    public async Task Should_Create_Inactive_Patient_And_Send_Confirmation()
     {
         var useCase = CreateUseCase();
 
-        var response = await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+        await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
 
-        Assert.NotNull(response);
         var user = Assert.Single(_userRepository.Users);
-        Assert.True(user.IsActive);
+        Assert.False(user.IsActive);
+        Assert.False(user.IsEmailConfirmed);
         Assert.NotNull(user.PatientProfile);
-        Assert.Equal("52998224725", user.Cpf.Value);
         Assert.Equal(_passwordHasher.Hash("cafe-com-pao-de-queijo"), user.PasswordHash);
-        Assert.Contains(Roles.Patient, user.GetRoles());
-        Assert.Single(_refreshTokenRepository.Tokens);
+        Assert.Single(_tokenRepository.Tokens);
         Assert.Equal(1, _unitOfWork.SaveChangesCount);
+
+        var email = Assert.Single(_emailSender.SentMessages);
+        Assert.Contains("/confirmar-email#token=", email.TextBody);
     }
 
     [Fact]
-    public async Task Should_Return_Null_When_Email_Already_Exists()
+    public async Task Should_Notify_Owner_When_Email_Already_Exists()
     {
-        _userRepository.Add(new User("Outra Pessoa", "joao@email.com", Cpf.Create("12345678909")));
+        var owner = new User("Dono da Conta", "joao@email.com", Cpf.Create("12345678909"));
+        _userRepository.Add(owner);
         var useCase = CreateUseCase();
 
-        var response = await useCase.ExecuteAsync(CreateRequest(email: "JOAO@email.com"), TestContext.Current.CancellationToken);
+        await useCase.ExecuteAsync(CreateRequest(email: "JOAO@email.com"), TestContext.Current.CancellationToken);
 
-        Assert.Null(response);
         Assert.Single(_userRepository.Users);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+
+        var email = Assert.Single(_emailSender.SentMessages);
+        Assert.Equal("joao@email.com", email.To);
+        Assert.Contains("Dono da Conta", email.TextBody);
+        Assert.DoesNotContain("João Souza", email.TextBody);
+    }
+
+    [Fact]
+    public async Task Should_Do_Nothing_When_Only_Cpf_Already_Exists()
+    {
+        _userRepository.Add(new User("Outra Pessoa", "outra@email.com", Cpf.Create("529.982.247-25")));
+        var useCase = CreateUseCase();
+
+        await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+
+        Assert.Single(_userRepository.Users);
+        Assert.Empty(_emailSender.SentMessages);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
     }
 
     [Fact]
-    public async Task Should_Return_Null_When_Cpf_Already_Exists()
+    public async Task Should_Keep_Registration_When_Email_Fails()
     {
-        _userRepository.Add(new User("Outra Pessoa", "outra@email.com", Cpf.Create("52998224725")));
+        _emailSender.ShouldFail = true;
         var useCase = CreateUseCase();
 
-        var response = await useCase.ExecuteAsync(CreateRequest(cpf: "529.982.247-25"), TestContext.Current.CancellationToken);
+        await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
 
-        Assert.Null(response);
         Assert.Single(_userRepository.Users);
-        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+        Assert.Single(_tokenRepository.Tokens);
+        Assert.Equal(1, _unitOfWork.SaveChangesCount);
     }
 }

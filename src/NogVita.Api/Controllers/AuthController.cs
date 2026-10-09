@@ -63,11 +63,8 @@ public sealed class AuthController(
     [AllowAnonymous]
     public async Task<IActionResult> RegisterPatient(RegisterPatientRequest request, CancellationToken cancellationToken)
     {
-        var response = await registerPatientUseCase.ExecuteAsync(request, cancellationToken);
+        await registerPatientUseCase.ExecuteAsync(request, cancellationToken);
 
-        if (response is null)
-            return Problem(statusCode: StatusCodes.Status409Conflict, title: "Não foi possível concluir o cadastro com esses dados.");
-
-        return Created("/api/v1/patients/me", response);
+        return Accepted(new { message = "Se os dados estiverem corretos, enviamos um e-mail para confirmar o cadastro." });
     }
 }
