@@ -10,6 +10,8 @@ namespace NogVita.Domain.Users
         public string? PasswordHash { get; private set; }
         public bool IsActive { get; private set; }
         public bool IsAdmin { get; private set; }
+        public DateTime? EmailConfirmedAtUtc { get; private set; }
+        public bool IsEmailConfirmed => EmailConfirmedAtUtc is not null;
         public PatientProfile? PatientProfile { get; private set; }
         public NutritionistProfile? NutritionistProfile { get; private set; }
 
@@ -97,6 +99,13 @@ namespace NogVita.Domain.Users
                 roles.Add(Roles.Nutritionist); 
 
             return roles;
+        }
+
+        public void ConfirmEmail(DateTime nowUtc)
+        {
+            if (IsEmailConfirmed) return;
+            EmailConfirmedAtUtc = nowUtc;
+            Activate();
         }
     }
 }
