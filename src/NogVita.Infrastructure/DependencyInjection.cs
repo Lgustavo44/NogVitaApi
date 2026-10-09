@@ -3,8 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Admin;
 using NogVita.Application.Auth;
+using NogVita.Application.Nutritionists;
 using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Persistence;
+using NogVita.Infrastructure.Persistence.Queries;
 using NogVita.Infrastructure.Persistence.Repositories;
 using NogVita.Infrastructure.Persistence.Seed;
 using NogVita.Infrastructure.Queries;
@@ -25,6 +27,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
         services.AddScoped<AdminSeeder>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<INutritionistQueries, NutritionistQueries>();
         services.AddScoped<IAdminUserQueries, AdminUserQueries>();
         services.AddScoped<IInvitationRepository, InvitationRepository>();
         services.AddScoped<IEmailConfirmationTokenRepository, EmailConfirmationTokenRepository>();

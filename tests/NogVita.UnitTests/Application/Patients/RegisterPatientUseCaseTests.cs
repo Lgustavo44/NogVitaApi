@@ -34,6 +34,19 @@ public class RegisterPatientUseCaseTests
             _unitOfWork,
             NullLogger<RegisterPatientUseCase>.Instance);
     }
+    [Fact]
+    public async Task Should_Stay_Silent_When_Email_Belongs_To_Pending_Nutritionist()
+    {
+        var nutritionist = new User("Nutri Pendente", "joao@email.com", Cpf.Create("12345678909"));
+        nutritionist.CreateNutritionistProfile(1, "123456");
+        _userRepository.Add(nutritionist);
+        var useCase = CreateUseCase();
+
+        await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+
+        Assert.Empty(_emailSender.SentMessages);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
 
     [Fact]
     public async Task Should_Create_Inactive_Patient_And_Send_Confirmation()

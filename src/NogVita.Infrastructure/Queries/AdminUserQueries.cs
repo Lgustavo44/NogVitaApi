@@ -56,7 +56,7 @@ public sealed class AdminUserQueries(NogVitaDbContext context) : IAdminUserQueri
     {
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var pattern = $"%{EscapeLikePattern(request.Search.Trim())}%";
+            var pattern = $"%{QueryableExtensions.EscapeLikePattern(request.Search.Trim())}%";
             query = query.Where(u =>
                 EF.Functions.ILike(u.Name, pattern, @"\") ||
                 EF.Functions.ILike(u.Email, pattern, @"\"));
@@ -69,8 +69,6 @@ public sealed class AdminUserQueries(NogVitaDbContext context) : IAdminUserQueri
             .OrderByDescending(u => u.CreatedAt)
             .ThenBy(u => u.Id);
     }
-    private static string EscapeLikePattern(string value) =>
-        value.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_");
 
     public Task<PagedResponse<AdminPatientSummary>> ListPatientsAsync(AdminUserListRequest request, CancellationToken cancellationToken = default)
     {

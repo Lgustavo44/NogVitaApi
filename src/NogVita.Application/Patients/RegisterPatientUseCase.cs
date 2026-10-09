@@ -28,6 +28,10 @@ public sealed class RegisterPatientUseCase(
                 return;
             }
 
+            if (existingUser.PasswordHash is null)
+            {
+                return;
+            }
             await emailConfirmationService.TrySendAlreadyRegisteredAsync(existingUser, cancellationToken);
             return;
         }

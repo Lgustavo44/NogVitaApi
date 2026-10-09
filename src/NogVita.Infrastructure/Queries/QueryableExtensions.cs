@@ -5,6 +5,9 @@ namespace NogVita.Infrastructure.Queries;
 
 internal static class QueryableExtensions
 {
+    internal static string EscapeLikePattern(string value) =>
+    value.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_");
+
     public static async Task<PagedResponse<T>> ToPagedResponseAsync<T>(
         this IQueryable<T> query,
         PageRequest request,
