@@ -20,6 +20,10 @@ public class NutritionistProfileConfiguration : IEntityTypeConfiguration<Nutriti
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(n => n.Bio)
+            .HasMaxLength(NutritionistProfile.BioMaxLength)
+            .IsRequired(false);
+
         builder.HasIndex(p => 
         new { p.CrnRegion, p.CrnNumber })
         .IsUnique();
