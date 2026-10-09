@@ -41,9 +41,9 @@ public sealed class EmailConfirmationService(
         return TrySendAsync(ConfirmationEmail.Create(user.Email, user.Name, link), user.Id, cancellationToken);
     }
 
-    public Task<bool> TrySendAlreadyRegisteredAsync(User user, CancellationToken cancellationToken)
+    public Task<bool> TrySendAlreadyRegisteredAsync(User user, CancellationToken cancellationToken, bool matchedByCpf = false)
     {
-        return TrySendAsync(AlreadyRegisteredEmail.Create(user.Email, user.Name), user.Id, cancellationToken);
+        return TrySendAsync(AlreadyRegisteredEmail.Create(user.Email, user.Name, matchedByCpf), user.Id, cancellationToken);
     }
 
     private async Task<bool> TrySendAsync(EmailMessage message, Guid userId, CancellationToken cancellationToken)

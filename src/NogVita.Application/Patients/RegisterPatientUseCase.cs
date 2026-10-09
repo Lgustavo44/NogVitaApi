@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Auth;
 using NogVita.Domain.Users;
@@ -8,7 +9,8 @@ public sealed class RegisterPatientUseCase(
     IUserRepository userRepository,
     IPasswordHasher passwordHasher,
     EmailConfirmationService emailConfirmationService,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    ILogger<RegisterPatientUseCase> logger)
 {
     public async Task ExecuteAsync(RegisterPatientRequest request, CancellationToken cancellationToken = default)
     {
@@ -34,9 +36,15 @@ public sealed class RegisterPatientUseCase(
 
         if (existingCpf != null)
         {
+            // A resposta continua genérica para quem pediu; o aviso vai só para o e-mail do dono do CPF.
+            logger.LogInformation("Cadastro de paciente não criado: CPF já vinculado ao usuário {UserId}.", existingCpf.Id);
+
+            // Sem senha, o dono ainda não ativou a conta (nutricionista com convite pendente): "faça login" não faria sentido.
+            if (existingCpf.PasswordHash is not null)
+                await emailConfirmationService.TrySendAlreadyRegisteredAsync(existingCpf, cancellationToken, matchedByCpf: true);
+
             return;
         }
-
 
         var user = new User(request.Name, request.Email, cpf);
         user.SetPasswordHash(passwordHasher.Hash(request.Password));

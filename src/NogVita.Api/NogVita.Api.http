@@ -372,3 +372,54 @@ Content-Type: application/json
   "crnRegion": 1,
   "crnNumber": "1"
 }
+
+### ===== Fase 11B: confirmação de e-mail =====
+
+### 1. Cadastro de paciente → 202
+POST {{host}}/api/v1/auth/register/patient
+Content-Type: application/json
+
+{
+  "name": "Paciente Teste",
+  "email": "paciente.teste@email.com",
+  "cpf": "54585783334",
+  "password": "cafe-com-pao-de-queijo",
+  "birthDate": "1995-03-10",
+  "biologicalSex": "Male",
+  "heightInCm": 178,
+  "goal": "MuscleGain"
+}
+
+### 2. Login ANTES de confirmar, senha certa → 403
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "paciente.teste@email.com",
+  "password": "cafe-com-pao-de-queijo"
+}
+
+### 3. Login ANTES de confirmar, senha errada → 401 (não revela a conta pendente)
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "paciente.teste@email.com",
+  "password": "senha-errada-123"
+}
+
+### 4. Confirmar e-mail → 204 (a primeira vez) / 400 (a segunda vez)
+POST {{host}}/api/v1/auth/email-confirmation/confirm
+Content-Type: application/json
+
+{
+  "token": "3z8X0djFYtldx14-QivP6fYd7fpahTjQFeH276GtN5m8x1nAiLK3IOddLkWj0DawR33_bFpoI1n8NEH0Inu7Bg"
+}
+
+### 5. Reenviar confirmação → sempre 202
+POST {{host}}/api/v1/auth/email-confirmation/resend
+Content-Type: application/json
+
+{
+  "email": "paciente.teste@email.com"
+}

@@ -27,7 +27,12 @@ public class RegisterPatientUseCaseTests
             TimeProvider.System,
             NullLogger<EmailConfirmationService>.Instance);
 
-        return new RegisterPatientUseCase(_userRepository, _passwordHasher, emailConfirmationService, _unitOfWork);
+        return new RegisterPatientUseCase(
+            _userRepository,
+            _passwordHasher,
+            emailConfirmationService,
+            _unitOfWork,
+            NullLogger<RegisterPatientUseCase>.Instance);
     }
 
     [Fact]
@@ -89,9 +94,32 @@ public class RegisterPatientUseCaseTests
     }
 
     [Fact]
-    public async Task Should_Do_Nothing_When_Only_Cpf_Already_Exists()
+    public async Task Should_Notify_Cpf_Owner_When_Only_Cpf_Already_Exists()
     {
-        _userRepository.Add(new User("Outra Pessoa", "outra@email.com", Cpf.Create("529.982.247-25")));
+        var owner = new User("Outra Pessoa", "outra@email.com", Cpf.Create("529.982.247-25"));
+        owner.SetPasswordHash("hash-do-dono");
+        owner.ConfirmEmail(DateTime.UtcNow);
+        _userRepository.Add(owner);
+        var useCase = CreateUseCase();
+
+        await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+
+        Assert.Single(_userRepository.Users);
+        Assert.Empty(_tokenRepository.Tokens);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+
+        var email = Assert.Single(_emailSender.SentMessages);
+        Assert.Equal("outra@email.com", email.To);
+        Assert.Contains("Outra Pessoa", email.TextBody);
+        Assert.Contains("CPF", email.TextBody);
+        Assert.DoesNotContain("joao@email.com", email.TextBody);
+        Assert.DoesNotContain("João Souza", email.TextBody);
+    }
+
+    [Fact]
+    public async Task Should_Not_Notify_Cpf_Owner_Without_Password()
+    {
+        _userRepository.Add(new User("Nutri Pendente", "nutri@email.com", Cpf.Create("529.982.247-25")));
         var useCase = CreateUseCase();
 
         await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
