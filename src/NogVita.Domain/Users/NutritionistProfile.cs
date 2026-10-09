@@ -10,6 +10,8 @@ public class NutritionistProfile : Entity
     public int CrnRegion { get; private set; }
     public string CrnNumber { get; private set; } = null!;
     public bool IsActive { get; private set; }
+    public const int BioMaxLength = 500;
+    public string? Bio { get; private set; }
 
     private NutritionistProfile() { } // EF Core
 
@@ -23,6 +25,18 @@ public class NutritionistProfile : Entity
         UserId = userId;
         CrnRegion = crnRegion;
         IsActive = false;
+    }
+
+    internal void UpdateBio(string? bio)
+    {
+        var normalizedBio = string.IsNullOrWhiteSpace(bio) ? null : bio.Trim();
+
+        if (normalizedBio is { Length: > BioMaxLength })
+        {
+            throw new DomainException($"A apresentação pode ter no máximo {BioMaxLength} caracteres.");
+        }
+
+        Bio = normalizedBio;
     }
 
     public void Activate()

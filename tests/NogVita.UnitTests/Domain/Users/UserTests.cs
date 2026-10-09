@@ -149,4 +149,46 @@ public class UserTests
         var roles = user.GetRoles();
         Assert.Empty(roles);
     }
+
+    [Fact]
+    public void Should_Update_Nutritionist_Bio()
+    {
+        var user = TestData.CreateUser();
+        user.CreateNutritionistProfile(1, "123456");
+
+        user.UpdateNutritionistProfile("  Nutrição esportiva e emagrecimento.  ");
+
+        Assert.Equal("Nutrição esportiva e emagrecimento.", user.NutritionistProfile!.Bio);
+    }
+
+    [Fact]
+    public void Should_Store_Null_When_Bio_Is_Blank()
+    {
+        var user = TestData.CreateUser();
+        user.CreateNutritionistProfile(1, "123456");
+        user.UpdateNutritionistProfile("Texto antigo");
+
+        user.UpdateNutritionistProfile("   ");
+
+        Assert.Null(user.NutritionistProfile!.Bio);
+    }
+
+    [Fact]
+    public void Should_Not_Accept_Bio_Longer_Than_Limit()
+    {
+        var user = TestData.CreateUser();
+        user.CreateNutritionistProfile(1, "123456");
+
+        var bio = new string('a', NutritionistProfile.BioMaxLength + 1);
+
+        Assert.Throws<DomainException>(() => user.UpdateNutritionistProfile(bio));
+    }
+
+    [Fact]
+    public void Should_Not_Update_Bio_Without_Nutritionist_Profile()
+    {
+        var user = TestData.CreateUser();
+
+        Assert.Throws<DomainException>(() => user.UpdateNutritionistProfile("Bio"));
+    }
 }

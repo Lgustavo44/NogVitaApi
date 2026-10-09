@@ -107,5 +107,15 @@ namespace NogVita.Domain.Users
             EmailConfirmedAtUtc = nowUtc;
             Activate();
         }
+
+        public void UpdateNutritionistProfile(string? bio)
+        {
+            if (NutritionistProfile is null)
+            {
+                throw new DomainException("O usuário não possui perfil de nutricionista.");
+            }
+
+            NutritionistProfile.UpdateBio(bio);
+        }
     }
 }
