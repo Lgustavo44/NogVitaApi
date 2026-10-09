@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAdminUserQueries, AdminUserQueries>();
         services.AddScoped<IInvitationRepository, InvitationRepository>();
+        services.AddScoped<IEmailConfirmationTokenRepository, EmailConfirmationTokenRepository>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(emailSettings);
 

@@ -29,6 +29,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash)
             .IsRequired(false);
 
+        builder.Property(u => u.EmailConfirmedAtUtc)
+            .IsRequired(false);
+
         builder.HasIndex(u => u.Email)
             .IsUnique();
         builder.HasIndex(u => u.Cpf)
