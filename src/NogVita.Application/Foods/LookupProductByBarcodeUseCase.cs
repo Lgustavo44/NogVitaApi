@@ -1,3 +1,5 @@
+using NogVita.Domain.Foods;
+
 namespace NogVita.Application.Foods;
 
 public enum LookupProductStatus

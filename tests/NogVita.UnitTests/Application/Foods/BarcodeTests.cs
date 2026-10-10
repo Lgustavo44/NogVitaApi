@@ -1,4 +1,4 @@
-using NogVita.Application.Foods;
+using NogVita.Domain.Foods;
 
 namespace NogVita.UnitTests.Application.Foods;
 

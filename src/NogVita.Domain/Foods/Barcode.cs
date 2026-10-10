@@ -1,4 +1,4 @@
-namespace NogVita.Application.Foods;
+namespace NogVita.Domain.Foods;
 
 public static class Barcode
 {
