@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\NogVita.Domain\NogVita.Domain.csproj" />
     <ProjectReference Include="..\..\src\NogVita.Application\NogVita.Application.csproj" />
+    <ProjectReference Include="..\..\src\NogVita.Infrastructure\NogVita.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
