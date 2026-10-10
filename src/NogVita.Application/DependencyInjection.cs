@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NogVita.Application.Admin;
 using NogVita.Application.Auth;
 using NogVita.Application.FollowUps;
+using NogVita.Application.Foods;
 using NogVita.Application.Nutritionists;
 using NogVita.Application.Patients;
 
@@ -45,11 +46,15 @@ public static class DependencyInjection
         services.AddScoped<ConfirmEmailUseCase>();
         services.AddScoped<ResendEmailConfirmationUseCase>();
 
+        // Follow-ups
         services.AddScoped<FollowUpNotificationService>();
         services.AddScoped<RequestNutritionistUseCase>();
         services.AddScoped<CancelNutritionistRequestUseCase>();
         services.AddScoped<GetMyCareRelationshipUseCase>();
         services.AddScoped<EndCareRelationshipUseCase>();
+
+        // Foods
+        services.AddScoped<LookupProductByBarcodeUseCase>();
 
         return services;
     }

@@ -17,7 +17,7 @@ public sealed class PatientFollowUpsController(
     IFollowUpQueries followUpQueries) : ControllerBase
 {
     [HttpPost("nutritionist-requests")]
-    public async Task<IActionResult> Request(RequestNutritionistRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RequestNutritionist(RequestNutritionistRequest request, CancellationToken cancellationToken)
     {
         var result = await requestNutritionistUseCase.ExecuteAsync(User.GetUserId(), request, cancellationToken);
 
