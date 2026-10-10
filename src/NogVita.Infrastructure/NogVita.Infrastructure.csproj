@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Email\Assets\logo.png" LogicalName="NogVita.Email.logo.png" />
+    <EmbeddedResource Include="Persistence\Seed\Data\taco_composicao.csv" LogicalName="NogVita.Infrastructure.Seed.taco_composicao.csv" />
   </ItemGroup>
 	<ItemGroup>
 		<InternalsVisibleTo Include="NogVita.UnitTests" />

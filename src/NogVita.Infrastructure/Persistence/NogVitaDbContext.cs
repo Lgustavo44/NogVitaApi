@@ -3,6 +3,7 @@ using NogVita.Application.Abstractions;
 using NogVita.Domain.Auth;
 using NogVita.Domain.Common;
 using NogVita.Domain.FollowUps;
+using NogVita.Domain.Foods;
 using NogVita.Domain.Invitations;
 using NogVita.Domain.Users;
 
@@ -18,9 +19,11 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<EmailConfirmationToken> EmailConfirmationTokens => Set<EmailConfirmationToken>();
     public DbSet<NutritionistRequest> NutritionistRequests => Set<NutritionistRequest>();
     public DbSet<CareRelationship> CareRelationships => Set<CareRelationship>();
+    public DbSet<Food> Foods => Set<Food>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("unaccent");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(NogVitaDbContext).Assembly);
     }
 
