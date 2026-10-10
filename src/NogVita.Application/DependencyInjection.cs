@@ -55,6 +55,9 @@ public static class DependencyInjection
 
         // Foods
         services.AddScoped<LookupProductByBarcodeUseCase>();
+        services.AddScoped<ImportProductUseCase>();
+        services.AddScoped<SetFoodActiveUseCase>();
+
 
         return services;
     }

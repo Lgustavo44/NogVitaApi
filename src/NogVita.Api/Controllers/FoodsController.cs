@@ -19,7 +19,7 @@ public sealed class FoodsController(LookupProductByBarcodeUseCase lookupProductU
 
         return result.Status switch
         {
-            LookupProductStatus.Found => Ok(result.Product),
+            LookupProductStatus.Found => Ok(result.Preview),
             LookupProductStatus.InvalidBarcode => Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Código de barras inválido. Use 8, 12, 13 ou 14 dígitos."),
