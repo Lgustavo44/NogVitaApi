@@ -33,11 +33,11 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Aceite do convite:** um usuário novo define a senha (o que também confirma o e-mail, já que o link chegou nele); um usuário que já é paciente só ativa o novo papel, sem trocar a senha
 - **Perfil do nutricionista:** consulta dos próprios dados e edição da apresentação (bio)
 - **Lista de nutricionistas:** para qualquer usuário logado, paginada, com busca por nome e filtro por região do CRN, sem expor e-mail nem CPF
-- **E-mails transacionais** com layout próprio (convite, confirmação e aviso de conta existente), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
+- **Acompanhamento nutricional:** o paciente solicita, o nutricionista aceita ou recusa, e qualquer um dos dois pode encerrar, com aviso por e-mail à outra parte
+- **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Em desenvolvimento
 
-- Solicitações de acompanhamento
 - Planos alimentares com cálculo nutricional
 - Registro de peso
 
@@ -58,6 +58,16 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `GET` | `/api/v1/nutritionists` | Lista os nutricionistas ativos (paginado, com busca e filtro) |
 | `GET` | `/api/v1/nutritionists/me` | Perfil do nutricionista autenticado |
 | `PUT` | `/api/v1/nutritionists/me` | Atualiza a apresentação do nutricionista autenticado |
+| `POST` | `/api/v1/patients/me/nutritionist-requests` | Paciente solicita acompanhamento a um nutricionista |
+| `GET` | `/api/v1/patients/me/nutritionist-requests` | Solicitações do paciente (paginado, filtro por status) |
+| `POST` | `/api/v1/patients/me/nutritionist-requests/{id}/cancel` | Paciente cancela uma solicitação pendente |
+| `GET` | `/api/v1/patients/me/care-relationship` | Acompanhamento ativo do paciente |
+| `POST` | `/api/v1/patients/me/care-relationship/end` | Paciente encerra o acompanhamento |
+| `GET` | `/api/v1/nutritionists/me/requests` | Solicitações recebidas pelo nutricionista (paginado, filtro por status) |
+| `POST` | `/api/v1/nutritionists/me/requests/{id}/accept` | Aceita a solicitação e cria o acompanhamento |
+| `POST` | `/api/v1/nutritionists/me/requests/{id}/reject` | Recusa a solicitação |
+| `GET` | `/api/v1/nutritionists/me/patients` | Pacientes em acompanhamento (paginado, busca por nome) |
+| `POST` | `/api/v1/nutritionists/me/patients/{patientId}/end` | Nutricionista encerra o acompanhamento de um paciente |
 | `GET` | `/api/v1/admin/users` | Lista usuários (paginado, com busca e filtro) |
 | `GET` | `/api/v1/admin/users/{id}` | Detalhes de um usuário |
 | `POST` | `/api/v1/admin/users/{id}/deactivate` | Desativa a conta e revoga as sessões |
@@ -111,6 +121,37 @@ Decisões de segurança:
 A lista nunca expõe e-mail nem CPF, e a busca considera apenas o nome. Só aparecem nutricionistas com a conta ativa **e** o convite aceito, em ordem alfabética.
 
 A apresentação é normalizada no domínio: espaços nas pontas são removidos, e um texto em branco vira `null`, o que apaga a apresentação.
+
+### Acompanhamento nutricional
+
+O paciente solicita acompanhamento a um nutricionista. O aceite cria o vínculo, e qualquer um dos dois pode encerrá-lo; a outra parte é avisada por e-mail. Cada paciente tem no máximo um acompanhamento ativo e uma solicitação pendente por vez, regra garantida também por índices únicos parciais no PostgreSQL.
+
+| Método | Rota | Acesso |
+|---|---|---|
+| `POST` | `/api/v1/patients/me/nutritionist-requests` | Paciente |
+| `GET` | `/api/v1/patients/me/nutritionist-requests?status=` | Paciente |
+| `POST` | `/api/v1/patients/me/nutritionist-requests/{id}/cancel` | Paciente |
+| `GET` | `/api/v1/patients/me/care-relationship` | Paciente |
+| `POST` | `/api/v1/patients/me/care-relationship/end` | Paciente |
+| `GET` | `/api/v1/nutritionists/me/requests?status=` | Nutricionista |
+| `POST` | `/api/v1/nutritionists/me/requests/{id}/accept` | Nutricionista |
+| `POST` | `/api/v1/nutritionists/me/requests/{id}/reject` | Nutricionista |
+| `GET` | `/api/v1/nutritionists/me/patients?search=` | Nutricionista |
+| `POST` | `/api/v1/nutritionists/me/patients/{patientId}/end` | Nutricionista |
+
+O nutricionista só responde as solicitações destinadas a ele e só vê os próprios pacientes. Um recurso de outro usuário responde `404`.
+
+Ciclo de vida de uma solicitação:
+
+```
+Pending ──aceite──▶ Accepted  (cria o acompanhamento)
+   ├────recusa───▶ Rejected
+   └──cancelamento▶ Cancelled (pelo paciente)
+```
+
+- Só uma solicitação `Pending` pode ser respondida ou cancelada; nos outros estados, a resposta é `409`.
+- Os dois índices únicos parciais (`status = 'Pending'` e `ended_at_utc IS NULL`) protegem a regra mesmo com duas requisições simultâneas, que a checagem no código sozinha não pegaria.
+- Encerrar não apaga nada: o vínculo ganha a data de encerramento e quem encerrou, preservando o histórico.
 
 ## Ambiente de staging
 

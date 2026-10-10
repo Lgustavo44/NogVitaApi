@@ -427,26 +427,196 @@ Content-Type: application/json
   ### ===== Fase 12: Nutricionista =====
 
 ### Lista de nutricionistas (qualquer usuário logado)
-GET {{NogVita.Api_HostAddress}}/api/v1/nutritionists?page=1&pageSize=20
+GET {{host}}/api/v1/nutritionists?page=1&pageSize=20
 Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
 
 ### Lista com busca e filtro de região
-GET {{NogVita.Api_HostAddress}}/api/v1/nutritionists?search=nutri&crnRegion=1
+GET {{host}}/api/v1/nutritionists?search=nutri&crnRegion=1
 Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
 
 ### Busca com % (não pode devolver todo mundo)
-GET {{NogVita.Api_HostAddress}}/api/v1/nutritionists?search=%25
+GET {{host}}/api/v1/nutritionists?search=%25
 Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
 
 ### Meu perfil (nutricionista)
-GET {{NogVita.Api_HostAddress}}/api/v1/nutritionists/me
+GET {{host}}/api/v1/nutritionists/me
 Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
 
 ### Atualizar minha apresentação (nutricionista)
-PUT {{NogVita.Api_HostAddress}}/api/v1/nutritionists/me
+PUT {{host}}/api/v1/nutritionists/me
 Authorization: Bearer COLE_O_ACCESS_TOKEN_AQUI
 Content-Type: application/json
 
 {
   "bio": "Nutrição esportiva e reeducação alimentar."
 }
+### ===================== Fase 13: Acompanhamento =====================
+### Rode NA ORDEM, de cima para baixo. Cada bloco usa a resposta dos anteriores.
+
+### 0.1 Login do paciente
+# @name loginPaciente
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{pacienteEmail}}",
+  "password": "{{pacienteSenha}}"
+}
+
+### 0.2 Login da Nutri 1
+# @name loginNutri1
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{nutri1Email}}",
+  "password": "{{nutri1Senha}}"
+}
+
+### 0.3 Login da Nutri 2
+# @name loginNutri2
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{nutri2Email}}",
+  "password": "{{nutri2Senha}}"
+}
+
+@tokenPaciente = {{loginPaciente.response.body.$.accessToken}}
+@tokenNutri1 = {{loginNutri1.response.body.$.accessToken}}
+@tokenNutri2 = {{loginNutri2.response.body.$.accessToken}}
+
+### 0.4 Id da Nutri 1
+# @name meNutri1
+GET {{host}}/api/v1/nutritionists/me
+Authorization: Bearer {{tokenNutri1}}
+
+### 0.5 Id da Nutri 2
+# @name meNutri2
+GET {{host}}/api/v1/nutritionists/me
+Authorization: Bearer {{tokenNutri2}}
+
+@nutri1Id = {{meNutri1.response.body.$.userId}}
+@nutri2Id = {{meNutri2.response.body.$.userId}}
+
+### A. Paciente lista os nutricionistas → 200
+GET {{host}}/api/v1/nutritionists
+Authorization: Bearer {{tokenPaciente}}
+
+### B. Paciente pede acompanhamento à Nutri 1 → 201
+# @name pedidoNutri1
+POST {{host}}/api/v1/patients/me/nutritionist-requests
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "nutritionistId": "{{nutri1Id}}",
+  "message": "Quero ganhar massa muscular."
+}
+
+@pedidoNutri1Id = {{pedidoNutri1.response.body.$.id}}
+
+### C. Paciente repete o pedido → 409 (já tem pendente)
+POST {{host}}/api/v1/patients/me/nutritionist-requests
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "nutritionistId": "{{nutri1Id}}",
+  "message": "Segunda tentativa."
+}
+
+### D. Nutri 2 tenta aceitar o pedido da Nutri 1 → 404 (RN12)
+POST {{host}}/api/v1/nutritionists/me/requests/{{pedidoNutri1Id}}/accept
+Authorization: Bearer {{tokenNutri2}}
+
+### E. Nutri 1 vê a caixa de entrada → o pedido aparece com o nome do paciente
+# @name caixaNutri1
+GET {{host}}/api/v1/nutritionists/me/requests?status=Pending
+Authorization: Bearer {{tokenNutri1}}
+
+@pacienteId = {{caixaNutri1.response.body.$.items[0].patientId}}
+
+### F. Nutri 1 aceita → 204
+POST {{host}}/api/v1/nutritionists/me/requests/{{pedidoNutri1Id}}/accept
+Authorization: Bearer {{tokenNutri1}}
+
+### G. Nutri 1 aceita de novo → 409
+POST {{host}}/api/v1/nutritionists/me/requests/{{pedidoNutri1Id}}/accept
+Authorization: Bearer {{tokenNutri1}}
+
+### H. Paciente vê o acompanhamento atual → 200 com a Nutri 1
+GET {{host}}/api/v1/patients/me/care-relationship
+Authorization: Bearer {{tokenPaciente}}
+
+### I. Paciente pede à Nutri 2 → 409 (já está em acompanhamento)
+POST {{host}}/api/v1/patients/me/nutritionist-requests
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "nutritionistId": "{{nutri2Id}}"
+}
+
+### J. Nutri 1 lista os pacientes → o paciente aparece
+GET {{host}}/api/v1/nutritionists/me/patients
+Authorization: Bearer {{tokenNutri1}}
+
+### K. Nutri 2 lista os pacientes → vazia (RN13)
+GET {{host}}/api/v1/nutritionists/me/patients
+Authorization: Bearer {{tokenNutri2}}
+
+### L. Paciente encerra → 204 (e-mail para a Nutri 1 no Mailpit)
+POST {{host}}/api/v1/patients/me/care-relationship/end
+Authorization: Bearer {{tokenPaciente}}
+
+### M.1 Paciente pede à Nutri 2 → 201
+# @name pedidoCancelar
+POST {{host}}/api/v1/patients/me/nutritionist-requests
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "nutritionistId": "{{nutri2Id}}"
+}
+
+### M.2 Paciente cancela → 204
+POST {{host}}/api/v1/patients/me/nutritionist-requests/{{pedidoCancelar.response.body.$.id}}/cancel
+Authorization: Bearer {{tokenPaciente}}
+
+### N.1 Paciente pede à Nutri 2 de novo → 201
+# @name pedidoRecusar
+POST {{host}}/api/v1/patients/me/nutritionist-requests
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "nutritionistId": "{{nutri2Id}}"
+}
+
+### N.2 Nutri 2 recusa → 204
+POST {{host}}/api/v1/nutritionists/me/requests/{{pedidoRecusar.response.body.$.id}}/reject
+Authorization: Bearer {{tokenNutri2}}
+
+### N.3 Histórico do paciente → Accepted, Cancelled e Rejected
+GET {{host}}/api/v1/patients/me/nutritionist-requests
+Authorization: Bearer {{tokenPaciente}}
+
+### O.1 Paciente pede à Nutri 1 → 201
+# @name pedidoEncerrarPelaNutri
+POST {{host}}/api/v1/patients/me/nutritionist-requests
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "nutritionistId": "{{nutri1Id}}"
+}
+
+### O.2 Nutri 1 aceita → 204
+POST {{host}}/api/v1/nutritionists/me/requests/{{pedidoEncerrarPelaNutri.response.body.$.id}}/accept
+Authorization: Bearer {{tokenNutri1}}
+
+### O.3 Nutri 1 encerra → 204 (e-mail para o PACIENTE no Mailpit)
+POST {{host}}/api/v1/nutritionists/me/patients/{{pacienteId}}/end
+Authorization: Bearer {{tokenNutri1}}

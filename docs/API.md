@@ -15,6 +15,7 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
   - [Confirmação de e-mail](#confirmação-de-e-mail)
   - [Paciente](#paciente)
   - [Nutricionista](#nutricionista)
+  - [Acompanhamento nutricional](#acompanhamento-nutricional)
   - [Convite de nutricionista](#convite-de-nutricionista)
   - [Administração](#administração)
 - [Fluxos](#fluxos)
@@ -340,6 +341,106 @@ Atualiza a apresentação. Nome, e-mail e CRN **não** são alterados por aqui.
 - `bio` aceita até **500 caracteres**. Os espaços nas pontas são removidos, e um texto vazio (ou `null`) **apaga** a apresentação.
 - `200` → o perfil atualizado (mesmo formato do `GET`)
 - `400` → "A apresentação pode ter no máximo 500 caracteres." Vale mostrar um contador de caracteres no campo.
+
+### Acompanhamento nutricional
+
+O paciente escolhe um nutricionista na [lista de nutricionistas](#nutricionista) e envia uma solicitação. Se o nutricionista aceitar, começa o acompanhamento, que qualquer um dos dois pode encerrar. Quando isso acontece, a outra parte recebe um e-mail.
+
+**Regras:**
+- Cada paciente tem no máximo **um acompanhamento ativo** e **uma solicitação pendente** por vez.
+- Status da solicitação (`status`): `Pending`, `Accepted`, `Rejected` ou `Cancelled`. Só uma solicitação `Pending` pode ser aceita, recusada ou cancelada.
+- Um recurso de outro usuário (solicitação de outro nutricionista, paciente que não é seu) responde `404`, e não `403`.
+
+As listagens aceitam `page` e `pageSize` (como as outras) e devolvem o mesmo formato paginado (`items`, `page`, `pageSize`, `totalItems`, `totalPages`). As solicitações vêm da mais recente para a mais antiga.
+
+#### Paciente 🧑
+
+##### `POST /api/v1/patients/me/nutritionist-requests`
+
+```json
+{ "nutritionistId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "message": "Quero ganhar massa muscular." }
+```
+
+- `message` é opcional, com até 500 caracteres.
+- `201` → `{ "id": "<id da solicitação>" }`
+- `400` → erros de validação, ou "Você não pode solicitar acompanhamento a si mesmo." (para quem é paciente e nutricionista ao mesmo tempo)
+- `404` → "Nutricionista não encontrado."
+- `409` → "Você já está em acompanhamento. Encerre o atual antes de solicitar outro."
+- `409` → "Você já tem uma solicitação pendente."
+
+##### `GET /api/v1/patients/me/nutritionist-requests?status=Pending`
+
+`status` é opcional. Cada item:
+
+```json
+{
+  "id": "…",
+  "nutritionistId": "…",
+  "nutritionistName": "Ana Souza",
+  "status": "Pending",
+  "message": "Quero ganhar massa muscular.",
+  "createdAt": "2026-10-10T12:00:00Z",
+  "respondedAtUtc": null
+}
+```
+
+##### `POST /api/v1/patients/me/nutritionist-requests/{id}/cancel`
+
+- `204` → cancelada
+- `404` → "Solicitação não encontrada."
+- `409` → "Esta solicitação não está mais pendente."
+
+##### `GET /api/v1/patients/me/care-relationship`
+
+```json
+{
+  "relationshipId": "…",
+  "nutritionistId": "…",
+  "nutritionistName": "Ana Souza",
+  "crnRegion": 3,
+  "crnNumber": "12345",
+  "bio": "Nutrição esportiva e emagrecimento.",
+  "startedAtUtc": "2026-10-10T12:00:00Z"
+}
+```
+
+- `404` → "Você não está em acompanhamento." **Não é um erro de verdade:** é o estado normal de quem ainda não tem nutricionista. Mostre a lista para escolher um.
+
+##### `POST /api/v1/patients/me/care-relationship/end`
+
+Sem corpo.
+
+- `204` → encerrado. O nutricionista recebe um e-mail.
+- `404` → "Você não está em acompanhamento."
+
+#### Nutricionista 🥗
+
+##### `GET /api/v1/nutritionists/me/requests?status=Pending`
+
+`status` é opcional. Os itens têm o mesmo formato da lista do paciente, trocando `nutritionistId`/`nutritionistName` por `patientId`/`patientName`.
+
+##### `POST /api/v1/nutritionists/me/requests/{id}/accept` e `.../reject`
+
+Sem corpo.
+
+- `204` → aceita (cria o acompanhamento) ou recusada
+- `404` → "Solicitação não encontrada." (inclusive se ela é de outro nutricionista)
+- `409` → "Esta solicitação não está mais pendente." (por exemplo, o paciente cancelou antes)
+
+##### `GET /api/v1/nutritionists/me/patients?search=maria`
+
+Pacientes em acompanhamento ativo, em ordem alfabética. `search` busca no nome (até 100 caracteres). Cada item:
+
+```json
+{ "patientId": "…", "name": "Maria Silva", "goal": "WeightLoss", "startedAtUtc": "2026-10-10T12:00:00Z" }
+```
+
+##### `POST /api/v1/nutritionists/me/patients/{patientId}/end`
+
+Sem corpo. Use o **`patientId`** (da lista acima), e não o Id da solicitação.
+
+- `204` → encerrado. O paciente recebe um e-mail.
+- `404` → "Acompanhamento não encontrado." (o paciente não está em acompanhamento com você)
 
 ### Convite de nutricionista
 
