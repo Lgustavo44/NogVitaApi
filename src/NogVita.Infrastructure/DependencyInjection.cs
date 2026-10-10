@@ -4,8 +4,10 @@ using NogVita.Application.Abstractions;
 using NogVita.Application.Admin;
 using NogVita.Application.Auth;
 using NogVita.Application.FollowUps;
+using NogVita.Application.Foods;
 using NogVita.Application.Nutritionists;
 using NogVita.Infrastructure.Email;
+using NogVita.Infrastructure.Foods.OpenFoodFacts;
 using NogVita.Infrastructure.Persistence;
 using NogVita.Infrastructure.Persistence.Queries;
 using NogVita.Infrastructure.Persistence.Repositories;
@@ -17,7 +19,7 @@ namespace NogVita.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, JwtSettings jwtSettings, EmailSettings emailSettings)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, JwtSettings jwtSettings, EmailSettings emailSettings, OpenFoodFactsSettings openFoodFactsSettings)
     {
         services.AddDbContext<NogVitaDbContext>(options =>
             options.UseNpgsql(connectionString)
@@ -51,6 +53,13 @@ public static class DependencyInjection
         {
             services.AddScoped<IEmailSender, MailKitEmailSender>();
         }
+
+        services.AddHttpClient<IProductCatalog, OpenFoodFactsProductCatalog>(client =>
+        {
+            client.BaseAddress = new Uri(openFoodFactsSettings.BaseUrl);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(openFoodFactsSettings.UserAgent);
+            client.Timeout = TimeSpan.FromSeconds(openFoodFactsSettings.TimeoutSeconds);
+        });
 
 
         //jwt

@@ -8,6 +8,7 @@ using NogVita.Application.Auth;
 using NogVita.Application.Common;
 using NogVita.Infrastructure;
 using NogVita.Infrastructure.Email;
+using NogVita.Infrastructure.Foods.OpenFoodFacts;
 using NogVita.Infrastructure.Persistence.Seed;
 using NogVita.Infrastructure.Security;
 using System.Text.Json.Serialization;
@@ -42,6 +43,11 @@ var emailSettings = builder.Configuration.GetSection(EmailSettings.SectionName).
     ?? throw new InvalidOperationException("Seção 'Email' não configurada.");
 emailSettings.Validate();
 
+var openFoodFactsSettings = builder.Configuration
+    .GetSection(OpenFoodFactsSettings.SectionName)
+    .Get<OpenFoodFactsSettings>() ?? new OpenFoodFactsSettings();
+openFoodFactsSettings.Validate();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -64,7 +70,7 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddInfrastructure(connectionString, jwtSettings, emailSettings);
+builder.Services.AddInfrastructure(connectionString, jwtSettings, emailSettings, openFoodFactsSettings);
 var refreshTokenSettings = builder.Configuration.GetSection(RefreshTokenSettings.SectionName).Get<RefreshTokenSettings>()
     ?? throw new InvalidOperationException("Seção 'RefreshToken' não configurada.");
 refreshTokenSettings.Validate();
