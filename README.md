@@ -34,7 +34,8 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Perfil do nutricionista:** consulta dos próprios dados e edição da apresentação (bio)
 - **Lista de nutricionistas:** para qualquer usuário logado, paginada, com busca por nome e filtro por região do CRN, sem expor e-mail nem CPF
 - **Acompanhamento nutricional:** o paciente solicita, o nutricionista aceita ou recusa, e qualquer um dos dois pode encerrar, com aviso por e-mail à outra parte
-- **Consulta de alimentos industrializados** pelo código de barras, com valores nutricionais por 100 g, via [Open Food Facts](https://world.openfoodfacts.org)
+- **Base de alimentos:** 597 alimentos da TACO, importados na inicialização, e produtos industrializados do [Open Food Facts](https://world.openfoodfacts.org), importados pelo código de barras; busca sem diferenciar acentos
+- **Gestão de alimentos pelo administrador:** ativação e desativação
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Em desenvolvimento
@@ -69,7 +70,12 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/nutritionists/me/requests/{id}/reject` | Recusa a solicitação |
 | `GET` | `/api/v1/nutritionists/me/patients` | Pacientes em acompanhamento (paginado, busca por nome) |
 | `POST` | `/api/v1/nutritionists/me/patients/{patientId}/end` | Nutricionista encerra o acompanhamento de um paciente |
-| `GET` | `/api/v1/foods/barcode/{barcode}` | Busca um alimento industrializado pelo código de barras |
+| `GET` | `/api/v1/foods` | Busca alimentos por nome (paginado, filtro por fonte) |
+| `GET` | `/api/v1/foods/{id}` | Detalhes de um alimento |
+| `GET` | `/api/v1/foods/barcode/{barcode}` | Prévia de um produto pelo código de barras |
+| `POST` | `/api/v1/foods/barcode/{barcode}/import` | Importa um produto do Open Food Facts |
+| `POST` | `/api/v1/admin/foods/{id}/activate` | Reativa um alimento |
+| `POST` | `/api/v1/admin/foods/{id}/deactivate` | Desativa um alimento |
 | `GET` | `/api/v1/admin/users` | Lista usuários (paginado, com busca e filtro) |
 | `GET` | `/api/v1/admin/users/{id}` | Detalhes de um usuário |
 | `POST` | `/api/v1/admin/users/{id}/deactivate` | Desativa a conta e revoga as sessões |
@@ -155,23 +161,41 @@ Pending ──aceite──▶ Accepted  (cria o acompanhamento)
 - Os dois índices únicos parciais (`status = 'Pending'` e `ended_at_utc IS NULL`) protegem a regra mesmo com duas requisições simultâneas, que a checagem no código sozinha não pegaria.
 - Encerrar não apaga nada: o vínculo ganha a data de encerramento e quem encerrou, preservando o histórico.
 
-### Alimentos (Open Food Facts)
+### Alimentos
 
-| Método | Rota | Acesso |
-|---|---|---|
-| `GET` | `/api/v1/foods/barcode/{barcode}` | Nutricionista, Admin |
+A base de alimentos combina duas fontes, e cada alimento informa a sua origem:
 
-Busca um produto industrializado pelo código de barras (EAN-8, UPC-A, EAN-13 ou GTIN-14) e devolve os valores nutricionais por 100 g. Responde `404` quando o produto não existe, e `503` quando o serviço externo está indisponível. Limite de 10 consultas por minuto por usuário.
+- **TACO 4ª edição (NEPA/UNICAMP):** 597 alimentos genéricos brasileiros, importados automaticamente na inicialização.
+- **Open Food Facts (ODbL):** produtos industrializados, importados pelo código de barras quando o nutricionista confirma.
 
-Como a integração funciona:
+Os valores são guardados por 100 g. Valores fisicamente impossíveis (por exemplo, mais de 100 g de um nutriente em 100 g de alimento) são recusados.
 
+| Método | Rota | Acesso | Descrição |
+|---|---|---|---|
+| `GET` | `/api/v1/foods?search=&source=` | Nutricionista, Admin | Busca por nome, sem diferenciar acentos e maiúsculas |
+| `GET` | `/api/v1/foods/{id}` | Nutricionista, Admin | Detalhe do alimento |
+| `GET` | `/api/v1/foods/barcode/{barcode}` | Nutricionista, Admin | Prévia do produto: primeiro na base local, depois no Open Food Facts |
+| `POST` | `/api/v1/foods/barcode/{barcode}/import` | Nutricionista, Admin | Importa o produto (`201`, ou `200` se já existia) |
+| `POST` | `/api/v1/admin/foods/{id}/activate` | Admin | Reativa um alimento |
+| `POST` | `/api/v1/admin/foods/{id}/deactivate` | Admin | Desativa um alimento (ele some da busca) |
+
+**TACO:**
+
+- A importação roda na inicialização e é idempotente: se já existe algum alimento da TACO no banco, ela não faz nada.
+- O CSV vai embutido na DLL, e a origem dos dados (commit, hash, conferência com a planilha oficial e o significado dos marcadores `Tr`, `NA` e `*`) está documentada em [`SOURCE.md`](src/NogVita.Infrastructure/Persistence/Seed/Data/SOURCE.md).
+- Traço (`Tr`) vira 0. Nutriente não analisado ou não aplicável vira `null`, que significa "sem informação", e nunca zero.
+
+**Open Food Facts:**
+
+- **Prévia antes de importar:** a consulta pelo código de barras não grava nada. O nutricionista vê os dados e só então confirma a importação.
+- **Base local primeiro:** se o produto já foi importado, a prévia e a importação usam a base local, sem chamar o serviço externo. Um produto desativado pelo administrador não volta por uma nova importação.
 - **Validação antes da chamada externa:** um código que não tem só dígitos ou não tem 8, 12, 13 ou 14 dígitos responde `400` sem consultar o Open Food Facts.
 - **Nome em português primeiro:** usa o nome em português quando existe; produto sem nome nenhum é tratado como não encontrado, porque não serve para um plano alimentar.
-- **Valores podem faltar:** cada nutriente vem `null` quando o Open Food Facts não tem a informação. O sódio é convertido de gramas para miligramas.
+- **Dados inconsistentes:** um produto com valores impossíveis no Open Food Facts responde `422` e não é importado.
 - **Falhas isoladas:** timeout, erro do serviço externo ou resposta inesperada viram `503`, sem derrubar a requisição com erro `500`.
-- **Boa convivência com a API pública:** as chamadas se identificam com um `User-Agent` com e-mail de contato, como o Open Food Facts pede, e o limite por usuário evita abusar do serviço gratuito.
+- **Boa convivência com a API pública:** as chamadas se identificam com um `User-Agent` com e-mail de contato, como o Open Food Facts pede. A prévia e a importação dividem um limite de 10 requisições por minuto por usuário.
 
-**Fonte dos dados:** [Open Food Facts](https://world.openfoodfacts.org), disponível sob a [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/1-0/).
+**Fontes dos dados:** NEPA – UNICAMP. *Tabela Brasileira de Composição de Alimentos – TACO*. 4. ed. rev. e ampl. Campinas: NEPA-UNICAMP, 2011. · [Open Food Facts](https://world.openfoodfacts.org), sob a [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/1-0/).
 
 ## Ambiente de staging
 
@@ -197,7 +221,7 @@ O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.
 
 ## Stack
 
-**Em uso:** C# · .NET 10 · ASP.NET Core Web API · Entity Framework Core · PostgreSQL · JWT · FluentValidation · xUnit · Docker (banco de dados) · OpenAPI / Swagger UI · Open Food Facts (API pública de alimentos) · Brevo (e-mail em staging)
+**Em uso:** C# · .NET 10 · ASP.NET Core Web API · Entity Framework Core · PostgreSQL · JWT · FluentValidation · xUnit · Docker (banco de dados) · OpenAPI / Swagger UI · TACO (tabela brasileira de composição de alimentos) · Open Food Facts (API pública de alimentos) · Brevo (e-mail em staging)
 
 **Planejado:** Docker Compose (API + banco) · testes de integração
 

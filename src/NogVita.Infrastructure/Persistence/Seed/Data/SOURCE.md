@@ -25,4 +25,6 @@
 
 `null` significa "sem informação", e não zero: um nutriente `null` não deve entrar como 0 em somas de um plano alimentar.
 
+**Carboidratos negativos:** a TACO calcula o carboidrato por diferença, e 4 alimentos têm médias levemente negativas na planilha original: 288 (corimba crua, −0,027 g), 322 (tucunaré cru, −0,045 g), 337 (capa de contra-filé grelhada, −0,007 g) e 400 (fígado de frango cru, −0,023 g). Na importação, eles viram 0: o `TacoCsvReader.ParseNutrient` trata qualquer valor abaixo de `TraceThreshold` (0,0001) como traço, o que inclui os negativos. Isso é necessário porque o domínio (`NutrientsPer100g`) recusa valores negativos. Se a regra do traço mudar, esses 4 alimentos precisam continuar convertidos para 0, ou a importação da TACO falha.
+
 **Citação obrigatória:** a reprodução dos dados da TACO exige a citação da fonte original (NEPA – UNICAMP), conforme a referência acima.

@@ -445,14 +445,77 @@ Sem corpo. Use o **`patientId`** (da lista acima), e não o Id da solicitação.
 
 ### Alimentos
 
-#### `GET /api/v1/foods/barcode/{barcode}` 🥗 🛡️
+A base combina duas fontes, indicadas no campo `source`:
 
-Busca um alimento industrializado pelo código de barras no [Open Food Facts](https://world.openfoodfacts.org) e devolve os valores nutricionais **por 100 g**. Acesso para `Nutritionist` e `Admin`.
+| `source` | Origem | Como entra na base |
+|---|---|---|
+| `Taco` | TACO 4ª edição (NEPA/UNICAMP): 597 alimentos genéricos brasileiros | Automaticamente, na inicialização da API |
+| `OpenFoodFacts` | [Open Food Facts](https://world.openfoodfacts.org): produtos industrializados | Pelo código de barras, quando o nutricionista confirma a importação |
+
+**Valores nutricionais:** sempre **por 100 g**. Energia em kcal, sódio em **miligramas** (`sodiumMgPer100g`) e os demais em gramas. Qualquer nutriente pode vir `null`, que significa "sem informação". Mostre "—" ou "não informado", e **nunca** trate `null` como zero numa soma.
+
+**Atribuição obrigatória:** toda resposta de alimento traz o campo `attribution` (por exemplo, `"TACO 4ª edição, NEPA/UNICAMP"` ou `"Open Food Facts, licença ODbL"`). Mostre esse texto nas telas que exibem os dados: as duas fontes exigem a citação.
+
+Todas as rotas desta seção são para `Nutritionist` e `Admin` 🥗 🛡️, exceto as de `/admin`, que são só `Admin`.
+
+#### Formato do alimento (`FoodResponse`)
+
+Usado na busca, no detalhe e na importação. Exemplo com os valores reais do arroz tipo 1 cozido (TACO nº 3):
+
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "name": "Arroz, tipo 1, cozido",
+  "brand": null,
+  "barcode": null,
+  "category": "Cereais e derivados",
+  "source": "Taco",
+  "sourceReference": "3",
+  "isActive": true,
+  "energyKcalPer100g": 128.2585,
+  "proteinPer100g": 2.5208,
+  "carbohydratePer100g": 28.0598,
+  "fatPer100g": 0.227,
+  "fiberPer100g": 1.561,
+  "sodiumMgPer100g": 1.2007,
+  "attribution": "TACO 4ª edição, NEPA/UNICAMP",
+  "isComplete": true
+}
+```
+
+- `brand` e `barcode` só existem em produtos do Open Food Facts. `category` só existe nos da TACO.
+- `isComplete` é `false` quando falta energia, proteína, carboidrato, gordura ou fibra. Vale sinalizar esses alimentos na hora de montar um plano.
+- Os valores vêm com até 4 casas decimais. Arredonde na exibição (por exemplo, `128 kcal`, `2,5 g`).
+
+#### `GET /api/v1/foods?search=arroz&source=Taco`
+
+Busca por nome, sem diferenciar acentos e maiúsculas (`acucar` encontra "Açúcar"). Só traz alimentos ativos, em ordem alfabética.
+
+| Parâmetro | Padrão | Descrição |
+|---|---|---|
+| `search` | — | **Obrigatório**, de 2 a 100 caracteres |
+| `source` | — | `Taco` ou `OpenFoodFacts` |
+| `page` | `1` | Página, a partir de 1 |
+| `pageSize` | `20` | Itens por página, de 1 a 100 |
+
+- `200` → formato paginado (`items`, `page`, `pageSize`, `totalItems`, `totalPages`), com um `FoodResponse` em cada item
+- `400` → "Digite pelo menos 2 caracteres para buscar." Espere o usuário digitar 2 letras antes de chamar a API, e use um *debounce* para não buscar a cada tecla.
+
+#### `GET /api/v1/foods/{id}`
+
+- `200` → `FoodResponse`
+- `404` → "Alimento não encontrado." Para quem não é Admin, um alimento desativado também responde `404`.
+
+#### `GET /api/v1/foods/barcode/{barcode}`
+
+**Prévia** de um produto pelo código de barras. Não grava nada: serve para o nutricionista conferir os dados antes de importar. Procura primeiro na base local e, se não achar, no Open Food Facts.
 
 Exemplo (valores ilustrativos): `GET /api/v1/foods/barcode/7891000100103`
 
 ```json
 {
+  "alreadyImported": false,
+  "foodId": null,
   "barcode": "7891000100103",
   "name": "Leite condensado",
   "brand": "Moça",
@@ -461,18 +524,38 @@ Exemplo (valores ilustrativos): `GET /api/v1/foods/barcode/7891000100103`
   "carbohydratePer100g": 55,
   "fatPer100g": 7.9,
   "fiberPer100g": null,
-  "sodiumMgPer100g": 120
+  "sodiumMgPer100g": 120,
+  "attribution": "Open Food Facts, licença ODbL"
 }
 ```
 
-- `brand` e **qualquer** valor nutricional podem vir `null`, quando o Open Food Facts não tem a informação. Mostre "—" ou "não informado", e **nunca** trate `null` como zero.
-- O sódio já vem em **miligramas** (`sodiumMgPer100g`); os demais, em gramas (energia em kcal).
+- `alreadyImported: true` → o produto já está na base, e `foodId` traz o Id dele. Use esse alimento direto: não precisa importar de novo.
+- `alreadyImported: false` → mostre os dados e um botão "Importar".
 - `400` → "Código de barras inválido. Use 8, 12, 13 ou 14 dígitos." Só dígitos, sem espaços nem traços: limpe a entrada antes de enviar.
-- `404` → "Produto não encontrado no Open Food Facts." Ofereça o cadastro manual do alimento, quando existir.
-- `429` → mais de 10 consultas por minuto **por usuário**. Em leitores de código de barras, evite disparar uma consulta a cada leitura repetida.
-- `503` → "O catálogo de produtos está indisponível no momento..." É uma falha temporária do serviço externo: mostre a mensagem e permita tentar de novo.
+- `404` → "Produto não encontrado no Open Food Facts." Também acontece com um produto que o administrador desativou.
+- `503` → "O catálogo de produtos está indisponível no momento..." É uma falha temporária do serviço externo: permita tentar de novo.
 
-> **Atribuição obrigatória:** os dados vêm do Open Food Facts, sob a licença [ODbL](https://opendatacommons.org/licenses/odbl/1-0/). Nas telas que exibem esses dados, mostre algo como "Fonte: Open Food Facts", com link para o site.
+#### `POST /api/v1/foods/barcode/{barcode}/import`
+
+Sem corpo. Importa o produto para a base e devolve o alimento criado.
+
+- `201` → `FoodResponse` do alimento importado (o header `Location` aponta para `/api/v1/foods/{id}`)
+- `200` → o produto já tinha sido importado: devolve o `FoodResponse` existente. Para o front, `200` e `201` significam a mesma coisa: o alimento está disponível.
+- `400` → código de barras inválido
+- `404` → "Produto não encontrado." (não existe no Open Food Facts, ou foi desativado pelo administrador)
+- `422` → "Os dados nutricionais deste produto no Open Food Facts são inconsistentes e não podem ser importados." O produto tem valores impossíveis, como mais de 100 g de um nutriente em 100 g de alimento.
+- `503` → serviço externo indisponível
+
+> **Limite compartilhado:** a prévia e a importação dividem o mesmo limite de **10 requisições por minuto por usuário** (`429` acima disso). O fluxo "prévia + importar" gasta 2 por produto. Em leitores de código de barras, evite disparar uma consulta a cada leitura repetida do mesmo código.
+
+#### `POST /api/v1/admin/foods/{id}/activate` e `.../deactivate` 🛡️
+
+Sem corpo. Só para `Admin`.
+
+- `204` → alimento ativado ou desativado
+- `404` → "Alimento não encontrado."
+
+Um alimento desativado some da busca e da prévia, e o detalhe dele passa a responder `404` para quem não é Admin. Uma nova importação do mesmo código também não o traz de volta: só o `activate` faz isso.
 
 ### Convite de nutricionista
 
@@ -724,4 +807,5 @@ Nutri: abre o link → tela lê o token do hash
 - [ ] Mostrar os erros de `errors` nos campos do formulário
 - [ ] Estado de carregamento para a primeira requisição no staging (até cerca de 1 minuto)
 - [ ] Enums como texto (`"MuscleGain"`), e não como número
-- [ ] "Fonte: Open Food Facts" nas telas que exibem dados de alimentos
+- [ ] Campo `attribution` exibido nas telas que mostram dados de alimentos (TACO e Open Food Facts)
+- [ ] Busca de alimentos só a partir de 2 letras, com *debounce*

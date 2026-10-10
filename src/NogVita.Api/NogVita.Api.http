@@ -642,3 +642,66 @@ Authorization: Bearer {{tokenNutri1}}
 ### E. Paciente → 403
 GET {{host}}/api/v1/foods/barcode/3017624010701
 Authorization: Bearer {{tokenPaciente}}
+
+### ===================== Fase 15: Alimentos =====================
+
+@tokenAdmin = {{loginAdmin.response.body.$.accessToken}}
+
+### A. Busca sem acento → acha os feijões
+# @name buscaFeijao
+GET {{NogVita.Api_HostAddress}}/api/v1/foods?search=feijao
+Authorization: Bearer {{tokenNutri1}}
+
+### B. Busca com acento e maiúsculas → o mesmo resultado
+GET {{NogVita.Api_HostAddress}}/api/v1/foods?search=FEIJÃO
+Authorization: Bearer {{tokenNutri1}}
+
+### C. Busca com 1 letra → 400
+GET {{NogVita.Api_HostAddress}}/api/v1/foods?search=a
+Authorization: Bearer {{tokenNutri1}}
+
+### D. Busca com % → lista vazia (o escape funciona)
+GET {{NogVita.Api_HostAddress}}/api/v1/foods?search=%25%25
+Authorization: Bearer {{tokenNutri1}}
+
+### E. Detalhe do primeiro feijão
+GET {{NogVita.Api_HostAddress}}/api/v1/foods/{{buscaFeijao.response.body.$.items[0].id}}
+Authorization: Bearer {{tokenNutri1}}
+
+### F. Prévia de um produto da SUA cozinha → alreadyImported: false
+@codigoProduto = 7890000000000
+GET {{NogVita.Api_HostAddress}}/api/v1/foods/barcode/{{codigoProduto}}
+Authorization: Bearer {{tokenNutri1}}
+
+### G. Importar → 201
+# @name importacao
+POST {{NogVita.Api_HostAddress}}/api/v1/foods/barcode/{{codigoProduto}}/import
+Authorization: Bearer {{tokenNutri1}}
+
+### H. Prévia de novo → alreadyImported: true, com o foodId
+GET {{NogVita.Api_HostAddress}}/api/v1/foods/barcode/{{codigoProduto}}
+Authorization: Bearer {{tokenNutri1}}
+
+### I. Importar de novo → 200 (não duplica)
+POST {{NogVita.Api_HostAddress}}/api/v1/foods/barcode/{{codigoProduto}}/import
+Authorization: Bearer {{tokenNutri1}}
+
+### J. Admin desativa o produto → 204
+POST {{NogVita.Api_HostAddress}}/api/v1/admin/foods/{{importacao.response.body.$.id}}/deactivate
+Authorization: Bearer {{tokenAdmin}}
+
+### K. Nutricionista vê o detalhe → 404 (RN19)
+GET {{NogVita.Api_HostAddress}}/api/v1/foods/{{importacao.response.body.$.id}}
+Authorization: Bearer {{tokenNutri1}}
+
+### L. Admin vê o detalhe → 200, com isActive: false
+GET {{NogVita.Api_HostAddress}}/api/v1/foods/{{importacao.response.body.$.id}}
+Authorization: Bearer {{tokenAdmin}}
+
+### M. Admin reativa → 204
+POST {{NogVita.Api_HostAddress}}/api/v1/admin/foods/{{importacao.response.body.$.id}}/activate
+Authorization: Bearer {{tokenAdmin}}
+
+### N. Nutricionista tenta desativar → 403
+POST {{NogVita.Api_HostAddress}}/api/v1/admin/foods/{{importacao.response.body.$.id}}/deactivate
+Authorization: Bearer {{tokenNutri1}}
