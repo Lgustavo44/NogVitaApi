@@ -2,6 +2,7 @@
 using NogVita.Application.Abstractions;
 using NogVita.Domain.Auth;
 using NogVita.Domain.Common;
+using NogVita.Domain.FollowUps;
 using NogVita.Domain.Invitations;
 using NogVita.Domain.Users;
 
@@ -15,6 +16,8 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<NutritionistInvitation> NutritionistInvitations => Set<NutritionistInvitation>();
     public DbSet<EmailConfirmationToken> EmailConfirmationTokens => Set<EmailConfirmationToken>();
+    public DbSet<NutritionistRequest> NutritionistRequests => Set<NutritionistRequest>();
+    public DbSet<CareRelationship> CareRelationships => Set<CareRelationship>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

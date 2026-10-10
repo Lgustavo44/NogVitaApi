@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NogVita.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NogVita.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NogVitaDbContext))]
-    partial class NogVitaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261010180453_AddNutritionistRequests")]
+    partial class AddNutritionistRequests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -158,7 +161,7 @@ namespace NogVita.Infrastructure.Persistence.Migrations
 
                     b.HasIndex(new[] { "PatientId" }, "ux_care_relationship_patient_active")
                         .IsUnique()
-                        .HasDatabaseName("ux_care_relationship_patient_active")
+                        .HasDatabaseName("ix_tb_care_relationship_patient_id")
                         .HasFilter("ended_at_utc IS NULL");
 
                     b.ToTable("tb_care_relationship", (string)null);
@@ -205,14 +208,14 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasName("pk_tb_nutritionist_request");
 
                     b.HasIndex(new[] { "NutritionistId", "Status" }, "ix_nutritionist_request_nutritionist_status")
-                        .HasDatabaseName("ix_nutritionist_request_nutritionist_status");
+                        .HasDatabaseName("ix_tb_nutritionist_request_nutritionist_id_status");
 
                     b.HasIndex(new[] { "PatientId" }, "ix_nutritionist_request_patient_id")
-                        .HasDatabaseName("ix_nutritionist_request_patient_id");
+                        .HasDatabaseName("ix_tb_nutritionist_request_patient_id");
 
                     b.HasIndex(new[] { "PatientId" }, "ux_nutritionist_request_patient_pending")
                         .IsUnique()
-                        .HasDatabaseName("ux_nutritionist_request_patient_pending")
+                        .HasDatabaseName("ix_tb_nutritionist_request_patient_id1")
                         .HasFilter("status = 'Pending'");
 
                     b.ToTable("tb_nutritionist_request", (string)null);

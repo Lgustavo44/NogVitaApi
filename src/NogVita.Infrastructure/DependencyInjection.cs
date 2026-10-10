@@ -31,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IAdminUserQueries, AdminUserQueries>();
         services.AddScoped<IInvitationRepository, InvitationRepository>();
         services.AddScoped<IEmailConfirmationTokenRepository, EmailConfirmationTokenRepository>();
+        services.AddScoped<INutritionistRequestRepository, NutritionistRequestRepository>();
+        services.AddScoped<ICareRelationshipRepository, CareRelationshipRepository>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(emailSettings);
 
