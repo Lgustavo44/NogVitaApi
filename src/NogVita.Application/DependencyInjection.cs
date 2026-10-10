@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<ResendNutritionistInvitationUseCase>();
         services.AddScoped<PreRegisterNutritionistUseCase>();
         services.AddScoped<AcceptNutritionistInvitationUseCase>();
+        services.AddScoped<RespondNutritionistRequestUseCase>();
         services.AddScoped<GetMyNutritionistProfileUseCase>();
         services.AddScoped<UpdateMyNutritionistProfileUseCase>();
 

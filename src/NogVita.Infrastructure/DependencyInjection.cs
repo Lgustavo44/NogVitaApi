@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Admin;
 using NogVita.Application.Auth;
+using NogVita.Application.FollowUps;
 using NogVita.Application.Nutritionists;
 using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Persistence;
@@ -33,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<IEmailConfirmationTokenRepository, EmailConfirmationTokenRepository>();
         services.AddScoped<INutritionistRequestRepository, NutritionistRequestRepository>();
         services.AddScoped<ICareRelationshipRepository, CareRelationshipRepository>();
+        services.AddScoped<IFollowUpQueries, FollowUpQueries>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(emailSettings);
 
