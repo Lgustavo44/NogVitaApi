@@ -34,6 +34,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Perfil do nutricionista:** consulta dos próprios dados e edição da apresentação (bio)
 - **Lista de nutricionistas:** para qualquer usuário logado, paginada, com busca por nome e filtro por região do CRN, sem expor e-mail nem CPF
 - **Acompanhamento nutricional:** o paciente solicita, o nutricionista aceita ou recusa, e qualquer um dos dois pode encerrar, com aviso por e-mail à outra parte
+- **Consulta de alimentos industrializados** pelo código de barras, com valores nutricionais por 100 g, via [Open Food Facts](https://world.openfoodfacts.org)
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Em desenvolvimento
@@ -68,6 +69,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/nutritionists/me/requests/{id}/reject` | Recusa a solicitação |
 | `GET` | `/api/v1/nutritionists/me/patients` | Pacientes em acompanhamento (paginado, busca por nome) |
 | `POST` | `/api/v1/nutritionists/me/patients/{patientId}/end` | Nutricionista encerra o acompanhamento de um paciente |
+| `GET` | `/api/v1/foods/barcode/{barcode}` | Busca um alimento industrializado pelo código de barras |
 | `GET` | `/api/v1/admin/users` | Lista usuários (paginado, com busca e filtro) |
 | `GET` | `/api/v1/admin/users/{id}` | Detalhes de um usuário |
 | `POST` | `/api/v1/admin/users/{id}/deactivate` | Desativa a conta e revoga as sessões |
@@ -153,6 +155,24 @@ Pending ──aceite──▶ Accepted  (cria o acompanhamento)
 - Os dois índices únicos parciais (`status = 'Pending'` e `ended_at_utc IS NULL`) protegem a regra mesmo com duas requisições simultâneas, que a checagem no código sozinha não pegaria.
 - Encerrar não apaga nada: o vínculo ganha a data de encerramento e quem encerrou, preservando o histórico.
 
+### Alimentos (Open Food Facts)
+
+| Método | Rota | Acesso |
+|---|---|---|
+| `GET` | `/api/v1/foods/barcode/{barcode}` | Nutricionista, Admin |
+
+Busca um produto industrializado pelo código de barras (EAN-8, UPC-A, EAN-13 ou GTIN-14) e devolve os valores nutricionais por 100 g. Responde `404` quando o produto não existe, e `503` quando o serviço externo está indisponível. Limite de 10 consultas por minuto por usuário.
+
+Como a integração funciona:
+
+- **Validação antes da chamada externa:** um código que não tem só dígitos ou não tem 8, 12, 13 ou 14 dígitos responde `400` sem consultar o Open Food Facts.
+- **Nome em português primeiro:** usa o nome em português quando existe; produto sem nome nenhum é tratado como não encontrado, porque não serve para um plano alimentar.
+- **Valores podem faltar:** cada nutriente vem `null` quando o Open Food Facts não tem a informação. O sódio é convertido de gramas para miligramas.
+- **Falhas isoladas:** timeout, erro do serviço externo ou resposta inesperada viram `503`, sem derrubar a requisição com erro `500`.
+- **Boa convivência com a API pública:** as chamadas se identificam com um `User-Agent` com e-mail de contato, como o Open Food Facts pede, e o limite por usuário evita abusar do serviço gratuito.
+
+**Fonte dos dados:** [Open Food Facts](https://world.openfoodfacts.org), disponível sob a [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/1-0/).
+
 ## Ambiente de staging
 
 A API de testes está publicada em:
@@ -177,7 +197,7 @@ O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.
 
 ## Stack
 
-**Em uso:** C# · .NET 10 · ASP.NET Core Web API · Entity Framework Core · PostgreSQL · JWT · FluentValidation · xUnit · Docker (banco de dados) · OpenAPI / Swagger UI
+**Em uso:** C# · .NET 10 · ASP.NET Core Web API · Entity Framework Core · PostgreSQL · JWT · FluentValidation · xUnit · Docker (banco de dados) · OpenAPI / Swagger UI · Open Food Facts (API pública de alimentos) · Brevo (e-mail em staging)
 
 **Planejado:** Docker Compose (API + banco) · testes de integração
 

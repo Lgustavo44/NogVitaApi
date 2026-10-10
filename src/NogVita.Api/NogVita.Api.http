@@ -620,3 +620,25 @@ Authorization: Bearer {{tokenNutri1}}
 ### O.3 Nutri 1 encerra → 204 (e-mail para o PACIENTE no Mailpit)
 POST {{host}}/api/v1/nutritionists/me/patients/{{pacienteId}}/end
 Authorization: Bearer {{tokenNutri1}}
+
+### ===================== Fase 14: Open Food Facts =====================
+
+### A. Produto que existe (Nutella, o exemplo da documentação) → 200
+GET {{host}}/api/v1/foods/barcode/3017624010701
+Authorization: Bearer {{tokenNutri1}}
+
+### B. Um produto da SUA cozinha → troque pelo código de barras da embalagem
+GET {{host}}/api/v1/foods/barcode/7890000000000
+Authorization: Bearer {{tokenNutri1}}
+
+### C. Código inválido → 400 (e não gasta a cota do Open Food Facts)
+GET {{host}}/api/v1/foods/barcode/abc123
+Authorization: Bearer {{tokenNutri1}}
+
+### D. Código válido que não existe → 404
+GET {{host}}/api/v1/foods/barcode/0000000000000
+Authorization: Bearer {{tokenNutri1}}
+
+### E. Paciente → 403
+GET {{host}}/api/v1/foods/barcode/3017624010701
+Authorization: Bearer {{tokenPaciente}}

@@ -16,6 +16,7 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
   - [Paciente](#paciente)
   - [Nutricionista](#nutricionista)
   - [Acompanhamento nutricional](#acompanhamento-nutricional)
+  - [Alimentos](#alimentos)
   - [Convite de nutricionista](#convite-de-nutricionista)
   - [Administração](#administração)
 - [Fluxos](#fluxos)
@@ -442,6 +443,37 @@ Sem corpo. Use o **`patientId`** (da lista acima), e não o Id da solicitação.
 - `204` → encerrado. O paciente recebe um e-mail.
 - `404` → "Acompanhamento não encontrado." (o paciente não está em acompanhamento com você)
 
+### Alimentos
+
+#### `GET /api/v1/foods/barcode/{barcode}` 🥗 🛡️
+
+Busca um alimento industrializado pelo código de barras no [Open Food Facts](https://world.openfoodfacts.org) e devolve os valores nutricionais **por 100 g**. Acesso para `Nutritionist` e `Admin`.
+
+Exemplo (valores ilustrativos): `GET /api/v1/foods/barcode/7891000100103`
+
+```json
+{
+  "barcode": "7891000100103",
+  "name": "Leite condensado",
+  "brand": "Moça",
+  "energyKcalPer100g": 321,
+  "proteinPer100g": 7.1,
+  "carbohydratePer100g": 55,
+  "fatPer100g": 7.9,
+  "fiberPer100g": null,
+  "sodiumMgPer100g": 120
+}
+```
+
+- `brand` e **qualquer** valor nutricional podem vir `null`, quando o Open Food Facts não tem a informação. Mostre "—" ou "não informado", e **nunca** trate `null` como zero.
+- O sódio já vem em **miligramas** (`sodiumMgPer100g`); os demais, em gramas (energia em kcal).
+- `400` → "Código de barras inválido. Use 8, 12, 13 ou 14 dígitos." Só dígitos, sem espaços nem traços: limpe a entrada antes de enviar.
+- `404` → "Produto não encontrado no Open Food Facts." Ofereça o cadastro manual do alimento, quando existir.
+- `429` → mais de 10 consultas por minuto **por usuário**. Em leitores de código de barras, evite disparar uma consulta a cada leitura repetida.
+- `503` → "O catálogo de produtos está indisponível no momento..." É uma falha temporária do serviço externo: mostre a mensagem e permita tentar de novo.
+
+> **Atribuição obrigatória:** os dados vêm do Open Food Facts, sob a licença [ODbL](https://opendatacommons.org/licenses/odbl/1-0/). Nas telas que exibem esses dados, mostre algo como "Fonte: Open Food Facts", com link para o site.
+
 ### Convite de nutricionista
 
 Nutricionistas não se cadastram sozinhos: o administrador faz o pré-cadastro, e a pessoa recebe um e-mail com um link no formato:
@@ -692,3 +724,4 @@ Nutri: abre o link → tela lê o token do hash
 - [ ] Mostrar os erros de `errors` nos campos do formulário
 - [ ] Estado de carregamento para a primeira requisição no staging (até cerca de 1 minuto)
 - [ ] Enums como texto (`"MuscleGain"`), e não como número
+- [ ] "Fonte: Open Food Facts" nas telas que exibem dados de alimentos

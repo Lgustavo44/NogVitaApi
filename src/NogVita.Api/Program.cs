@@ -114,6 +114,17 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
+
+    options.AddPolicy("food-lookup", httpContext =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.User.FindFirst("sub")?.Value
+            ?? httpContext.Connection.RemoteIpAddress?.ToString()
+            ?? "anonymous",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1)
+        }));
 });
 
 var app = builder.Build();
@@ -143,9 +154,9 @@ app.UseHttpsRedirection();
 
 app.UseCors();
 
-app.UseRateLimiter();
-
+// O rate limiter vem depois da autenticação: a política "food-lookup" particiona pelo "sub" do token.
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();
