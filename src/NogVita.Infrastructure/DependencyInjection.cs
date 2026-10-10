@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<ICareRelationshipRepository, CareRelationshipRepository>();
         services.AddScoped<IFollowUpQueries, FollowUpQueries>();
         services.AddScoped<IFoodRepository, FoodRepository>();
+        services.AddScoped<IFoodQueries, FoodQueries>();
         services.AddScoped<TacoFoodSeeder>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(emailSettings);
