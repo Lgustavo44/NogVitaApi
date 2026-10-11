@@ -4,6 +4,9 @@ namespace NogVita.Domain.Users
 {
     public class PatientProfile : Entity
     {
+        // Idade mínima para usar o NogVita (Termos de Uso, seção 3).
+        public const int MinimumAge = 18;
+
         public Guid UserId { get; private set; }
         public DateOnly BirthDate { get; private set; }
         public BiologicalSex BiologicalSex { get; private set; }
@@ -33,8 +36,11 @@ namespace NogVita.Domain.Users
 
         private static void Validate(DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)
         {
-            if (birthDate > DateOnly.FromDateTime(DateTime.UtcNow))
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (birthDate > today)
                 throw new DomainException("Data de nascimento não pode ser no futuro.");
+            if (CalculateAge(birthDate, today) < MinimumAge)
+                throw new DomainException($"O paciente precisa ter pelo menos {MinimumAge} anos.");
             if (heightInCm <= 0)
                 throw new DomainException("Altura deve ser maior que zero.");
             if (!Enum.IsDefined(typeof(BiologicalSex), biologicalSex))
@@ -43,10 +49,12 @@ namespace NogVita.Domain.Users
                 throw new DomainException("Objetivo inválido.");
         }
 
-        public int GetAgeAt(DateOnly date)
+        public int GetAgeAt(DateOnly date) => CalculateAge(BirthDate, date);
+
+        public static int CalculateAge(DateOnly birthDate, DateOnly date)
         {
-            var age = date.Year - BirthDate.Year;
-            if (date.Month < BirthDate.Month || (date.Month == BirthDate.Month && date.Day < BirthDate.Day))
+            var age = date.Year - birthDate.Year;
+            if (date.Month < birthDate.Month || (date.Month == birthDate.Month && date.Day < birthDate.Day))
             {
                 age--;
             }

@@ -75,6 +75,37 @@ namespace NogVita.UnitTests.Domain.Users
                 user.CreatePatientProfile(tomorrow, BiologicalSex.Female, 165, Goal.WeightLoss));
         }
 
+        [Fact]
+        public void Should_Create_Patient_On_18th_Birthday()
+        {
+            var user = new User("Maria Silva", "maria@email.com", TestData.ValidCpf);
+            var eighteenToday = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-PatientProfile.MinimumAge);
 
+            var profile = user.CreatePatientProfile(eighteenToday, BiologicalSex.Female, 165, Goal.WeightLoss);
+
+            Assert.Equal(eighteenToday, profile.BirthDate);
+        }
+
+        [Fact]
+        public void Should_Not_Create_Patient_Under_18()
+        {
+            var user = new User("Maria Silva", "maria@email.com", TestData.ValidCpf);
+            var eighteenTomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-PatientProfile.MinimumAge).AddDays(1);
+
+            Assert.Throws<DomainException>(() =>
+                user.CreatePatientProfile(eighteenTomorrow, BiologicalSex.Female, 165, Goal.WeightLoss));
+        }
+
+        [Fact]
+        public void Should_Not_Update_Patient_To_Under_18()
+        {
+            var user = new User("Maria Silva", "maria@email.com", TestData.ValidCpf);
+            var profile = user.CreatePatientProfile(DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-30), BiologicalSex.Female, 165, Goal.WeightLoss);
+            var seventeenYearsAgo = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-17);
+
+            Assert.Throws<DomainException>(() =>
+                user.UpdatePatientProfile(seventeenYearsAgo, BiologicalSex.Female, 165, Goal.WeightLoss));
+            Assert.NotEqual(seventeenYearsAgo, profile.BirthDate);
+        }
     }
 }

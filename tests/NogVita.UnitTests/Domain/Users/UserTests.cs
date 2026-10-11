@@ -97,7 +97,7 @@ public class UserTests
         var user = TestData.CreateUser();
         user.SetPasswordHash("hash");
         user.Activate();
-        user.CreatePatientProfile(DateOnly.FromDateTime(DateTime.Today), BiologicalSex.Female, 170, Goal.WeightLoss);
+        user.CreatePatientProfile(DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-30), BiologicalSex.Female, 170, Goal.WeightLoss);
         var roles = user.GetRoles();
         Assert.Contains(Roles.Patient, roles);
     }
