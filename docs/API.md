@@ -24,10 +24,10 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
 
 ## Ambientes
 
-| Ambiente | API | Swagger |
-|---|---|---|
-| Staging | `https://nogvitaapi.onrender.com` | `https://nogvitaapi.onrender.com/swagger` |
-| Local | `https://localhost:7194` | `https://localhost:7194/swagger` |
+| Ambiente | Front | API | Swagger |
+|---|---|---|---|
+| Staging | `https://nogvita-green.vercel.app` | `https://nogvitaapi.onrender.com` | `https://nogvitaapi.onrender.com/swagger` |
+| Local | `http://localhost:5173` | `https://localhost:7194` | `https://localhost:7194/swagger` |
 
 **Sobre o staging:**
 
@@ -35,7 +35,18 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
 - Use **apenas dados de teste**. Para CPFs, use um gerador de CPF válido.
 - `GET /health` responde `Healthy` quando a API e o banco estão no ar. É útil para "acordar" o serviço.
 
-**CORS:** a única origem liberada é `http://localhost:5173` (o padrão do Vite). Acesse sempre por `localhost`, e não por `127.0.0.1`, que o navegador trata como outra origem.
+**CORS do staging:** duas origens estão liberadas:
+
+- `https://nogvita-green.vercel.app`: o front oficial do staging.
+- `http://localhost:5173`: o padrão do Vite, para desenvolver na própria máquina usando a API do staging. Acesse sempre por `localhost`, e não por `127.0.0.1`, que o navegador trata como outra origem.
+
+Os endereços de *preview* da Vercel (um por branch) **não** estão liberados, de propósito: só o endereço oficial fala com a API. Para testar uma branch, rode o front localmente.
+
+**Links dos e-mails:** a confirmação de e-mail e o convite de nutricionista abrem no front da Vercel (`https://nogvita-green.vercel.app/...`). Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.html` para qualquer rota. Senão, abrir um link direto como `/confirmar-email#token=...` dá `404` da própria Vercel, antes de o Vue carregar. Para resolver, coloque um `vercel.json` na raiz do front:
+
+```json
+{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+```
 
 ## Convenções gerais
 
@@ -187,7 +198,7 @@ Cria a conta e o perfil de paciente em uma etapa. A conta nasce **inativa**, e a
 O link enviado no cadastro tem o formato:
 
 ```
-http://localhost:5173/confirmar-email#token=<token>
+https://nogvita-green.vercel.app/confirmar-email#token=<token>
 ```
 
 Como no convite, o token vai no **fragmento** (`#`). A tela `/confirmar-email` lê o token de `window.location.hash` (ou `route.hash`) e o envia ao `confirm`. O link vale por **24 horas** e só pode ser usado uma vez.
@@ -562,7 +573,7 @@ Um alimento desativado some da busca e da prévia, e o detalhe dele passa a resp
 Nutricionistas não se cadastram sozinhos: o administrador faz o pré-cadastro, e a pessoa recebe um e-mail com um link no formato:
 
 ```
-http://localhost:5173/nutri/convite#token=<token>
+https://nogvita-green.vercel.app/nutri/convite#token=<token>
 ```
 
 O token vai no **fragmento** (`#`), que o navegador nunca envia a servidores. A tela do convite precisa:
@@ -796,7 +807,8 @@ Nutri: abre o link → tela lê o token do hash
 
 ## Checklist do frontend
 
-- [ ] Rodar em `http://localhost:5173` (e não em `127.0.0.1`)
+- [ ] Rodar em `http://localhost:5173` (e não em `127.0.0.1`) no desenvolvimento local
+- [ ] `vercel.json` com o *rewrite* para o `index.html` (senão os links dos e-mails dão 404 na Vercel)
 - [ ] Vue Router com `createWebHistory()`
 - [ ] Rota `/nutri/convite` lendo o token do hash
 - [ ] Rota `/confirmar-email` lendo o token do hash e chamando o `confirm` uma única vez

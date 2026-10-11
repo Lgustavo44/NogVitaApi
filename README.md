@@ -199,16 +199,18 @@ Os valores são guardados por 100 g. Valores fisicamente impossíveis (por exemp
 
 ## Ambiente de staging
 
-A API de testes está publicada em:
+O ambiente de testes está publicado em:
 
+- **Front:** `https://nogvita-green.vercel.app`
 - **API:** `https://nogvitaapi.onrender.com`
 - **Swagger:** `https://nogvitaapi.onrender.com/swagger`
 
-> O ambiente usa o plano gratuito da Render: depois de 15 minutos sem uso, ele "dorme", e a primeira requisição pode levar cerca de 1 minuto. Use **apenas dados de teste**.
+> A API usa o plano gratuito da Render: depois de 15 minutos sem uso, ela "dorme", e a primeira requisição pode levar cerca de 1 minuto. Use **apenas dados de teste**.
 
 ### Para o frontend
 
-- **Origem liberada no CORS:** `http://localhost:5173` (o padrão do Vite). Acesse sempre por `localhost`, e não por `127.0.0.1`.
+- **Origens liberadas no CORS:** `https://nogvita-green.vercel.app` (o front oficial do staging) e `http://localhost:5173` (o padrão do Vite, para desenvolver na própria máquina usando a API do staging). Acesse o ambiente local sempre por `localhost`, e não por `127.0.0.1`. Os endereços de *preview* da Vercel (um por branch) **não** estão liberados, de propósito.
+- **Links dos e-mails:** a confirmação de e-mail e o convite de nutricionista apontam para o front da Vercel. Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.html` para qualquer rota, senão abrir um link direto como `/confirmar-email` dá `404` da Vercel. Isso se resolve com um `vercel.json` na raiz do front: `{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }`.
 - **Autenticação:** envie o token de acesso no header `Authorization: Bearer <accessToken>`. O token de acesso dura 15 minutos; use o `POST /api/v1/auth/refresh` com o `refreshToken` para obter um par novo. Faça **uma renovação por vez**: duas renovações simultâneas com o mesmo refresh token encerram todas as sessões (detecção de reuso).
 - **Erros:** todas as respostas de erro seguem o formato `ProblemDetails` (`title`, `status` e, em erros de validação, `errors` por campo).
 - **Enums:** trafegam como texto (ex.: `"goal": "MuscleGain"`).
