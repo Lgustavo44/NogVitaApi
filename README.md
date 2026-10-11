@@ -24,7 +24,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Validação de entrada:** requisições inválidas respondem 400 com os erros por campo
 - **CPF validado:** normalização e verificação matemática dos dígitos verificadores
 - **Política de senha** baseada na recomendação do NIST (SP 800-63B-4)
-- **Cadastro de paciente:** conta e perfil em uma única etapa; a conta fica inativa até o e-mail ser confirmado
+- **Cadastro de paciente:** conta e perfil em uma única etapa, só para maiores de 18 anos; a conta fica inativa até o e-mail ser confirmado
 - **Confirmação de e-mail:** link de uso único, válido por 24 horas, com reenvio que revoga o link anterior
 - **Perfil do paciente:** consulta e atualização dos próprios dados, com idade calculada
 - **Painel do administrador:** listagens paginadas de usuários, pacientes e nutricionistas, com busca e filtros
@@ -218,6 +218,7 @@ O ambiente de testes está publicado em:
 - **Confirmação de e-mail:** o link abre `/confirmar-email#token=...` no front. A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/email-confirmation/confirm`.
 - **Login com e-mail não confirmado:** um `403` significa "e-mail não confirmado". Mostre a opção de reenviar o link (`POST /api/v1/auth/email-confirmation/resend`).
 - **Convite de nutricionista:** o e-mail leva para `/nutri/convite#token=...`. O Vue Router precisa usar `createWebHistory()` (e não o modo hash). A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/invitations/accept`.
+- **Termos de Uso e Política de Privacidade:** os textos ficam em [`docs/legal/`](docs/legal/) (veja [Termos de Uso e Privacidade](#termos-de-uso-e-privacidade)). No cadastro de paciente, além da frase de concordância, inclua um *checkbox* desmarcado de consentimento para os dados de saúde.
 
 O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.md).
 
@@ -265,6 +266,22 @@ tests/
 - Tokens de convite armazenados apenas como hash, com validade e uso único
 - O link do convite leva o token no fragmento da URL, que nunca é enviado a servidores
 - O aceite do convite nunca altera a senha de uma conta existente
+
+## Termos de Uso e Privacidade
+
+Os documentos que o front exibe ao usuário ficam em [`docs/legal/`](docs/legal/):
+
+- [Termos de Uso](docs/legal/termos-de-uso.md)
+- [Política de Privacidade](docs/legal/politica-de-privacidade.md)
+
+A política segue a LGPD e descreve o que o sistema faz de fato: os dados guardados, quem pode ver cada um, os serviços que tratam os dados (Render, Vercel e Brevo) e os direitos do titular.
+
+> **Textos de um projeto de estudo:** foram escritos com base no que o sistema faz de fato, mas não substituem a revisão de um advogado.
+
+Pontos em aberto, para o sistema cumprir o que os documentos prometem:
+
+- **Consentimento para dados de saúde:** data de nascimento, sexo biológico, altura e objetivo são dados sensíveis (art. 11 da LGPD), que exigem consentimento específico e destacado. O cadastro de paciente precisa de um *checkbox* desmarcado para isso, e não só da frase "Ao prosseguir, você concorda...".
+- **Exclusão de conta:** ainda não há endpoint para isso. Por enquanto, a exclusão é feita por pedido no e-mail de contato.
 
 ## Identidade visual
 

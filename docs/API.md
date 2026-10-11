@@ -177,7 +177,7 @@ Cria a conta e o perfil de paciente em uma etapa. A conta nasce **inativa**, e a
 | `email` | Obrigatório, e-mail válido, até 254 caracteres |
 | `cpf` | Obrigatório, com dígitos verificadores válidos |
 | `password` | De 15 a 128 caracteres, sem regras de composição; senhas muito comuns são recusadas |
-| `birthDate` | Não pode estar no futuro |
+| `birthDate` | Não pode estar no futuro, e a pessoa precisa ter **pelo menos 18 anos** |
 | `biologicalSex` | `Male` ou `Female` |
 | `heightInCm` | Maior que zero |
 | `goal` | `WeightLoss`, `Maintenance` ou `MuscleGain` |
@@ -286,8 +286,9 @@ Atualiza os dados do perfil. Nome, e-mail e CPF **não** são alterados por aqui
 }
 ```
 
+- Os campos seguem as mesmas regras do cadastro, inclusive a idade mínima de **18 anos**.
 - `200` → o perfil atualizado (mesmo formato do `GET`)
-- `400` → erros de validação
+- `400` → erros de validação (por exemplo, "É preciso ter pelo menos 18 anos para usar o NogVita." no campo `BirthDate`)
 
 ### Nutricionista
 
