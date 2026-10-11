@@ -25,9 +25,7 @@ public sealed class RegisterPatientRequestValidator : AbstractValidator<Register
 
         RuleFor(x => x.Password).StrongPassword();
 
-        RuleFor(x => x.BirthDate)
-            .Must(birthDate => birthDate <= DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime))
-            .WithMessage("A data de nascimento não pode estar no futuro.");
+        RuleFor(x => x.BirthDate).ValidPatientBirthDate(timeProvider);
 
         RuleFor(x => x.BiologicalSex)
             .IsInEnum().WithMessage("O sexo biológico informado não é válido.");
