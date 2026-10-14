@@ -22,6 +22,7 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<CareRelationship> CareRelationships => Set<CareRelationship>();
     public DbSet<Food> Foods => Set<Food>();
     public DbSet<NutritionPlan> NutritionPlans => Set<NutritionPlan>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

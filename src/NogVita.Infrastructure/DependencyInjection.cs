@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<TacoFoodSeeder>();
         services.AddScoped<INutritionPlanRepository, NutritionPlanRepository>();
         services.AddScoped<INutritionPlanQueries, NutritionPlanQueries>();
+        services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(emailSettings);
 

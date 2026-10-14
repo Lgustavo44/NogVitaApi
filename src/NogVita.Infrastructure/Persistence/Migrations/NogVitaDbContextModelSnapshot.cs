@@ -73,6 +73,55 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.ToTable("tb_email_confirmation_token", (string)null);
                 });
 
+            modelBuilder.Entity("NogVita.Domain.Auth.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at_utc");
+
+                    b.Property<DateTime?>("RevokedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at_utc");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<DateTime?>("UsedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at_utc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_password_reset_token");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tb_password_reset_token_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_tb_password_reset_token_user_id");
+
+                    b.ToTable("tb_password_reset_token", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.Auth.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -603,6 +652,16 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tb_email_confirmation_token_users_user_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.Auth.PasswordResetToken", b =>
+                {
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_password_reset_token_users_user_id");
                 });
 
             modelBuilder.Entity("NogVita.Domain.Auth.RefreshToken", b =>
