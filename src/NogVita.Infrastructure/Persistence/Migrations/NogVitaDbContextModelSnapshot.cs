@@ -448,6 +448,10 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("meal_order");
 
+                    b.Property<TimeOnly?>("SuggestedTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("suggested_time");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -582,6 +586,10 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<TimeOnly?>("BedTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("bed_time");
+
                     b.Property<string>("BiologicalSex")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -606,6 +614,10 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("height_in_cm");
 
+                    b.Property<TimeOnly?>("TrainingTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("training_time");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -613,6 +625,10 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
+
+                    b.Property<TimeOnly?>("WakeUpTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("wake_up_time");
 
                     b.HasKey("Id")
                         .HasName("pk_tb_patient_profile");

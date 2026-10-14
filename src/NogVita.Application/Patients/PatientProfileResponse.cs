@@ -11,7 +11,10 @@ public sealed record PatientProfileResponse(
     int Age,
     BiologicalSex BiologicalSex,
     int HeightInCm,
-    Goal Goal)
+    Goal Goal,
+    TimeOnly? WakeUpTime,
+    TimeOnly? BedTime,
+    TimeOnly? TrainingTime)
 {
     public static PatientProfileResponse From(User user, PatientProfile profile, DateOnly today) =>
         new(
@@ -23,5 +26,8 @@ public sealed record PatientProfileResponse(
             profile.GetAgeAt(today),
             profile.BiologicalSex,
             profile.HeightInCm,
-            profile.Goal);
+            profile.Goal,
+            profile.WakeUpTime,
+            profile.BedTime,
+            profile.TrainingTime);
 }

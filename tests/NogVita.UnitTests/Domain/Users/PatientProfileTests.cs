@@ -107,5 +107,65 @@ namespace NogVita.UnitTests.Domain.Users
                 user.UpdatePatientProfile(seventeenYearsAgo, BiologicalSex.Female, 165, Goal.WeightLoss));
             Assert.NotEqual(seventeenYearsAgo, profile.BirthDate);
         }
+
+        private static User CreatePatient()
+        {
+            var user = new User("Maria Silva", "maria@email.com", TestData.ValidCpf);
+            user.CreatePatientProfile(new DateOnly(1995, 3, 10), BiologicalSex.Female, 165, Goal.Maintenance);
+            return user;
+        }
+
+        [Fact]
+        public void Should_Save_Routine()
+        {
+            var user = CreatePatient();
+
+            user.UpdatePatientRoutine(new TimeOnly(6, 0), new TimeOnly(22, 30), new TimeOnly(18, 0));
+
+            Assert.Equal(new TimeOnly(6, 0), user.PatientProfile!.WakeUpTime);
+            Assert.Equal(new TimeOnly(22, 30), user.PatientProfile.BedTime);
+            Assert.Equal(new TimeOnly(18, 0), user.PatientProfile.TrainingTime);
+        }
+
+        [Fact]
+        public void Should_Accept_Night_Shift_Routine()
+        {
+            var user = CreatePatient();
+
+            // Acorda às 14h e dorme às 6h: a janela atravessa a meia-noite.
+            user.UpdatePatientRoutine(new TimeOnly(14, 0), new TimeOnly(6, 0), null);
+
+            Assert.Equal(new TimeOnly(14, 0), user.PatientProfile!.WakeUpTime);
+            Assert.Equal(new TimeOnly(6, 0), user.PatientProfile.BedTime);
+        }
+
+        [Fact]
+        public void Should_Clear_Routine_With_Nulls()
+        {
+            var user = CreatePatient();
+            user.UpdatePatientRoutine(new TimeOnly(6, 0), new TimeOnly(22, 0), new TimeOnly(18, 0));
+
+            user.UpdatePatientRoutine(null, null, null);
+
+            Assert.Null(user.PatientProfile!.WakeUpTime);
+            Assert.Null(user.PatientProfile.BedTime);
+            Assert.Null(user.PatientProfile.TrainingTime);
+        }
+
+        [Fact]
+        public void Should_Not_Accept_Same_Wake_Up_And_Bed_Time()
+        {
+            var user = CreatePatient();
+
+            Assert.Throws<DomainException>(() => user.UpdatePatientRoutine(new TimeOnly(7, 0), new TimeOnly(7, 0), null));
+        }
+
+        [Fact]
+        public void Should_Not_Update_Routine_Without_Patient_Profile()
+        {
+            var user = new User("Maria Silva", "maria@email.com", TestData.ValidCpf);
+
+            Assert.Throws<DomainException>(() => user.UpdatePatientRoutine(new TimeOnly(6, 0), null, null));
+        }
     }
 }

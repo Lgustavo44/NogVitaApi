@@ -55,4 +55,21 @@ public class UpdatePatientProfileRequestValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.BiologicalSex);
         result.ShouldHaveValidationErrorFor(x => x.Goal);
     }
+
+    [Fact]
+    public void Should_Accept_Night_Shift_Routine()
+    {
+        var result = _validator.TestValidate(ValidRequest() with { WakeUpTime = new TimeOnly(14, 0), BedTime = new TimeOnly(6, 0) });
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Should_Reject_Same_Wake_Up_And_Bed_Time()
+    {
+        var result = _validator.TestValidate(ValidRequest() with { WakeUpTime = new TimeOnly(7, 0), BedTime = new TimeOnly(7, 0) });
+
+        result.ShouldHaveValidationErrorFor(x => x.BedTime)
+            .WithErrorMessage("A hora de acordar e a de dormir não podem ser iguais.");
+    }
 }

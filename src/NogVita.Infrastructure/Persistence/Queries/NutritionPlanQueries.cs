@@ -96,7 +96,7 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             .AsNoTracking()
             .Where(m => m.NutritionPlanId == plan.Id)
             .OrderBy(m => m.Order)
-            .Select(m => new MealResponse(m.Id, m.Name, m.Notes, m.Order))
+            .Select(m => new MealResponse(m.Id, m.Name, m.Notes, m.SuggestedTime, m.Order))
             .ToListAsync(cancellationToken);
 
         return new NutritionPlanDetailResponse(plan, meals);
