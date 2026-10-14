@@ -419,6 +419,48 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.ToTable("tb_nutritionist_invitation", (string)null);
                 });
 
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.Meal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("NutritionPlanId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("nutrition_plan_id");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer")
+                        .HasColumnName("meal_order");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_meal");
+
+                    b.HasIndex(new[] { "NutritionPlanId" }, "ix_meal_nutrition_plan_id")
+                        .HasDatabaseName("ix_meal_nutrition_plan_id");
+
+                    b.ToTable("tb_meal", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.NutritionPlans.NutritionPlan", b =>
                 {
                     b.Property<Guid>("Id")
@@ -718,6 +760,16 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_tb_nutritionist_invitation_users_user_id");
                 });
 
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.Meal", b =>
+                {
+                    b.HasOne("NogVita.Domain.NutritionPlans.NutritionPlan", null)
+                        .WithMany("Meals")
+                        .HasForeignKey("NutritionPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_meal_nutrition_plans_nutrition_plan_id");
+                });
+
             modelBuilder.Entity("NogVita.Domain.NutritionPlans.NutritionPlan", b =>
                 {
                     b.HasOne("NogVita.Domain.Users.User", null)
@@ -753,6 +805,11 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tb_patient_profile_users_user_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.NutritionPlan", b =>
+                {
+                    b.Navigation("Meals");
                 });
 
             modelBuilder.Entity("NogVita.Domain.Users.User", b =>

@@ -50,5 +50,14 @@ public class NutritionPlanConfiguration : IEntityTypeConfiguration<NutritionPlan
 
         builder.HasIndex(p => new { p.NutritionistId, p.PatientId }, "ix_nutrition_plan_nutritionist_patient")
             .HasDatabaseName("ix_nutrition_plan_nutritionist_patient");
+
+        builder.HasMany(p => p.Meals)
+            .WithOne()
+            .HasForeignKey(m => m.NutritionPlanId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(p => p.Meals)
+            .HasField("_meals")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

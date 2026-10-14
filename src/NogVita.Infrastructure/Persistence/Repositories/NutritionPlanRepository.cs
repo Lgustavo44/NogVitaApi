@@ -7,7 +7,9 @@ namespace NogVita.Infrastructure.Persistence.Repositories;
 internal sealed class NutritionPlanRepository(NogVitaDbContext context) : INutritionPlanRepository
 {
     public Task<NutritionPlan?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-        context.NutritionPlans.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        context.NutritionPlans
+            .Include(p => p.Meals)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     public Task<NutritionPlan?> GetActiveForPatientAsync(Guid patientId, CancellationToken cancellationToken = default) =>
         context.NutritionPlans.FirstOrDefaultAsync(p => p.PatientId == patientId && p.Status == NutritionPlanStatus.Active, cancellationToken)
