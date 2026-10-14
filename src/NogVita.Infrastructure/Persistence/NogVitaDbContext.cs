@@ -29,6 +29,18 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(NogVitaDbContext).Assembly);
     }
 
+    public Task ExecuteInTransactionAsync(Func<CancellationToken, Task> operation, CancellationToken cancellationToken = default)
+    {
+        var strategy = Database.CreateExecutionStrategy();
+
+        return strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await Database.BeginTransactionAsync(cancellationToken);
+            await operation(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        });
+    }
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
