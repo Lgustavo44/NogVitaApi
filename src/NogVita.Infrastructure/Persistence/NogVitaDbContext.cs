@@ -5,6 +5,7 @@ using NogVita.Domain.Common;
 using NogVita.Domain.FollowUps;
 using NogVita.Domain.Foods;
 using NogVita.Domain.Invitations;
+using NogVita.Domain.NutritionPlans;
 using NogVita.Domain.Users;
 
 namespace NogVita.Infrastructure.Persistence;
@@ -20,6 +21,7 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<NutritionistRequest> NutritionistRequests => Set<NutritionistRequest>();
     public DbSet<CareRelationship> CareRelationships => Set<CareRelationship>();
     public DbSet<Food> Foods => Set<Food>();
+    public DbSet<NutritionPlan> NutritionPlans => Set<NutritionPlan>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

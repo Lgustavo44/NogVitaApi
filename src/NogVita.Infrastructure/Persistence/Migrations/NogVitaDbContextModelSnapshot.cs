@@ -370,6 +370,70 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.ToTable("tb_nutritionist_invitation", (string)null);
                 });
 
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.NutritionPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("NutritionistId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("nutritionist_id");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_nutrition_plan");
+
+                    b.HasIndex(new[] { "NutritionistId", "PatientId" }, "ix_nutrition_plan_nutritionist_patient")
+                        .HasDatabaseName("ix_nutrition_plan_nutritionist_patient");
+
+                    b.HasIndex(new[] { "PatientId", "Status" }, "ix_nutrition_plan_patient_status")
+                        .HasDatabaseName("ix_nutrition_plan_patient_status");
+
+                    b.HasIndex(new[] { "PatientId" }, "ux_nutrition_plan_patient_active")
+                        .IsUnique()
+                        .HasDatabaseName("ux_nutrition_plan_patient_active")
+                        .HasFilter("status = 'Active'");
+
+                    b.ToTable("tb_nutrition_plan", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.Users.NutritionistProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -593,6 +657,23 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tb_nutritionist_invitation_users_user_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.NutritionPlan", b =>
+                {
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("NutritionistId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_nutrition_plan_users_nutritionist_id");
+
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_nutrition_plan_users_patient_id");
                 });
 
             modelBuilder.Entity("NogVita.Domain.Users.NutritionistProfile", b =>
