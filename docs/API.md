@@ -711,8 +711,9 @@ As três rotas de detalhe (o detalhe do nutricionista, o detalhe do paciente e o
     "…": "os demais campos do NutritionPlanResponse"
   },
   "meals": [
-    { "id": "…", "name": "Café da manhã", "notes": "Em jejum, beber água antes.", "suggestedTime": "07:00:00", "order": 1 },
-    { "id": "…", "name": "Almoço", "notes": null, "suggestedTime": null, "order": 2 }
+    { "id": "…", "name": "Café da manhã", "notes": "Em jejum, beber água antes.", "suggestedTime": "07:00:00", "order": 1, "outsideRoutine": false },
+    { "id": "…", "name": "Almoço", "notes": null, "suggestedTime": null, "order": 2, "outsideRoutine": null },
+    { "id": "…", "name": "Ceia", "notes": null, "suggestedTime": "23:30:00", "order": 3, "outsideRoutine": true }
   ]
 }
 ```
@@ -791,7 +792,15 @@ Acrescenta a refeição **no fim** da ordem.
 | `notes` | Opcional, até 500 caracteres. Texto em branco vira `null` |
 | `suggestedTime` | Opcional. Horário sugerido (`"HH:mm"`). **Não muda a ordem** das refeições |
 
-> **Horário fora da rotina:** a API aceita qualquer horário, porque uma regra rígida falharia para quem trabalha à noite. Compare o `suggestedTime` com o `wakeUpTime` e o `bedTime` do paciente (`GET /nutritionists/me/patients/{patientId}`) e mostre um **aviso**, sem bloquear: "Este horário cai fora da rotina do paciente". Lembre que a janela pode atravessar a meia-noite (acorda 14:00, dorme 06:00).
+> **Horário fora da rotina:** a API aceita qualquer horário, porque uma regra rígida falharia para quem trabalha à noite. Ela **calcula o aviso** para você: no detalhe do plano, cada refeição traz `outsideRoutine`.
+>
+> | `outsideRoutine` | Significado | O que mostrar |
+> |---|---|---|
+> | `true` | A refeição cai enquanto o paciente dorme | Um aviso, sem bloquear: "Este horário cai fora da rotina do paciente" |
+> | `false` | A refeição cai enquanto o paciente está acordado | Nada |
+> | `null` | O paciente não informou a rotina, ou a refeição não tem horário | Nada, ou um convite para completar a rotina |
+>
+> O cálculo já considera quem trabalha à noite (acorda 14:00, dorme 06:00: um jantar às 03:00 **não** gera aviso), e usa a rotina **atual** do paciente. **Não** refaça a conta no front: use o campo. Depois de criar ou editar uma refeição, recarregue o detalhe do plano para ver o aviso atualizado.
 
 - `201` → `{ "id": "<id da refeição>" }`
 - `400` → erros de validação
@@ -1115,6 +1124,6 @@ Nutri: abre o link → tela lê o token do hash
 - [ ] Enums como texto (`"MuscleGain"`), e não como número
 - [ ] Horários enviados como `"HH:mm"`, e os segundos cortados na exibição
 - [ ] No `PUT /patients/me`, mandar sempre os três horários da rotina (o que for omitido é apagado)
-- [ ] Aviso (sem bloqueio) quando o horário de uma refeição cair fora da rotina do paciente
+- [ ] Aviso (sem bloqueio) nas refeições com `outsideRoutine: true`, sem recalcular a regra no front
 - [ ] Campo `attribution` exibido nas telas que mostram dados de alimentos (TACO e Open Food Facts)
 - [ ] Busca de alimentos só a partir de 2 letras, com *debounce*

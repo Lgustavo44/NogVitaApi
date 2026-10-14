@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using NogVita.Application.Common.Pagination;
 using NogVita.Application.NutritionPlans;
 using NogVita.Domain.NutritionPlans;
+using NogVita.Domain.Users;
 using NogVita.Infrastructure.Queries;
 
 namespace NogVita.Infrastructure.Persistence.Queries;
@@ -20,9 +21,9 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             plans = plans.Where(p => p.Status == request.Status);
         }
 
-        return Project(plans)
-            .OrderByDescending(p => p.StartDate)
-            .ThenBy(p => p.Id)
+        return Project(plans
+                .OrderByDescending(p => p.StartDate)
+                .ThenBy(p => p.Id))
             .ToPagedResponseAsync(request, cancellationToken);
     }
 
@@ -42,10 +43,10 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             plans = plans.Where(p => p.Status == request.Status);
         }
 
-        return Project(plans)
-            .OrderByDescending(p => p.Status == NutritionPlanStatus.Active)
-            .ThenByDescending(p => p.StartDate)
-            .ThenBy(p => p.Id)
+        return Project(plans
+                .OrderByDescending(p => p.Status == NutritionPlanStatus.Active)
+                .ThenByDescending(p => p.StartDate)
+                .ThenBy(p => p.Id))
             .ToPagedResponseAsync(request, cancellationToken);
     }
 
@@ -96,9 +97,26 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             .AsNoTracking()
             .Where(m => m.NutritionPlanId == plan.Id)
             .OrderBy(m => m.Order)
-            .Select(m => new MealResponse(m.Id, m.Name, m.Notes, m.SuggestedTime, m.Order))
+            .Select(m => new { m.Id, m.Name, m.Notes, m.SuggestedTime, m.Order })
             .ToListAsync(cancellationToken);
 
-        return new NutritionPlanDetailResponse(plan, meals);
+        // A rotina atual do paciente: se ela mudar, o aviso das refeições acompanha, sem editar o plano.
+        var routine = await context.PatientProfiles
+            .AsNoTracking()
+            .Where(p => p.UserId == plan.PatientId)
+            .Select(p => new { p.WakeUpTime, p.BedTime })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var mealResponses = meals
+            .Select(m => new MealResponse(
+                m.Id,
+                m.Name,
+                m.Notes,
+                m.SuggestedTime,
+                m.Order,
+                AwakeWindow.IsOutside(m.SuggestedTime, routine?.WakeUpTime, routine?.BedTime)))
+            .ToList();
+
+        return new NutritionPlanDetailResponse(plan, mealResponses);
     }
 }
