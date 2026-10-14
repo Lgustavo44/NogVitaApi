@@ -36,11 +36,12 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Acompanhamento nutricional:** o paciente solicita, o nutricionista aceita ou recusa, e qualquer um dos dois pode encerrar, com aviso por e-mail à outra parte
 - **Base de alimentos:** 597 alimentos da TACO, importados na inicialização, e produtos industrializados do [Open Food Facts](https://world.openfoodfacts.org), importados pelo código de barras; busca sem diferenciar acentos
 - **Gestão de alimentos pelo administrador:** ativação e desativação
+- **Plano alimentar:** o nutricionista cria, ativa e finaliza planos para os pacientes que acompanha; o paciente vê o plano atual e o histórico
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Em desenvolvimento
 
-- Planos alimentares com cálculo nutricional
+- Refeições e alimentos do plano, com cálculo nutricional
 - Registro de peso
 
 ## Endpoints
@@ -76,6 +77,16 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/foods/barcode/{barcode}/import` | Importa um produto do Open Food Facts |
 | `POST` | `/api/v1/admin/foods/{id}/activate` | Reativa um alimento |
 | `POST` | `/api/v1/admin/foods/{id}/deactivate` | Desativa um alimento |
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans` | Cria um plano (rascunho) para um paciente |
+| `GET` | `/api/v1/nutritionists/me/patients/{patientId}/nutrition-plans` | Planos de um paciente (paginado, filtro por status) |
+| `GET` | `/api/v1/nutritionists/me/nutrition-plans/{id}` | Detalhes de um plano |
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{id}` | Atualiza um plano em rascunho ou ativo |
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{id}/activate` | Ativa um rascunho (finaliza o plano ativo anterior) |
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{id}/finish` | Finaliza o plano ativo |
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{id}/cancel` | Cancela um rascunho |
+| `GET` | `/api/v1/patients/me/nutrition-plans` | Planos do paciente (paginado, filtro por status) |
+| `GET` | `/api/v1/patients/me/nutrition-plans/current` | Plano ativo do paciente |
+| `GET` | `/api/v1/patients/me/nutrition-plans/{id}` | Detalhes de um plano do paciente |
 | `GET` | `/api/v1/admin/users` | Lista usuários (paginado, com busca e filtro) |
 | `GET` | `/api/v1/admin/users/{id}` | Detalhes de um usuário |
 | `POST` | `/api/v1/admin/users/{id}/deactivate` | Desativa a conta e revoga as sessões |
@@ -196,6 +207,48 @@ Os valores são guardados por 100 g. Valores fisicamente impossíveis (por exemp
 - **Boa convivência com a API pública:** as chamadas se identificam com um `User-Agent` com e-mail de contato, como o Open Food Facts pede. A prévia e a importação dividem um limite de 10 requisições por minuto por usuário.
 
 **Fontes dos dados:** NEPA – UNICAMP. *Tabela Brasileira de Composição de Alimentos – TACO*. 4. ed. rev. e ampl. Campinas: NEPA-UNICAMP, 2011. · [Open Food Facts](https://world.openfoodfacts.org), sob a [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/1-0/).
+
+### Plano alimentar
+
+O nutricionista cria planos para os pacientes que acompanha. Um plano nasce como rascunho (`Draft`), é ativado (`Active`) e depois finalizado (`Finished`); um rascunho pode ser cancelado (`Cancelled`). Cada paciente tem no máximo um plano ativo: ativar um novo finaliza o anterior. Encerrar o acompanhamento finaliza o plano ativo e cancela os rascunhos daquele nutricionista. O paciente vê apenas os planos ativos e finalizados, inclusive os de nutricionistas anteriores.
+
+| Método | Rota | Acesso |
+|---|---|---|
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans` | Nutricionista |
+| `GET` | `/api/v1/nutritionists/me/patients/{patientId}/nutrition-plans?status=` | Nutricionista |
+| `GET` | `/api/v1/nutritionists/me/nutrition-plans/{id}` | Nutricionista |
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{id}` | Nutricionista |
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{id}/activate` | Nutricionista |
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{id}/finish` | Nutricionista |
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{id}/cancel` | Nutricionista |
+| `GET` | `/api/v1/patients/me/nutrition-plans?status=` | Paciente |
+| `GET` | `/api/v1/patients/me/nutrition-plans/current` | Paciente |
+| `GET` | `/api/v1/patients/me/nutrition-plans/{id}` | Paciente |
+
+O nutricionista só acessa os próprios planos, e apenas enquanto o acompanhamento estiver ativo. As datas seguem o horário de Brasília.
+
+Ciclo de vida:
+
+```
+Draft ──activate──▶ Active ──finish──▶ Finished
+  │                   └── ativar outro plano do paciente ──▶ Finished
+  └──cancel──▶ Cancelled
+```
+
+| Ação | Permitida em | Fora disso |
+|---|---|---|
+| Editar (`PUT`) | `Draft` e `Active` | `409` |
+| Ativar | `Draft` | `409` |
+| Finalizar | `Active` | `409` |
+| Cancelar | `Draft` | `409` |
+
+Regras:
+
+- **Um plano ativo por vez:** a ativação finaliza o plano ativo anterior e ativa o novo dentro de uma **transação**, nessa ordem. O índice único parcial `ux_nutrition_plan_patient_active` (`status = 'Active'`) garante a regra também no banco.
+- **Data de fim ao finalizar:** se o plano não tinha data de fim, ou se ela ainda não chegou, a data de fim vira o dia da finalização. Ela nunca fica antes da data de início.
+- **Acesso:** sem acompanhamento ativo, as rotas do nutricionista respondem `404` (e não `403`), sem revelar se o plano ou o paciente existe. Um plano de outro nutricionista também responde `404`.
+- **O que o paciente vê:** rascunhos e planos cancelados nunca aparecem para ele, nem na lista, nem no detalhe. A lista mostra o plano ativo primeiro e depois os finalizados, do mais recente para o mais antigo.
+- **Histórico preservado:** encerrar o acompanhamento ou trocar de nutricionista não apaga nada. Os planos finalizados continuam visíveis para o paciente.
 
 ## Ambiente de staging
 
