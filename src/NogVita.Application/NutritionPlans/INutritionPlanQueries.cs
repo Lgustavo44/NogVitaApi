@@ -7,15 +7,15 @@ public interface INutritionPlanQueries
     Task<PagedResponse<NutritionPlanResponse>> ListByNutritionistAndPatientAsync(
         Guid nutritionistId, Guid patientId, NutritionPlanListRequest request, CancellationToken cancellationToken = default);
 
-    Task<NutritionPlanResponse?> GetByNutritionistAsync(
-        Guid nutritionistId, Guid planId, CancellationToken cancellationToken = default);
-
     Task<PagedResponse<NutritionPlanResponse>> ListByPatientAsync(
         Guid patientId, NutritionPlanListRequest request, CancellationToken cancellationToken = default);
 
-    Task<NutritionPlanResponse?> GetByPatientAsync(
+    Task<NutritionPlanDetailResponse?> GetByNutritionistAsync(
+        Guid nutritionistId, Guid planId, CancellationToken cancellationToken = default);
+
+    Task<NutritionPlanDetailResponse?> GetByPatientAsync(
         Guid patientId, Guid planId, CancellationToken cancellationToken = default);
 
-    Task<NutritionPlanResponse?> GetCurrentByPatientAsync(
+    Task<NutritionPlanDetailResponse?> GetCurrentByPatientAsync(
         Guid patientId, CancellationToken cancellationToken = default);
 }

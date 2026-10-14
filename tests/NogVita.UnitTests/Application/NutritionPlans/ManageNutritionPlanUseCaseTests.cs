@@ -31,7 +31,11 @@ public class ManageNutritionPlanUseCaseTests
     }
 
     private ManageNutritionPlanUseCase CreateUseCase() =>
-        new(new CareAccessService(_userRepository, _relationshipRepository), _planRepository, _unitOfWork, TimeProvider.System);
+        new(
+            new NutritionistPlanAccess(new CareAccessService(_userRepository, _relationshipRepository), _planRepository),
+            _planRepository,
+            _unitOfWork,
+            TimeProvider.System);
 
     private NutritionPlan AddPlan(Guid? nutritionistId = null, bool active = false)
     {

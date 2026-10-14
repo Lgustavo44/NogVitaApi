@@ -120,19 +120,12 @@ public class NutritionPlan : Entity
     {
         EnsureEditable();
 
-        // A nova ordem precisa conter todas as refeições do plano, cada uma uma vez: sem faltar, sem repetir e sem Id de fora.
-        var isCompletePermutation =
-            orderedMealIds is not null
-            && orderedMealIds.Count == _meals.Count
-            && orderedMealIds.Distinct().Count() == orderedMealIds.Count
-            && orderedMealIds.All(id => _meals.Any(m => m.Id == id));
-
-        if (!isCompletePermutation)
+        if (!IsCompleteMealOrder(orderedMealIds))
         {
             throw new DomainException("A nova ordem precisa conter todas as refeições do plano, uma vez cada.");
         }
 
-        Renumber(orderedMealIds!.Select(GetMeal));
+        Renumber(orderedMealIds.Select(GetMeal));
     }
 
     private Meal GetMeal(Guid mealId) =>
@@ -189,4 +182,11 @@ public class NutritionPlan : Entity
         StartDate = startDate;
         EndDate = endDate;
     }
+
+    // Todas as refeições do plano, cada uma uma vez: sem faltar, sem repetir e sem Id de fora.
+    public bool IsCompleteMealOrder(IReadOnlyList<Guid> orderedMealIds) =>
+        orderedMealIds is not null
+        && orderedMealIds.Count == _meals.Count
+        && orderedMealIds.Distinct().Count() == orderedMealIds.Count
+        && orderedMealIds.All(id => _meals.Any(m => m.Id == id));
 }

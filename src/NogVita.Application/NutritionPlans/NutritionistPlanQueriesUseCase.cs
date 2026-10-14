@@ -20,7 +20,7 @@ public sealed class NutritionistPlanQueriesUseCase(
             : null;
     }
 
-    public async Task<NutritionPlanResponse?> GetAsync(
+    public async Task<NutritionPlanDetailResponse?> GetAsync(
         Guid nutritionistId,
         Guid planId,
         CancellationToken cancellationToken = default)
@@ -32,7 +32,7 @@ public sealed class NutritionistPlanQueriesUseCase(
             return null;
         }
 
-        var followsPatient = await careAccessService.NutritionistFollowsPatientAsync(nutritionistId, plan.PatientId, cancellationToken);
+        var followsPatient = await careAccessService.NutritionistFollowsPatientAsync(nutritionistId, plan.Plan.PatientId, cancellationToken);
 
         return followsPatient ? plan : null;
     }

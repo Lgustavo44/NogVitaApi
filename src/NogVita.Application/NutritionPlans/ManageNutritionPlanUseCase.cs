@@ -33,7 +33,7 @@ public enum ManageNutritionPlanResult
 }
 
 public sealed class ManageNutritionPlanUseCase(
-    CareAccessService careAccessService,
+    NutritionistPlanAccess planAccess,
     INutritionPlanRepository planRepository,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
@@ -44,7 +44,7 @@ public sealed class ManageNutritionPlanUseCase(
         UpdateNutritionPlanRequest request,
         CancellationToken cancellationToken = default)
     {
-        var plan = await LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
+        var plan = await planAccess.LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
 
         if (plan is null)
         {
@@ -66,7 +66,7 @@ public sealed class ManageNutritionPlanUseCase(
         Guid planId,
         CancellationToken cancellationToken = default)
     {
-        var plan = await LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
+        var plan = await planAccess.LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
 
         if (plan is null)
         {
@@ -102,7 +102,7 @@ public sealed class ManageNutritionPlanUseCase(
         Guid planId,
         CancellationToken cancellationToken = default)
     {
-        var plan = await LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
+        var plan = await planAccess.LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
         if (plan is null)
         {
             return ManageNutritionPlanResult.NotFound;
@@ -123,7 +123,7 @@ public sealed class ManageNutritionPlanUseCase(
         Guid planId,
         CancellationToken cancellationToken = default)
     {
-        var plan = await LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
+        var plan = await planAccess.LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
         if (plan is null)
         {
             return ManageNutritionPlanResult.NotFound;
@@ -137,23 +137,5 @@ public sealed class ManageNutritionPlanUseCase(
         plan.Cancel();
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return ManageNutritionPlanResult.Done;
-    }
-
-    private async Task<NutritionPlan?> LoadOwnPlanAsync(
-        Guid nutritionistId,
-        Guid planId,
-        CancellationToken cancellationToken)
-    {
-        var plan = await planRepository.GetByIdAsync(planId, cancellationToken);
-
-        if (plan is null || plan.NutritionistId != nutritionistId)
-        {
-            return null;
-        }
-
-        var followsPatient = await careAccessService.NutritionistFollowsPatientAsync(
-            nutritionistId, plan.PatientId, cancellationToken);
-
-        return followsPatient ? plan : null;
     }
 }
