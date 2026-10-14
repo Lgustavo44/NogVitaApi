@@ -832,3 +832,84 @@ Content-Type: application/json
   "name": "Sem vínculo",
   "startDate": "2026-12-01"
 }
+
+### ===================== Fase 16B: Recuperação de senha =====================
+
+### A. Pedir a recuperação → 202 (e chega o e-mail no Mailpit)
+POST {{host}}/api/v1/auth/password-reset/request
+Content-Type: application/json
+
+{
+  "email": "{{pacienteEmail}}"
+}
+
+### B. Pedir para um e-mail que não existe → 202 (e NENHUM e-mail chega)
+POST {{host}}/api/v1/auth/password-reset/request
+Content-Type: application/json
+
+{
+  "email": "ninguem.existe@email.com"
+}
+
+### C. Guardar um refresh token ANTES da troca (para provar que ele morre)
+# @name loginAntesDaTroca
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{pacienteEmail}}",
+  "password": "{{pacienteSenha}}"
+}
+
+### D. Senha nova fraca → 400, com o erro no campo
+POST {{host}}/api/v1/auth/password-reset/confirm
+Content-Type: application/json
+
+{
+  "token": "COLE_O_TOKEN_AQUI",
+  "newPassword": "123"
+}
+
+### E. Confirmar com a senha nova → 204 (e chega o aviso "senha alterada")
+POST {{host}}/api/v1/auth/password-reset/confirm
+Content-Type: application/json
+
+{
+  "token": "COLE_O_TOKEN_AQUI",
+  "newPassword": "{{pacienteSenhaNova}}"
+}
+
+### F. O mesmo link de novo → 400
+POST {{host}}/api/v1/auth/password-reset/confirm
+Content-Type: application/json
+
+{
+  "token": "COLE_O_TOKEN_AQUI",
+  "newPassword": "{{pacienteSenhaNova}}"
+}
+
+### G. Login com a senha ANTIGA → 401
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{pacienteEmail}}",
+  "password": "{{pacienteSenha}}"
+}
+
+### H. Login com a senha NOVA → 200
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{pacienteEmail}}",
+  "password": "{{pacienteSenhaNova}}"
+}
+
+### I. Refresh com o token de ANTES da troca → 401 (a sessão antiga morreu)
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{loginAntesDaTroca.response.body.$.refreshToken}}"
+}

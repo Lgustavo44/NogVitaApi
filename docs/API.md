@@ -13,6 +13,7 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
 - [Endpoints](#endpoints)
   - [Auth](#auth)
   - [Confirmação de e-mail](#confirmação-de-e-mail)
+  - [Recuperação de senha](#recuperação-de-senha)
   - [Paciente](#paciente)
   - [Nutricionista](#nutricionista)
   - [Acompanhamento nutricional](#acompanhamento-nutricional)
@@ -43,7 +44,15 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
 
 Os endereços de *preview* da Vercel (um por branch) **não** estão liberados, de propósito: só o endereço oficial fala com a API. Para testar uma branch, rode o front localmente.
 
-**Links dos e-mails:** a confirmação de e-mail e o convite de nutricionista abrem no front da Vercel (`https://nogvita-green.vercel.app/...`). Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.html` para qualquer rota. Senão, abrir um link direto como `/confirmar-email#token=...` dá `404` da própria Vercel, antes de o Vue carregar. Para resolver, coloque um `vercel.json` na raiz do front:
+**Links dos e-mails:** três e-mails trazem links que abrem no front da Vercel (`https://nogvita-green.vercel.app/...`), todos com o token no fragmento da URL (`#token=...`):
+
+| Rota do front | E-mail | Validade | Endpoint que recebe o token |
+|---|---|---|---|
+| `/confirmar-email` | Confirmação de e-mail do cadastro | 24 horas | `POST /api/v1/auth/email-confirmation/confirm` |
+| `/redefinir-senha` | Redefinição de senha | 1 hora | `POST /api/v1/auth/password-reset/confirm` |
+| `/nutri/convite` | Convite de nutricionista | 72 horas | `POST /api/v1/auth/invitations/accept` |
+
+Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.html` para qualquer rota. Senão, abrir um link direto como `/confirmar-email#token=...` dá `404` da própria Vercel, antes de o Vue carregar. Para resolver, coloque um `vercel.json` na raiz do front:
 
 ```json
 { "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
@@ -253,6 +262,49 @@ Como no convite, o token vai no **fragmento** (`#`). A tela `/confirmar-email` l
 ```json
 { "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "roles": ["Patient"] }
 ```
+
+### Recuperação de senha
+
+O usuário pede a redefinição pelo e-mail e recebe um link no formato:
+
+```
+https://nogvita-green.vercel.app/redefinir-senha#token=<token>
+```
+
+Como nos outros links, o token vai no **fragmento** (`#`). A tela `/redefinir-senha` lê o token de `window.location.hash` (ou `route.hash`), pede a nova senha e envia os dois ao `confirm`. O link vale por **1 hora** e só pode ser usado uma vez.
+
+#### `POST /api/v1/auth/password-reset/request` 🌐
+
+Chamado pelo "Esqueci minha senha" da tela de login.
+
+```json
+{ "email": "maria@exemplo.com" }
+```
+
+- `202` → sempre a mesma resposta, exista ou não uma conta com esse e-mail:
+
+  ```json
+  { "message": "Se houver uma conta com este e-mail, enviamos um link para redefinir a senha." }
+  ```
+
+  Mostre essa mensagem e não diga se o e-mail existe. Cada novo pedido **invalida os links anteriores**: só o e-mail mais recente funciona.
+- `400` → e-mail vazio ou inválido
+- `429` → muitas tentativas (10 por minuto por IP). Desabilite o botão por alguns segundos depois de cada envio.
+
+> Contas desativadas pelo administrador e nutricionistas que ainda não aceitaram o convite não recebem o link. A resposta continua sendo a mesma `202`.
+
+#### `POST /api/v1/auth/password-reset/confirm` 🌐
+
+```json
+{ "token": "<token do link>", "newPassword": "uma senha nova bem longa" }
+```
+
+- `newPassword` segue a mesma política do cadastro: de 15 a 128 caracteres, sem regras de composição, e senhas muito comuns são recusadas.
+- `204` → senha alterada. **Todas as sessões abertas foram encerradas**, inclusive a deste navegador, se houver: apague os tokens locais e mande para o login. O usuário também recebe um e-mail avisando da troca.
+- `400` com erros de validação → mostre os erros no campo da senha.
+- `400` → "Link de redefinição inválido ou expirado." O link venceu, já foi usado ou foi substituído por um pedido mais novo. Ofereça pedir um novo link.
+
+> Se o e-mail da conta ainda não estava confirmado, a redefinição também o confirma. Depois dela, o login já funciona.
 
 ### Paciente
 
@@ -856,6 +908,21 @@ E-mail → /confirmar-email#token=...
     └─ 400 → "Link inválido ou expirado" → campo de e-mail + "Reenviar link"
 ```
 
+### Recuperação de senha
+
+```
+Login → "Esqueci minha senha" → campo de e-mail
+  POST /auth/password-reset/request { email }
+    └─ 202 → "Se houver uma conta com este e-mail, enviamos um link..."
+
+E-mail → /redefinir-senha#token=...
+  tela pede a nova senha
+  POST /auth/password-reset/confirm { token, newPassword }
+    ├─ 204 → apaga os tokens locais → "Senha alterada!" → login
+    ├─ 400 com errors → mostra os erros no campo da senha
+    └─ 400 "Link inválido ou expirado" → "Pedir um novo link"
+```
+
 ### Renovação automática do token
 
 1. Antes de cada requisição, ou ao receber `401`, verifique se o `accessToken` venceu (`accessTokenExpiresAtUtc`).
@@ -928,6 +995,8 @@ Nutri: abre o link → tela lê o token do hash
 - [ ] Vue Router com `createWebHistory()`
 - [ ] Rota `/nutri/convite` lendo o token do hash
 - [ ] Rota `/confirmar-email` lendo o token do hash e chamando o `confirm` uma única vez
+- [ ] Rota `/redefinir-senha` lendo o token do hash, pedindo a nova senha e mandando para o login depois do `204`
+- [ ] "Esqueci minha senha" na tela de login
 - [ ] Cadastro sem login automático: tela "verifique seu e-mail" depois do `202`
 - [ ] Login tratando o `403` com a opção de reenviar o link
 - [ ] Enviar `Authorization: Bearer <accessToken>` nas rotas protegidas

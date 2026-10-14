@@ -26,6 +26,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Política de senha** baseada na recomendação do NIST (SP 800-63B-4)
 - **Cadastro de paciente:** conta e perfil em uma única etapa, só para maiores de 18 anos; a conta fica inativa até o e-mail ser confirmado
 - **Confirmação de e-mail:** link de uso único, válido por 24 horas, com reenvio que revoga o link anterior
+- **Recuperação de senha:** link de uso único por e-mail, válido por 1 hora; a troca encerra todas as sessões e envia um aviso
 - **Perfil do paciente:** consulta e atualização dos próprios dados, com idade calculada
 - **Painel do administrador:** listagens paginadas de usuários, pacientes e nutricionistas, com busca e filtros
 - **Ativação e desativação de contas:** desativar revoga todas as sessões do usuário
@@ -56,6 +57,8 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/auth/register/patient` | Cadastra um paciente e envia o link de confirmação |
 | `POST` | `/api/v1/auth/email-confirmation/confirm` | Confirma o e-mail e ativa a conta |
 | `POST` | `/api/v1/auth/email-confirmation/resend` | Reenvia o link de confirmação (invalida os anteriores) |
+| `POST` | `/api/v1/auth/password-reset/request` | Envia o link de redefinição de senha (invalida os anteriores) |
+| `POST` | `/api/v1/auth/password-reset/confirm` | Define a nova senha e encerra todas as sessões |
 | `GET` | `/api/v1/patients/me` | Perfil do paciente autenticado |
 | `PUT` | `/api/v1/patients/me` | Atualiza o perfil do paciente autenticado |
 | `GET` | `/api/v1/nutritionists` | Lista os nutricionistas ativos (paginado, com busca e filtro) |
@@ -128,6 +131,24 @@ Decisões de segurança:
 - O login só informa "confirme seu e-mail" (`403`) depois de a senha estar correta.
 - Um cadastro repetido nunca altera a senha da conta pendente.
 - Os usuários que já existiam antes da confirmação de e-mail foram migrados como confirmados.
+
+### Recuperação de senha
+
+| Método | Rota | Resposta |
+|---|---|---|
+| `POST` | `/api/v1/auth/password-reset/request` | `202`, sempre com a mesma mensagem |
+| `POST` | `/api/v1/auth/password-reset/confirm` | `204` senha alterada, `400` link inválido ou expirado |
+
+O link de redefinição vale 1 hora, é de uso único, e um novo pedido invalida o anterior. Os tokens são guardados apenas como hash. Depois da troca, todas as sessões abertas são encerradas e o usuário recebe um aviso por e-mail. Se o e-mail ainda não tinha sido confirmado, a redefinição também o confirma. Contas desativadas pelo administrador e nutricionistas que ainda não aceitaram o convite não recebem o link.
+
+Detalhes:
+
+- **Sem enumeração de contas:** o pedido responde `202` com a mesma mensagem tanto para e-mails cadastrados quanto para os que não existem.
+- **Desativação depois do pedido:** se o administrador desativar a conta depois que o link foi enviado, o link deixa de funcionar. Redefinir a senha nunca reativa uma conta desativada.
+- **Por que confirmar o e-mail:** quem recebeu o link no e-mail provou ser dono dele. A data de confirmação original é mantida para quem já tinha confirmado.
+- **Por que encerrar as sessões:** quem redefine a senha por suspeita de invasão precisa derrubar as sessões que o invasor tenha aberto.
+- **A nova senha** segue a mesma política do cadastro (mínimo de 15 caracteres, com lista de bloqueio).
+- As duas rotas ficam no limite de 10 requisições por minuto por IP, o que dificulta tanto o envio de e-mails em massa quanto as tentativas de adivinhar tokens.
 
 ### Nutricionista
 
@@ -263,13 +284,14 @@ O ambiente de testes está publicado em:
 ### Para o frontend
 
 - **Origens liberadas no CORS:** `https://nogvita-green.vercel.app` (o front oficial do staging) e `http://localhost:5173` (o padrão do Vite, para desenvolver na própria máquina usando a API do staging). Acesse o ambiente local sempre por `localhost`, e não por `127.0.0.1`. Os endereços de *preview* da Vercel (um por branch) **não** estão liberados, de propósito.
-- **Links dos e-mails:** a confirmação de e-mail e o convite de nutricionista apontam para o front da Vercel. Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.html` para qualquer rota, senão abrir um link direto como `/confirmar-email` dá `404` da Vercel. Isso se resolve com um `vercel.json` na raiz do front: `{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }`.
+- **Links dos e-mails:** a confirmação de e-mail, a redefinição de senha e o convite de nutricionista apontam para o front da Vercel. Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.html` para qualquer rota, senão abrir um link direto como `/confirmar-email` dá `404` da Vercel. Isso se resolve com um `vercel.json` na raiz do front: `{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }`.
 - **Autenticação:** envie o token de acesso no header `Authorization: Bearer <accessToken>`. O token de acesso dura 15 minutos; use o `POST /api/v1/auth/refresh` com o `refreshToken` para obter um par novo. Faça **uma renovação por vez**: duas renovações simultâneas com o mesmo refresh token encerram todas as sessões (detecção de reuso).
 - **Erros:** todas as respostas de erro seguem o formato `ProblemDetails` (`title`, `status` e, em erros de validação, `errors` por campo).
 - **Enums:** trafegam como texto (ex.: `"goal": "MuscleGain"`).
 - **Cadastro de paciente:** responde `202` **sem tokens**. Mostre "verifique seu e-mail", e não faça login automático.
 - **Confirmação de e-mail:** o link abre `/confirmar-email#token=...` no front. A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/email-confirmation/confirm`.
 - **Login com e-mail não confirmado:** um `403` significa "e-mail não confirmado". Mostre a opção de reenviar o link (`POST /api/v1/auth/email-confirmation/resend`).
+- **Redefinição de senha:** o link abre `/redefinir-senha#token=...` no front. A tela lê o token do fragmento da URL, pede a nova senha e envia os dois no corpo do `POST /api/v1/auth/password-reset/confirm`. A tela de login precisa de um "Esqueci minha senha" que chame o `POST /api/v1/auth/password-reset/request`.
 - **Convite de nutricionista:** o e-mail leva para `/nutri/convite#token=...`. O Vue Router precisa usar `createWebHistory()` (e não o modo hash). A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/invitations/accept`.
 - **Termos de Uso e Política de Privacidade:** os textos ficam em [`docs/legal/`](docs/legal/) (veja [Termos de Uso e Privacidade](#termos-de-uso-e-privacidade)). No cadastro de paciente, além da frase de concordância, inclua um *checkbox* desmarcado de consentimento para os dados de saúde.
 
@@ -316,7 +338,8 @@ tests/
 - Nenhum dado pessoal nos tokens nem nos logs
 - Autorização por papel (`Patient`, `Nutritionist`, `Admin`) e acesso aos próprios dados sempre pelo token, nunca por Ids enviados pelo cliente
 - Conflitos de cadastro com mensagem genérica, sem revelar se um CPF ou e-mail já tem conta (LGPD)
-- Tokens de convite armazenados apenas como hash, com validade e uso único
+- Tokens de convite, de confirmação de e-mail e de redefinição de senha armazenados apenas como hash, com validade e uso único
+- Redefinir a senha encerra todas as sessões abertas e avisa o dono da conta por e-mail
 - O link do convite leva o token no fragmento da URL, que nunca é enviado a servidores
 - O aceite do convite nunca altera a senha de uma conta existente
 
