@@ -26,10 +26,11 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             .ToPagedResponseAsync(request, cancellationToken);
     }
 
-    public Task<NutritionPlanResponse?> GetByNutritionistAsync(
+    public Task<NutritionPlanDetailResponse?> GetByNutritionistAsync(
         Guid nutritionistId, Guid planId, CancellationToken cancellationToken = default) =>
-        Project(context.NutritionPlans.AsNoTracking().Where(p => p.Id == planId && p.NutritionistId == nutritionistId))
-            .FirstOrDefaultAsync(cancellationToken);
+        WithMealsAsync(
+            context.NutritionPlans.AsNoTracking().Where(p => p.Id == planId && p.NutritionistId == nutritionistId),
+            cancellationToken);
 
     public Task<PagedResponse<NutritionPlanResponse>> ListByPatientAsync(
         Guid patientId, NutritionPlanListRequest request, CancellationToken cancellationToken = default)
@@ -48,15 +49,13 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             .ToPagedResponseAsync(request, cancellationToken);
     }
 
-    public Task<NutritionPlanResponse?> GetByPatientAsync(
+    public Task<NutritionPlanDetailResponse?> GetByPatientAsync(
         Guid patientId, Guid planId, CancellationToken cancellationToken = default) =>
-        Project(VisibleToPatient(patientId).Where(p => p.Id == planId))
-            .FirstOrDefaultAsync(cancellationToken);
+        WithMealsAsync(VisibleToPatient(patientId).Where(p => p.Id == planId), cancellationToken);
 
-    public Task<NutritionPlanResponse?> GetCurrentByPatientAsync(
+    public Task<NutritionPlanDetailResponse?> GetCurrentByPatientAsync(
         Guid patientId, CancellationToken cancellationToken = default) =>
-        Project(VisibleToPatient(patientId).Where(p => p.Status == NutritionPlanStatus.Active))
-            .FirstOrDefaultAsync(cancellationToken);
+        WithMealsAsync(VisibleToPatient(patientId).Where(p => p.Status == NutritionPlanStatus.Active), cancellationToken);
 
     private IQueryable<NutritionPlan> VisibleToPatient(Guid patientId) =>
         context.NutritionPlans
@@ -80,4 +79,26 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             p.EndDate,
             p.Status,
             p.CreatedAt);
+
+    // Duas consultas: o plano (com os nomes do paciente e do nutricionista) e, se ele existir, as refeições em ordem.
+    private async Task<NutritionPlanDetailResponse?> WithMealsAsync(
+        IQueryable<NutritionPlan> plans,
+        CancellationToken cancellationToken)
+    {
+        var plan = await Project(plans).FirstOrDefaultAsync(cancellationToken);
+
+        if (plan is null)
+        {
+            return null;
+        }
+
+        var meals = await context.Set<Meal>()
+            .AsNoTracking()
+            .Where(m => m.NutritionPlanId == plan.Id)
+            .OrderBy(m => m.Order)
+            .Select(m => new MealResponse(m.Id, m.Name, m.Notes, m.Order))
+            .ToListAsync(cancellationToken);
+
+        return new NutritionPlanDetailResponse(plan, meals);
+    }
 }

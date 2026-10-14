@@ -61,8 +61,8 @@ public class NutritionistPlanQueriesUseCaseTests
     {
         public NutritionPlanResponse? Plan { get; set; }
 
-        public Task<NutritionPlanResponse?> GetByNutritionistAsync(Guid nutritionistId, Guid planId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Plan);
+        public Task<NutritionPlanDetailResponse?> GetByNutritionistAsync(Guid nutritionistId, Guid planId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(Plan is null ? null : new NutritionPlanDetailResponse(Plan, []));
 
         public Task<PagedResponse<NutritionPlanResponse>> ListByNutritionistAndPatientAsync(Guid nutritionistId, Guid patientId, NutritionPlanListRequest request, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
@@ -70,10 +70,10 @@ public class NutritionistPlanQueriesUseCaseTests
         public Task<PagedResponse<NutritionPlanResponse>> ListByPatientAsync(Guid patientId, NutritionPlanListRequest request, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public Task<NutritionPlanResponse?> GetByPatientAsync(Guid patientId, Guid planId, CancellationToken cancellationToken = default) =>
+        public Task<NutritionPlanDetailResponse?> GetByPatientAsync(Guid patientId, Guid planId, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public Task<NutritionPlanResponse?> GetCurrentByPatientAsync(Guid patientId, CancellationToken cancellationToken = default) =>
+        public Task<NutritionPlanDetailResponse?> GetCurrentByPatientAsync(Guid patientId, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
     }
 }

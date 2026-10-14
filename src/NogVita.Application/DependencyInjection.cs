@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<CreateNutritionPlanUseCase>();
         services.AddScoped<ManageNutritionPlanUseCase>();
         services.AddScoped<NutritionistPlanQueriesUseCase>();
+        services.AddScoped<NutritionistPlanAccess>();
 
         // Admin
         services.AddScoped<DeactivateUserUseCase>();
@@ -65,6 +66,7 @@ public static class DependencyInjection
         services.AddScoped<LookupProductByBarcodeUseCase>();
         services.AddScoped<ImportProductUseCase>();
         services.AddScoped<SetFoodActiveUseCase>();
+        services.AddScoped<ManageMealsUseCase>();
 
 
         return services;
