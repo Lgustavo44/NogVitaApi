@@ -299,7 +299,8 @@ Detalhes:
 - **Reordenação completa:** a lista precisa ter todas as refeições do plano, cada uma uma vez. Uma lista incompleta, com repetidos ou com Id de outro plano responde `400`, e nada muda. Mandar a lista inteira evita estados intermediários, como duas refeições na mesma posição.
 - **Respostas:** criar responde `201` com o Id da refeição, e as outras ações respondem `204`. Plano finalizado ou cancelado e limite de refeições atingido respondem `409`. Plano ou refeição que não existem, ou que não são do nutricionista, respondem `404`.
 - **Formato do detalhe:** as rotas de detalhe do plano devolvem `{ "plan": { ... }, "meals": [ ... ] }`, com as refeições já em ordem.
-- **Horário sugerido:** cada refeição pode ter um horário sugerido (`suggestedTime`), opcional. Ele não define a ordem, que continua manual: o jantar de quem trabalha à noite pode ser às 3h e ainda assim vir depois do almoço. A API aceita qualquer horário. Se ele cair fora da rotina do paciente, quem avisa é o front, e a API não bloqueia.
+- **Horário sugerido:** cada refeição pode ter um horário sugerido (`suggestedTime`), opcional. Ele não define a ordem, que continua manual: o jantar de quem trabalha à noite pode ser às 3h e ainda assim vir depois do almoço. A API aceita qualquer horário e **não bloqueia** nenhum.
+- **Aviso de horário fora da rotina:** no detalhe do plano, cada refeição traz `outsideRoutine`, calculado pela API com a rotina **atual** do paciente. Ele é `true` quando a refeição cai enquanto o paciente dorme (uma ceia às 23:30 para quem dorme às 22:30), e `null` quando o paciente não informou a rotina ou a refeição não tem horário. A regra fica no domínio (`AwakeWindow`) e cobre a janela que atravessa a meia-noite: para quem acorda às 14h e dorme às 6h, um jantar às 3h **não** gera aviso. Os horários de acordar e de dormir contam como acordado. Como o cálculo é feito na leitura, se o paciente mudar a rotina, os avisos acompanham sem ninguém editar o plano.
 
 ## Ambiente de staging
 
@@ -441,3 +442,5 @@ Os arquivos ficam em [`docs/assets/`](docs/assets/): `logo.svg` (fundo claro), `
    ```
 
 5. Acesse o Swagger em `https://localhost:7194/swagger`
+
+6. (Opcional) Carregue os **dados de teste**: usuários de todos os papéis, acompanhamentos, planos e refeições prontos, com uma senha só. O script e as instruções estão em [docs/dev/dados-de-teste-local.md](docs/dev/dados-de-teste-local.md). Use **apenas no banco local**.
