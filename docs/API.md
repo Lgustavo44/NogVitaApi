@@ -663,6 +663,28 @@ O `409` sempre vem com o `title` "Esta ação não é permitida no status atual 
 
 - `description` e `endDate` podem vir `null`. Um plano sem `endDate` não tem data prevista de término.
 - Ao finalizar, a `endDate` vira o dia da finalização, se ainda não tinha passado. Ela nunca fica antes da `startDate`.
+- As **listagens** devolvem um `NutritionPlanResponse` em cada item, **sem** as refeições.
+
+#### Formato do detalhe (`NutritionPlanDetailResponse`)
+
+As três rotas de detalhe (o detalhe do nutricionista, o detalhe do paciente e o plano atual) devolvem o plano **dentro de `plan`**, e as refeições em `meals`, já em ordem:
+
+```json
+{
+  "plan": {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "name": "Plano de hipertrofia",
+    "status": "Active",
+    "…": "os demais campos do NutritionPlanResponse"
+  },
+  "meals": [
+    { "id": "…", "name": "Café da manhã", "notes": "Em jejum, beber água antes.", "order": 1 },
+    { "id": "…", "name": "Almoço", "notes": null, "order": 2 }
+  ]
+}
+```
+
+> Leia os campos do plano em `plan` (por exemplo, `response.plan.name`), e não no primeiro nível. `meals` vem `[]` quando o plano ainda não tem refeições.
 
 #### Nutricionista 🥗
 
@@ -700,7 +722,7 @@ Todos os planos que **você** criou para o paciente, inclusive rascunhos e cance
 
 ##### `GET /api/v1/nutritionists/me/nutrition-plans/{id}`
 
-- `200` → `NutritionPlanResponse`
+- `200` → `NutritionPlanDetailResponse` (plano e refeições)
 - `404` → "Plano não encontrado."
 
 ##### `PUT /api/v1/nutritionists/me/nutrition-plans/{id}`
@@ -718,6 +740,57 @@ Sem corpo.
 - `404` → "Plano não encontrado."
 - `409` → a ação não é permitida no status atual
 
+#### Refeições 🥗
+
+As refeições são sempre alteradas pelo plano, e só enquanto ele estiver em `Draft` ou `Active`. A ordem é sempre sequencial (1, 2, 3...), e um plano tem **no máximo 10 refeições**. Para mostrar as refeições, use o detalhe do plano: não há rota que liste só as refeições.
+
+##### `POST /api/v1/nutritionists/me/nutrition-plans/{planId}/meals`
+
+Acrescenta a refeição **no fim** da ordem.
+
+```json
+{ "name": "Café da manhã", "notes": "Em jejum, beber água antes." }
+```
+
+| Campo | Regras |
+|---|---|
+| `name` | Obrigatório, até 60 caracteres. Espaços nas pontas são removidos |
+| `notes` | Opcional, até 500 caracteres. Texto em branco vira `null` |
+
+- `201` → `{ "id": "<id da refeição>" }`
+- `400` → erros de validação
+- `404` → "Plano ou refeição não encontrado."
+- `409` → "Um plano finalizado ou cancelado não pode ser alterado."
+- `409` → "O plano já tem o máximo de 10 refeições." Vale desabilitar o botão "Adicionar refeição" quando `meals` já tiver 10 itens.
+
+##### `PUT /api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}`
+
+Mesmo corpo do `POST`. Não muda a ordem.
+
+- `204` → atualizada
+- `400`, `404` ou `409` (plano finalizado ou cancelado)
+
+##### `DELETE /api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}`
+
+Remove a refeição e **renumera as demais**, sem deixar buracos: removendo a 2 de 1, 2, 3, a antiga 3 vira 2.
+
+- `204` → removida
+- `404` ou `409` (plano finalizado ou cancelado)
+
+##### `PUT /api/v1/nutritionists/me/nutrition-plans/{planId}/meals/order`
+
+Define a ordem nova. A lista precisa ter **todas** as refeições do plano, cada uma uma vez, na ordem desejada.
+
+```json
+{ "mealIds": ["<id do jantar>", "<id do café da manhã>", "<id do almoço>"] }
+```
+
+- `204` → reordenada
+- `400` → "A nova ordem precisa conter todas as refeições do plano, uma vez cada." (faltou alguma, tem repetida ou tem Id de outro plano). Nada muda.
+- `404` ou `409` (plano finalizado ou cancelado)
+
+> Numa tela de arrastar e soltar, mande a lista inteira na ordem final quando o usuário soltar, e não uma requisição por movimento. Depois do `204`, recarregue o detalhe do plano para pegar a ordem salva.
+
 #### Paciente 🧑
 
 O paciente vê só os planos **ativos e finalizados**, inclusive os de nutricionistas anteriores. Rascunhos e cancelados nunca aparecem.
@@ -728,12 +801,12 @@ O plano ativo vem primeiro, e depois os finalizados, do mais recente para o mais
 
 ##### `GET /api/v1/patients/me/nutrition-plans/current`
 
-- `200` → o plano ativo (`NutritionPlanResponse`)
+- `200` → o plano ativo, com as refeições (`NutritionPlanDetailResponse`)
 - `404` → "Você não tem um plano ativo." **Não é um erro de verdade:** é o estado normal de quem ainda não recebeu um plano.
 
 ##### `GET /api/v1/patients/me/nutrition-plans/{id}`
 
-- `200` → `NutritionPlanResponse`
+- `200` → `NutritionPlanDetailResponse` (plano e refeições)
 - `404` → "Plano não encontrado." (também para rascunhos e cancelados)
 
 ### Convite de nutricionista
