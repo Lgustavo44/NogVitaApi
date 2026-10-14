@@ -191,4 +191,43 @@ public class UserTests
 
         Assert.Throws<DomainException>(() => user.UpdateNutritionistProfile("Bio"));
     }
+
+    [Fact]
+    public void Reset_Should_Confirm_And_Activate_Unconfirmed_User()
+    {
+        var user = TestData.CreateUser();
+        user.SetPasswordHash("hash-antigo");
+
+        user.ResetPassword("hash-novo", DateTime.UtcNow);
+
+        Assert.Equal("hash-novo", user.PasswordHash);
+        Assert.True(user.IsEmailConfirmed);
+        Assert.True(user.IsActive);
+    }
+
+    [Fact]
+    public void Reset_Should_Keep_Original_Confirmation_Date()
+    {
+        var user = TestData.CreateUser();
+        user.SetPasswordHash("hash-antigo");
+        var confirmedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        user.ConfirmEmail(confirmedAt);
+
+        user.ResetPassword("hash-novo", DateTime.UtcNow);
+
+        Assert.Equal(confirmedAt, user.EmailConfirmedAtUtc);
+    }
+
+    [Fact]
+    public void Reset_Should_Not_Reactivate_Deactivated_User()
+    {
+        var user = TestData.CreateUser();
+        user.SetPasswordHash("hash-antigo");
+        user.ConfirmEmail(DateTime.UtcNow);
+        user.Deactivate();
+
+        user.ResetPassword("hash-novo", DateTime.UtcNow);
+
+        Assert.False(user.IsActive);
+    }
 }

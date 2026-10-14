@@ -108,6 +108,16 @@ namespace NogVita.Domain.Users
             Activate();
         }
 
+        public void ResetPassword(string passwordHash, DateTime nowUtc)
+        {
+            SetPasswordHash(passwordHash);
+
+            if (!IsEmailConfirmed)
+            {
+                ConfirmEmail(nowUtc);
+            }
+        }
+
         public void UpdateNutritionistProfile(string? bio)
         {
             if (NutritionistProfile is null)
