@@ -17,6 +17,7 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
   - [Nutricionista](#nutricionista)
   - [Acompanhamento nutricional](#acompanhamento-nutricional)
   - [Alimentos](#alimentos)
+  - [Plano alimentar](#plano-alimentar)
   - [Convite de nutricionista](#convite-de-nutricionista)
   - [Administração](#administração)
 - [Fluxos](#fluxos)
@@ -568,6 +569,120 @@ Sem corpo. Só para `Admin`.
 - `404` → "Alimento não encontrado."
 
 Um alimento desativado some da busca e da prévia, e o detalhe dele passa a responder `404` para quem não é Admin. Uma nova importação do mesmo código também não o traz de volta: só o `activate` faz isso.
+
+### Plano alimentar
+
+O nutricionista cria planos para os pacientes que acompanha, e o paciente vê o plano atual e o histórico.
+
+**Status (`status`):** `Draft` (rascunho), `Active` (ativo), `Finished` (finalizado) e `Cancelled` (cancelado).
+
+| Ação | Permitida em | Fora disso |
+|---|---|---|
+| Editar (`PUT`) | `Draft` e `Active` | `409` |
+| Ativar | `Draft` | `409` |
+| Finalizar | `Active` | `409` |
+| Cancelar | `Draft` | `409` |
+
+O `409` sempre vem com o `title` "Esta ação não é permitida no status atual do plano." Use a tabela acima para mostrar ou esconder os botões de cada plano.
+
+**Regras que o front precisa saber:**
+- O paciente tem **no máximo um plano ativo**. Ativar um rascunho **finaliza automaticamente** o plano ativo anterior. Vale avisar o nutricionista antes ("O plano atual será finalizado").
+- Encerrar o acompanhamento finaliza o plano ativo e cancela os rascunhos daquele nutricionista.
+- O nutricionista só acessa os planos que criou, e **só enquanto o acompanhamento estiver ativo**. Fora disso, todas as rotas respondem `404`.
+- Datas sem hora (`startDate`, `endDate`) seguem o **horário de Brasília**.
+
+#### Formato do plano (`NutritionPlanResponse`)
+
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "patientId": "…",
+  "patientName": "Maria Silva",
+  "nutritionistId": "…",
+  "nutritionistName": "Ana Souza",
+  "name": "Plano de hipertrofia",
+  "description": "Foco em proteína distribuída ao longo do dia.",
+  "startDate": "2026-10-15",
+  "endDate": null,
+  "status": "Active",
+  "createdAt": "2026-10-14T18:00:00Z"
+}
+```
+
+- `description` e `endDate` podem vir `null`. Um plano sem `endDate` não tem data prevista de término.
+- Ao finalizar, a `endDate` vira o dia da finalização, se ainda não tinha passado. Ela nunca fica antes da `startDate`.
+
+#### Nutricionista 🥗
+
+##### `POST /api/v1/nutritionists/me/nutrition-plans`
+
+Cria o plano como **rascunho** (`Draft`). O paciente ainda não vê o plano.
+
+```json
+{
+  "patientId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "name": "Plano de hipertrofia",
+  "description": "Foco em proteína distribuída ao longo do dia.",
+  "startDate": "2026-10-15",
+  "endDate": null
+}
+```
+
+| Campo | Regras |
+|---|---|
+| `patientId` | Obrigatório. Um paciente que você acompanha agora |
+| `name` | Obrigatório, até 100 caracteres |
+| `description` | Opcional, até 1000 caracteres |
+| `startDate` | Obrigatório |
+| `endDate` | Opcional. Não pode ser anterior à `startDate` |
+
+- `201` → `{ "id": "<id do plano>" }`
+- `400` → erros de validação
+- `404` → "Paciente não encontrado." (você não acompanha esse paciente)
+
+##### `GET /api/v1/nutritionists/me/patients/{patientId}/nutrition-plans?status=Draft`
+
+Todos os planos que **você** criou para o paciente, inclusive rascunhos e cancelados, do mais recente para o mais antigo. `status` é opcional. Aceita `page` e `pageSize` e devolve o formato paginado.
+
+- `404` → "Paciente não encontrado."
+
+##### `GET /api/v1/nutritionists/me/nutrition-plans/{id}`
+
+- `200` → `NutritionPlanResponse`
+- `404` → "Plano não encontrado."
+
+##### `PUT /api/v1/nutritionists/me/nutrition-plans/{id}`
+
+Mesmo corpo do `POST`, sem o `patientId`. Só em `Draft` ou `Active`.
+
+- `204` → atualizado
+- `400`, `404` ou `409` (veja a tabela de ações)
+
+##### `POST /api/v1/nutritionists/me/nutrition-plans/{id}/activate`, `.../finish` e `.../cancel`
+
+Sem corpo.
+
+- `204` → feito
+- `404` → "Plano não encontrado."
+- `409` → a ação não é permitida no status atual
+
+#### Paciente 🧑
+
+O paciente vê só os planos **ativos e finalizados**, inclusive os de nutricionistas anteriores. Rascunhos e cancelados nunca aparecem.
+
+##### `GET /api/v1/patients/me/nutrition-plans?status=Finished`
+
+O plano ativo vem primeiro, e depois os finalizados, do mais recente para o mais antigo. `status` é opcional. Pedir `Draft` ou `Cancelled` devolve uma lista vazia.
+
+##### `GET /api/v1/patients/me/nutrition-plans/current`
+
+- `200` → o plano ativo (`NutritionPlanResponse`)
+- `404` → "Você não tem um plano ativo." **Não é um erro de verdade:** é o estado normal de quem ainda não recebeu um plano.
+
+##### `GET /api/v1/patients/me/nutrition-plans/{id}`
+
+- `200` → `NutritionPlanResponse`
+- `404` → "Plano não encontrado." (também para rascunhos e cancelados)
 
 ### Convite de nutricionista
 

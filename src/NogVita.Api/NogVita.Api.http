@@ -649,59 +649,186 @@ Authorization: Bearer {{tokenPaciente}}
 
 ### A. Busca sem acento → acha os feijões
 # @name buscaFeijao
-GET {{NogVita.Api_HostAddress}}/api/v1/foods?search=feijao
+GET {{host}}/api/v1/foods?search=feijao
 Authorization: Bearer {{tokenNutri1}}
 
 ### B. Busca com acento e maiúsculas → o mesmo resultado
-GET {{NogVita.Api_HostAddress}}/api/v1/foods?search=FEIJÃO
+GET {{host}}/api/v1/foods?search=FEIJÃO
 Authorization: Bearer {{tokenNutri1}}
 
 ### C. Busca com 1 letra → 400
-GET {{NogVita.Api_HostAddress}}/api/v1/foods?search=a
+GET {{host}}/api/v1/foods?search=a
 Authorization: Bearer {{tokenNutri1}}
 
 ### D. Busca com % → lista vazia (o escape funciona)
-GET {{NogVita.Api_HostAddress}}/api/v1/foods?search=%25%25
+GET {{host}}/api/v1/foods?search=%25%25
 Authorization: Bearer {{tokenNutri1}}
 
 ### E. Detalhe do primeiro feijão
-GET {{NogVita.Api_HostAddress}}/api/v1/foods/{{buscaFeijao.response.body.$.items[0].id}}
+GET {{host}}/api/v1/foods/{{buscaFeijao.response.body.$.items[0].id}}
 Authorization: Bearer {{tokenNutri1}}
 
 ### F. Prévia de um produto da SUA cozinha → alreadyImported: false
 @codigoProduto = 7890000000000
-GET {{NogVita.Api_HostAddress}}/api/v1/foods/barcode/{{codigoProduto}}
+GET {{host}}/api/v1/foods/barcode/{{codigoProduto}}
 Authorization: Bearer {{tokenNutri1}}
 
 ### G. Importar → 201
 # @name importacao
-POST {{NogVita.Api_HostAddress}}/api/v1/foods/barcode/{{codigoProduto}}/import
+POST {{host}}/api/v1/foods/barcode/{{codigoProduto}}/import
 Authorization: Bearer {{tokenNutri1}}
 
 ### H. Prévia de novo → alreadyImported: true, com o foodId
-GET {{NogVita.Api_HostAddress}}/api/v1/foods/barcode/{{codigoProduto}}
+GET {{host}}/api/v1/foods/barcode/{{codigoProduto}}
 Authorization: Bearer {{tokenNutri1}}
 
 ### I. Importar de novo → 200 (não duplica)
-POST {{NogVita.Api_HostAddress}}/api/v1/foods/barcode/{{codigoProduto}}/import
+POST {{host}}/api/v1/foods/barcode/{{codigoProduto}}/import
 Authorization: Bearer {{tokenNutri1}}
 
 ### J. Admin desativa o produto → 204
-POST {{NogVita.Api_HostAddress}}/api/v1/admin/foods/{{importacao.response.body.$.id}}/deactivate
+POST {{host}}/api/v1/admin/foods/{{importacao.response.body.$.id}}/deactivate
 Authorization: Bearer {{tokenAdmin}}
 
 ### K. Nutricionista vê o detalhe → 404 (RN19)
-GET {{NogVita.Api_HostAddress}}/api/v1/foods/{{importacao.response.body.$.id}}
+GET {{host}}/api/v1/foods/{{importacao.response.body.$.id}}
 Authorization: Bearer {{tokenNutri1}}
 
 ### L. Admin vê o detalhe → 200, com isActive: false
-GET {{NogVita.Api_HostAddress}}/api/v1/foods/{{importacao.response.body.$.id}}
+GET {{host}}/api/v1/foods/{{importacao.response.body.$.id}}
 Authorization: Bearer {{tokenAdmin}}
 
 ### M. Admin reativa → 204
-POST {{NogVita.Api_HostAddress}}/api/v1/admin/foods/{{importacao.response.body.$.id}}/activate
+POST {{host}}/api/v1/admin/foods/{{importacao.response.body.$.id}}/activate
 Authorization: Bearer {{tokenAdmin}}
 
 ### N. Nutricionista tenta desativar → 403
-POST {{NogVita.Api_HostAddress}}/api/v1/admin/foods/{{importacao.response.body.$.id}}/deactivate
+POST {{host}}/api/v1/admin/foods/{{importacao.response.body.$.id}}/deactivate
 Authorization: Bearer {{tokenNutri1}}
+
+### ===================== Fase 16: Plano alimentar =====================
+### Rode os logins da Fase 13 antes (loginPaciente, loginNutri1, loginNutri2, meNutri1).
+
+### 0.1 Paciente pede acompanhamento à Nutri 1
+# @name pedidoPlano
+POST {{host}}/api/v1/patients/me/nutritionist-requests
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "nutritionistId": "{{nutri1Id}}"
+}
+
+### 0.2 Nutri 1 aceita, e anota o Id do paciente
+# @name caixaPlano
+GET {{host}}/api/v1/nutritionists/me/requests?status=Pending
+Authorization: Bearer {{tokenNutri1}}
+
+###
+POST {{host}}/api/v1/nutritionists/me/requests/{{pedidoPlano.response.body.$.id}}/accept
+Authorization: Bearer {{tokenNutri1}}
+
+@pacientePlanoId = {{caixaPlano.response.body.$.items[0].patientId}}
+
+### A. Nutri 1 cria o plano 1 → 201
+# @name plano1
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "patientId": "{{pacientePlanoId}}",
+  "name": "Reeducação alimentar",
+  "description": "Primeiro plano.",
+  "startDate": "2026-10-15",
+  "endDate": null
+}
+
+### B. Paciente lista os planos → vazia (o rascunho não aparece)
+GET {{host}}/api/v1/patients/me/nutrition-plans
+Authorization: Bearer {{tokenPaciente}}
+
+### C. Nutri 1 ativa o plano 1 → 204
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{plano1.response.body.$.id}}/activate
+Authorization: Bearer {{tokenNutri1}}
+
+### D. Paciente vê o plano atual → o plano 1
+GET {{host}}/api/v1/patients/me/nutrition-plans/current
+Authorization: Bearer {{tokenPaciente}}
+
+### E.1 Nutri 1 cria o plano 2 → 201
+# @name plano2
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "patientId": "{{pacientePlanoId}}",
+  "name": "Hipertrofia",
+  "startDate": "2026-11-01"
+}
+
+### E.2 Nutri 1 ativa o plano 2 → 204 (e o plano 1 é finalizado)
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{plano2.response.body.$.id}}/activate
+Authorization: Bearer {{tokenNutri1}}
+
+### F. Paciente lista → plano 2 (Active) no topo, plano 1 (Finished) embaixo
+GET {{host}}/api/v1/patients/me/nutrition-plans
+Authorization: Bearer {{tokenPaciente}}
+
+### G. Nutri 1 tenta editar o plano 1 (finalizado) → 409
+PUT {{host}}/api/v1/nutritionists/me/nutrition-plans/{{plano1.response.body.$.id}}
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "name": "Tentando mudar",
+  "startDate": "2026-10-15"
+}
+
+### H. Nutri 1 tenta cancelar o plano 2 (ativo) → 409
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{plano2.response.body.$.id}}/cancel
+Authorization: Bearer {{tokenNutri1}}
+
+### I. Nutri 2 tenta ver o plano 2 → 404
+GET {{host}}/api/v1/nutritionists/me/nutrition-plans/{{plano2.response.body.$.id}}
+Authorization: Bearer {{tokenNutri2}}
+
+### J. Nutri 1 cria um rascunho (plano 3) → 201
+# @name plano3
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "patientId": "{{pacientePlanoId}}",
+  "name": "Rascunho",
+  "startDate": "2026-12-01"
+}
+
+### K.1 Paciente encerra o acompanhamento → 204
+POST {{host}}/api/v1/patients/me/care-relationship/end
+Authorization: Bearer {{tokenPaciente}}
+
+### K.2 Paciente lista → plano 2 e plano 1, os dois Finished
+GET {{host}}/api/v1/patients/me/nutrition-plans
+Authorization: Bearer {{tokenPaciente}}
+
+### K.3 Paciente vê o plano atual → 404
+GET {{host}}/api/v1/patients/me/nutrition-plans/current
+Authorization: Bearer {{tokenPaciente}}
+
+### L. Nutri 1 tenta ver o plano 2 → 404 (perdeu o acesso)
+GET {{host}}/api/v1/nutritionists/me/nutrition-plans/{{plano2.response.body.$.id}}
+Authorization: Bearer {{tokenNutri1}}
+
+### M. Nutri 1 tenta criar um plano para o paciente → 404 (sem vínculo)
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "patientId": "{{pacientePlanoId}}",
+  "name": "Sem vínculo",
+  "startDate": "2026-12-01"
+}
