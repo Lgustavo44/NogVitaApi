@@ -5,6 +5,7 @@ using NogVita.Application.Auth;
 using NogVita.Application.FollowUps;
 using NogVita.Application.Foods;
 using NogVita.Application.Nutritionists;
+using NogVita.Application.NutritionPlans;
 using NogVita.Application.Patients;
 
 namespace NogVita.Application;
@@ -39,6 +40,8 @@ public static class DependencyInjection
         services.AddScoped<RespondNutritionistRequestUseCase>();
         services.AddScoped<GetMyNutritionistProfileUseCase>();
         services.AddScoped<UpdateMyNutritionistProfileUseCase>();
+        services.AddScoped<CareAccessService>();
+        services.AddScoped<CreateNutritionPlanUseCase>();
 
         // Admin
         services.AddScoped<DeactivateUserUseCase>();
