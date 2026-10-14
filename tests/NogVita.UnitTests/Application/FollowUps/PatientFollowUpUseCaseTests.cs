@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using NogVita.Application.FollowUps;
 using NogVita.Domain.FollowUps;
+using NogVita.Domain.NutritionPlans;
 using NogVita.Domain.Users;
 using NogVita.UnitTests.Fakes;
 
@@ -11,6 +12,7 @@ public class PatientFollowUpUseCaseTests
     private readonly FakeUserRepository _userRepository = new();
     private readonly FakeNutritionistRequestRepository _requestRepository = new();
     private readonly FakeCareRelationshipRepository _relationshipRepository = new();
+    private readonly FakeNutritionPlanRepository _planRepository = new();
     private readonly FakeEmailSender _emailSender = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
 
@@ -27,6 +29,7 @@ public class PatientFollowUpUseCaseTests
         new(
             _relationshipRepository,
             _userRepository,
+            _planRepository,
             new FollowUpNotificationService(_emailSender, NullLogger<FollowUpNotificationService>.Instance),
             _unitOfWork,
             TimeProvider.System);
@@ -79,6 +82,26 @@ public class PatientFollowUpUseCaseTests
 
         var email = Assert.Single(_emailSender.SentMessages);
         Assert.Equal("nutri@email.com", email.To);
+    }
+
+    [Fact]
+    public async Task Ending_Should_Finish_Active_Plan_And_Cancel_Drafts()
+    {
+        AddActiveRelationship();
+        var activePlan = new NutritionPlan(_patient.Id, _nutritionist.Id, "Ativo", null, new DateOnly(2026, 10, 1), null);
+        activePlan.Activate();
+        var draft = new NutritionPlan(_patient.Id, _nutritionist.Id, "Rascunho", null, new DateOnly(2026, 11, 1), null);
+        var otherNutritionistPlan = new NutritionPlan(_patient.Id, Guid.NewGuid(), "De outra nutri", null, new DateOnly(2026, 1, 1), null);
+        _planRepository.Add(activePlan);
+        _planRepository.Add(draft);
+        _planRepository.Add(otherNutritionistPlan);
+
+        await CreateEndUseCase().ExecuteAsync(_patient.Id, _patient.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(NutritionPlanStatus.Finished, activePlan.Status);
+        Assert.Equal(NutritionPlanStatus.Cancelled, draft.Status);
+        Assert.Equal(NutritionPlanStatus.Draft, otherNutritionistPlan.Status);
+        Assert.Equal(1, _unitOfWork.SaveChangesCount);
     }
 
     [Fact]

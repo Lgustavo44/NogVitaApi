@@ -6,6 +6,7 @@ using NogVita.Application.Auth;
 using NogVita.Application.FollowUps;
 using NogVita.Application.Foods;
 using NogVita.Application.Nutritionists;
+using NogVita.Application.NutritionPlans;
 using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Foods.OpenFoodFacts;
 using NogVita.Infrastructure.Persistence;
@@ -41,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IFoodQueries, FoodQueries>();
         services.AddScoped<TacoFoodSeeder>();
         services.AddScoped<INutritionPlanRepository, NutritionPlanRepository>();
+        services.AddScoped<INutritionPlanQueries, NutritionPlanQueries>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(emailSettings);
 

@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<CareAccessService>();
         services.AddScoped<CreateNutritionPlanUseCase>();
         services.AddScoped<ManageNutritionPlanUseCase>();
+        services.AddScoped<NutritionistPlanQueriesUseCase>();
 
         // Admin
         services.AddScoped<DeactivateUserUseCase>();
