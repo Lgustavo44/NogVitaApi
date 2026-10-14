@@ -15,6 +15,12 @@ public class NutritionPlan : Entity
     public DateOnly? EndDate { get; private set; }
     public NutritionPlanStatus Status { get; private set; }
 
+    public const int MaxMeals = 10;
+
+    private readonly List<Meal> _meals = [];
+
+    public IReadOnlyCollection<Meal> Meals => _meals.AsReadOnly();
+
     public bool IsEditable => Status is NutritionPlanStatus.Draft or NutritionPlanStatus.Active;
 
     private NutritionPlan() { } // EF Core
@@ -78,6 +84,77 @@ public class NutritionPlan : Entity
         var endDate = EndDate is null || EndDate > today ? today : EndDate.Value;
         EndDate = endDate < StartDate ? StartDate : endDate;
         Status = NutritionPlanStatus.Finished;
+    }
+
+    public Meal AddMeal(string name, string? notes)
+    {
+        EnsureEditable();
+
+        if (_meals.Count >= MaxMeals)
+        {
+            throw new DomainException($"Um plano pode ter no máximo {MaxMeals} refeições.");
+        }
+
+        var meal = new Meal(Id, name, notes, _meals.Count + 1);
+        _meals.Add(meal);
+        return meal;
+    }
+
+    public void UpdateMeal(Guid mealId, string name, string? notes)
+    {
+        EnsureEditable();
+        GetMeal(mealId).Update(name, notes);
+    }
+
+    public void RemoveMeal(Guid mealId)
+    {
+        EnsureEditable();
+
+        var meal = GetMeal(mealId);
+        _meals.Remove(meal);
+
+        Renumber(_meals.OrderBy(m => m.Order));
+    }
+
+    public void ReorderMeals(IReadOnlyList<Guid> orderedMealIds)
+    {
+        EnsureEditable();
+
+        // A nova ordem precisa conter todas as refeições do plano, cada uma uma vez: sem faltar, sem repetir e sem Id de fora.
+        var isCompletePermutation =
+            orderedMealIds is not null
+            && orderedMealIds.Count == _meals.Count
+            && orderedMealIds.Distinct().Count() == orderedMealIds.Count
+            && orderedMealIds.All(id => _meals.Any(m => m.Id == id));
+
+        if (!isCompletePermutation)
+        {
+            throw new DomainException("A nova ordem precisa conter todas as refeições do plano, uma vez cada.");
+        }
+
+        Renumber(orderedMealIds!.Select(GetMeal));
+    }
+
+    private Meal GetMeal(Guid mealId) =>
+        _meals.FirstOrDefault(m => m.Id == mealId)
+            ?? throw new DomainException("Refeição não encontrada neste plano.");
+
+    private static void Renumber(IEnumerable<Meal> meals)
+    {
+        var position = 1;
+
+        foreach (var meal in meals.ToList())
+        {
+            meal.SetOrder(position++);
+        }
+    }
+
+    private void EnsureEditable()
+    {
+        if (!IsEditable)
+        {
+            throw new DomainException("Um plano finalizado ou cancelado não pode ser alterado.");
+        }
     }
 
     private void SetDetails(string name, string? description, DateOnly startDate, DateOnly? endDate)
