@@ -4,7 +4,8 @@ using NogVita.Domain.NutritionPlans;
 
 namespace NogVita.Application.NutritionPlans;
 
-public sealed record MealRequest(string Name, string? Notes);
+// SuggestedTime é opcional, no formato "HH:mm". Qualquer horário é aceito: o front avisa quando ele cai fora da rotina do paciente.
+public sealed record MealRequest(string Name, string? Notes, TimeOnly? SuggestedTime = null);
 
 public sealed class MealRequestValidator : AbstractValidator<MealRequest>
 {
@@ -58,7 +59,7 @@ public sealed class ManageMealsUseCase(NutritionistPlanAccess planAccess, IUnitO
             return new AddMealResult(ManageMealResult.LimitReached);
         }
 
-        var meal = plan.AddMeal(request.Name, request.Notes);
+        var meal = plan.AddMeal(request.Name, request.Notes, request.SuggestedTime);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new AddMealResult(ManageMealResult.Done, meal.Id);
@@ -84,7 +85,7 @@ public sealed class ManageMealsUseCase(NutritionistPlanAccess planAccess, IUnitO
             return ManageMealResult.NotFound;
         }
 
-        plan.UpdateMeal(mealId, request.Name, request.Notes);
+        plan.UpdateMeal(mealId, request.Name, request.Notes, request.SuggestedTime);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return ManageMealResult.Done;

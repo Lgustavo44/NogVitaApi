@@ -19,5 +19,10 @@ public sealed class UpdatePatientProfileRequestValidator : AbstractValidator<Upd
 
         RuleFor(x => x.Goal)
             .IsInEnum().WithMessage("O objetivo informado não é válido.");
+
+        RuleFor(x => x.BedTime)
+            .NotEqual(x => x.WakeUpTime)
+            .When(x => x.WakeUpTime is not null && x.BedTime is not null)
+            .WithMessage("A hora de acordar e a de dormir não podem ser iguais.");
     }
 }

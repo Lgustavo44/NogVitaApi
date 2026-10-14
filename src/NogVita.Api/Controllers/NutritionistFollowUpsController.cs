@@ -12,6 +12,7 @@ namespace NogVita.Api.Controllers;
 public sealed class NutritionistFollowUpsController(
     RespondNutritionistRequestUseCase respondUseCase,
     EndCareRelationshipUseCase endCareRelationshipUseCase,
+    GetFollowedPatientUseCase getFollowedPatientUseCase,
     IFollowUpQueries followUpQueries) : ControllerBase
 {
     [HttpGet("requests")]
@@ -44,6 +45,16 @@ public sealed class NutritionistFollowUpsController(
         var response = await followUpQueries.ListMyPatientsAsync(User.GetUserId(), request, cancellationToken);
 
         return Ok(response);
+    }
+
+    [HttpGet("patients/{patientId:guid}")]
+    public async Task<IActionResult> GetPatient(Guid patientId, CancellationToken cancellationToken)
+    {
+        var patient = await getFollowedPatientUseCase.ExecuteAsync(User.GetUserId(), patientId, cancellationToken);
+
+        return patient is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Paciente não encontrado.")
+            : Ok(patient);
     }
 
     [HttpPost("patients/{patientId:guid}/end")]

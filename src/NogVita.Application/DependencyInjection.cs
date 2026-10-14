@@ -60,6 +60,7 @@ public static class DependencyInjection
         services.AddScoped<RequestNutritionistUseCase>();
         services.AddScoped<CancelNutritionistRequestUseCase>();
         services.AddScoped<GetMyCareRelationshipUseCase>();
+        services.AddScoped<GetFollowedPatientUseCase>();
         services.AddScoped<EndCareRelationshipUseCase>();
 
         // Foods

@@ -118,4 +118,30 @@ public class NutritionPlanMealsTests
         Assert.Throws<DomainException>(() => plan.AddMeal("   ", null));
         Assert.Empty(plan.Meals);
     }
+
+    [Fact]
+    public void Should_Keep_Suggested_Time_Without_Changing_Order()
+    {
+        var plan = CreatePlan();
+        var breakfast = plan.AddMeal("Café da manhã", null, new TimeOnly(7, 0));
+        // Fora de ordem cronológica de propósito: o horário não reordena as refeições.
+        var lateSnack = plan.AddMeal("Ceia", null, new TimeOnly(3, 0));
+
+        Assert.Equal(new TimeOnly(7, 0), breakfast.SuggestedTime);
+        Assert.Equal(new TimeOnly(3, 0), lateSnack.SuggestedTime);
+        Assert.Equal(new[] { "Café da manhã", "Ceia" }, NamesInOrder(plan));
+    }
+
+    [Fact]
+    public void Should_Update_And_Clear_Suggested_Time()
+    {
+        var plan = CreatePlan();
+        var lunch = plan.AddMeal("Almoço", null, new TimeOnly(12, 0));
+
+        plan.UpdateMeal(lunch.Id, "Almoço", null, new TimeOnly(13, 30));
+        Assert.Equal(new TimeOnly(13, 30), lunch.SuggestedTime);
+
+        plan.UpdateMeal(lunch.Id, "Almoço", null, null);
+        Assert.Null(lunch.SuggestedTime);
+    }
 }

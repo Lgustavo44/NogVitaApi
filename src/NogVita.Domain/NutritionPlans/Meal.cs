@@ -12,20 +12,23 @@ public class Meal : Entity
     public string? Notes { get; private set; }
     public int Order { get; private set; }
 
+    // Horário sugerido, opcional. Não define a ordem: o jantar de quem trabalha à noite pode ser às 3h.
+    public TimeOnly? SuggestedTime { get; private set; }
+
     private Meal() { } // EF Core
 
-    internal Meal(Guid nutritionPlanId, string name, string? notes, int order)
+    internal Meal(Guid nutritionPlanId, string name, string? notes, TimeOnly? suggestedTime, int order)
     {
         NutritionPlanId = nutritionPlanId;
-        SetDetails(name, notes);
+        SetDetails(name, notes, suggestedTime);
         Order = order;
     }
 
-    internal void Update(string name, string? notes) => SetDetails(name, notes);
+    internal void Update(string name, string? notes, TimeOnly? suggestedTime) => SetDetails(name, notes, suggestedTime);
 
     internal void SetOrder(int order) => Order = order;
 
-    private void SetDetails(string name, string? notes)
+    private void SetDetails(string name, string? notes, TimeOnly? suggestedTime)
     {
         var normalizedName = name?.Trim();
 
@@ -55,5 +58,6 @@ public class Meal : Entity
 
         Name = normalizedName;
         Notes = notes;
+        SuggestedTime = suggestedTime;
     }
 }

@@ -1,6 +1,6 @@
 # Política de Privacidade do NogVita
 
-**Última atualização:** 11/10/2026
+**Última atualização:** 14/10/2026
 
 Esta política explica quais dados pessoais o NogVita coleta, para que eles são usados, com quem são compartilhados e quais são os seus direitos, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, a LGPD).
 
@@ -22,10 +22,12 @@ Para qualquer assunto sobre privacidade, inclusive para exercer os seus direitos
 | CPF | Todos os usuários | Evitar contas duplicadas da mesma pessoa |
 | Senha | Todos os usuários | Proteger o acesso à conta. Guardamos apenas uma versão cifrada (*hash*), e nunca a senha em si |
 | Data de nascimento, sexo biológico, altura e objetivo (perder peso, manter ou ganhar massa) | Pacientes | Permitir que o nutricionista avalie você e calcule as suas necessidades nutricionais |
+| Rotina: horário em que acorda, em que dorme e em que treina (opcionais) | Pacientes | Permitir que o nutricionista distribua as refeições de acordo com o seu dia |
+| Planos alimentares e refeições, com horários sugeridos | Nutricionistas | Registrar o acompanhamento nutricional do paciente |
 | Mensagem da solicitação de acompanhamento | Pacientes | Apresentar o seu pedido ao nutricionista escolhido |
 | Número e região do CRN, e apresentação profissional | Nutricionistas | Identificar o profissional e permitir que os pacientes o escolham |
 
-**Dados de saúde são dados sensíveis.** A data de nascimento, o sexo biológico, a altura e o objetivo, junto com os planos alimentares e os registros de peso quando essas funções estiverem disponíveis, são dados pessoais sensíveis (art. 5º, II, da LGPD). Por isso, só são tratados com o seu **consentimento específico** e apenas para o acompanhamento nutricional (art. 11, I).
+**Dados de saúde são dados sensíveis.** A data de nascimento, o sexo biológico, a altura, o objetivo e a rotina, junto com os planos alimentares e os registros de peso quando essa função estiver disponível, são dados pessoais sensíveis (art. 5º, II, da LGPD). Por isso, só são tratados com o seu **consentimento específico** e apenas para o acompanhamento nutricional (art. 11, I).
 
 ### Dados gerados pelo uso
 
@@ -48,7 +50,7 @@ Você pode retirar o consentimento a qualquer momento (seção 7). Como os dados
 
 ## 4. Quem pode ver os seus dados
 
-- **Nutricionista que acompanha você:** vê o seu nome, o seu objetivo e a data de início do acompanhamento. Quando novas funções forem lançadas, poderá ver também os demais dados de saúde necessários ao acompanhamento. Ele só tem acesso enquanto o acompanhamento estiver ativo, e só aos próprios pacientes.
+- **Nutricionista que acompanha você:** vê o seu nome, a sua **idade** (calculada, e não a data de nascimento), o sexo biológico, a altura, o objetivo, a sua rotina (horários de acordar, dormir e treinar) e a data de início do acompanhamento, além dos planos alimentares que ele mesmo criou. **Ele não vê o seu CPF nem o seu e-mail.** Ele só tem acesso enquanto o acompanhamento estiver ativo, e só aos próprios pacientes.
 - **Nutricionista que recebe a sua solicitação:** vê o seu nome e a mensagem que você escreveu.
 - **Outros usuários conectados:** se você é nutricionista, o seu nome, o seu CRN e a sua apresentação aparecem na lista de nutricionistas para qualquer usuário conectado, para que os pacientes possam escolher. **O seu e-mail e o seu CPF nunca aparecem nessa lista.**
 - **Administradores do NogVita:** têm acesso aos dados cadastrais para gerenciar contas, como cadastrar nutricionistas e ativar ou desativar contas.

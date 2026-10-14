@@ -71,6 +71,7 @@ Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.h
   | papéis (`roles`) | `Patient`, `Nutritionist`, `Admin` |
 
 - **Datas:** datas sem hora (`birthDate`) usam `YYYY-MM-DD`. Datas com hora (`createdAt`, `accessTokenExpiresAtUtc`) estão em **UTC**, no formato ISO 8601. Converta para o fuso local só na exibição.
+- **Horários:** horários sem data (`wakeUpTime`, `bedTime`, `trainingTime` e `suggestedTime`) são **locais, sem fuso**. Envie como `"HH:mm"` (`"07:00"`). Eles voltam com segundos (`"07:00:00"`), então corte os segundos na exibição. Um horário inválido, como `"25:00"`, responde `400`.
 - **IDs:** são GUIDs (`"3fa85f64-5717-4562-b3fc-2c963f66afa6"`).
 - **CPF:** pode ser enviado com ou sem máscara (`123.456.789-09` ou `12345678909`). Nas respostas, ele vem formatado.
 - **Limite de tentativas:** as rotas `/api/v1/auth/*` aceitam **10 requisições por minuto por IP**. Acima disso, a resposta é `429 Too Many Requests`.
@@ -320,26 +321,36 @@ Chamado pelo "Esqueci minha senha" da tela de login.
   "age": 31,
   "biologicalSex": "Female",
   "heightInCm": 165,
-  "goal": "WeightLoss"
+  "goal": "WeightLoss",
+  "wakeUpTime": "06:00:00",
+  "bedTime": "22:30:00",
+  "trainingTime": null
 }
 ```
 
+- `wakeUpTime`, `bedTime` e `trainingTime` formam a **rotina** do paciente, e cada um pode vir `null`.
 - `404` → "Perfil de paciente não encontrado."
 
 #### `PUT /api/v1/patients/me` 🧑
 
-Atualiza os dados do perfil. Nome, e-mail e CPF **não** são alterados por aqui.
+Atualiza os dados do perfil e a rotina. Nome, e-mail e CPF **não** são alterados por aqui.
 
 ```json
 {
   "birthDate": "1995-04-20",
   "biologicalSex": "Female",
   "heightInCm": 166,
-  "goal": "Maintenance"
+  "goal": "Maintenance",
+  "wakeUpTime": "06:00",
+  "bedTime": "22:30",
+  "trainingTime": "18:00"
 }
 ```
 
-- Os campos seguem as mesmas regras do cadastro, inclusive a idade mínima de **18 anos**.
+- Os campos do perfil seguem as mesmas regras do cadastro, inclusive a idade mínima de **18 anos**.
+- **Rotina:** os três horários são **opcionais**. Como é um `PUT`, um horário omitido ou `null` **apaga** o valor salvo: mande sempre os três que o paciente já preencheu, e não só o que mudou.
+- Não há regra de "janela": quem trabalha à noite pode acordar às `"14:00"` e dormir às `"06:00"`. A única recusa é a hora de acordar igual à de dormir ("A hora de acordar e a de dormir não podem ser iguais.").
+- Vale incentivar o preenchimento, com algo como "Complete sua rotina para o seu nutricionista montar o plano".
 - `200` → o perfil atualizado (mesmo formato do `GET`)
 - `400` → erros de validação (por exemplo, "É preciso ter pelo menos 18 anos para usar o NogVita." no campo `BirthDate`)
 
@@ -500,6 +511,28 @@ Pacientes em acompanhamento ativo, em ordem alfabética. `search` busca no nome 
 ```json
 { "patientId": "…", "name": "Maria Silva", "goal": "WeightLoss", "startedAtUtc": "2026-10-10T12:00:00Z" }
 ```
+
+##### `GET /api/v1/nutritionists/me/patients/{patientId}`
+
+O perfil do paciente, com os dados que o nutricionista precisa para montar o plano.
+
+```json
+{
+  "patientId": "…",
+  "name": "Maria Silva",
+  "age": 31,
+  "biologicalSex": "Female",
+  "heightInCm": 165,
+  "goal": "WeightLoss",
+  "wakeUpTime": "06:00:00",
+  "bedTime": "22:30:00",
+  "trainingTime": null
+}
+```
+
+- Traz a **idade**, e não a data de nascimento, e **não** traz CPF nem e-mail.
+- Os horários da rotina podem vir `null`, quando o paciente ainda não preencheu. Mostre "não informado".
+- `404` → "Paciente não encontrado." (você não acompanha esse paciente, ou o acompanhamento já terminou)
 
 ##### `POST /api/v1/nutritionists/me/patients/{patientId}/end`
 
@@ -678,8 +711,8 @@ As três rotas de detalhe (o detalhe do nutricionista, o detalhe do paciente e o
     "…": "os demais campos do NutritionPlanResponse"
   },
   "meals": [
-    { "id": "…", "name": "Café da manhã", "notes": "Em jejum, beber água antes.", "order": 1 },
-    { "id": "…", "name": "Almoço", "notes": null, "order": 2 }
+    { "id": "…", "name": "Café da manhã", "notes": "Em jejum, beber água antes.", "suggestedTime": "07:00:00", "order": 1 },
+    { "id": "…", "name": "Almoço", "notes": null, "suggestedTime": null, "order": 2 }
   ]
 }
 ```
@@ -749,13 +782,16 @@ As refeições são sempre alteradas pelo plano, e só enquanto ele estiver em `
 Acrescenta a refeição **no fim** da ordem.
 
 ```json
-{ "name": "Café da manhã", "notes": "Em jejum, beber água antes." }
+{ "name": "Café da manhã", "notes": "Em jejum, beber água antes.", "suggestedTime": "07:00" }
 ```
 
 | Campo | Regras |
 |---|---|
 | `name` | Obrigatório, até 60 caracteres. Espaços nas pontas são removidos |
 | `notes` | Opcional, até 500 caracteres. Texto em branco vira `null` |
+| `suggestedTime` | Opcional. Horário sugerido (`"HH:mm"`). **Não muda a ordem** das refeições |
+
+> **Horário fora da rotina:** a API aceita qualquer horário, porque uma regra rígida falharia para quem trabalha à noite. Compare o `suggestedTime` com o `wakeUpTime` e o `bedTime` do paciente (`GET /nutritionists/me/patients/{patientId}`) e mostre um **aviso**, sem bloquear: "Este horário cai fora da rotina do paciente". Lembre que a janela pode atravessar a meia-noite (acorda 14:00, dorme 06:00).
 
 - `201` → `{ "id": "<id da refeição>" }`
 - `400` → erros de validação
@@ -1077,5 +1113,8 @@ Nutri: abre o link → tela lê o token do hash
 - [ ] Mostrar os erros de `errors` nos campos do formulário
 - [ ] Estado de carregamento para a primeira requisição no staging (até cerca de 1 minuto)
 - [ ] Enums como texto (`"MuscleGain"`), e não como número
+- [ ] Horários enviados como `"HH:mm"`, e os segundos cortados na exibição
+- [ ] No `PUT /patients/me`, mandar sempre os três horários da rotina (o que for omitido é apagado)
+- [ ] Aviso (sem bloqueio) quando o horário de uma refeição cair fora da rotina do paciente
 - [ ] Campo `attribution` exibido nas telas que mostram dados de alimentos (TACO e Open Food Facts)
 - [ ] Busca de alimentos só a partir de 2 letras, com *debounce*

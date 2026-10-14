@@ -27,7 +27,8 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Cadastro de paciente:** conta e perfil em uma única etapa, só para maiores de 18 anos; a conta fica inativa até o e-mail ser confirmado
 - **Confirmação de e-mail:** link de uso único, válido por 24 horas, com reenvio que revoga o link anterior
 - **Recuperação de senha:** link de uso único por e-mail, válido por 1 hora; a troca encerra todas as sessões e envia um aviso
-- **Perfil do paciente:** consulta e atualização dos próprios dados, com idade calculada
+- **Perfil do paciente:** consulta e atualização dos próprios dados, com idade calculada e rotina opcional (horários de acordar, dormir e treinar)
+- **Perfil do paciente para o nutricionista:** idade, sexo, altura, objetivo e rotina, só para quem o acompanha, sem CPF nem e-mail
 - **Painel do administrador:** listagens paginadas de usuários, pacientes e nutricionistas, com busca e filtros
 - **Ativação e desativação de contas:** desativar revoga todas as sessões do usuário
 - **Pré-cadastro de nutricionistas pelo administrador**, com convite enviado por e-mail (link de uso único, válido por 72 horas)
@@ -73,6 +74,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/nutritionists/me/requests/{id}/accept` | Aceita a solicitação e cria o acompanhamento |
 | `POST` | `/api/v1/nutritionists/me/requests/{id}/reject` | Recusa a solicitação |
 | `GET` | `/api/v1/nutritionists/me/patients` | Pacientes em acompanhamento (paginado, busca por nome) |
+| `GET` | `/api/v1/nutritionists/me/patients/{patientId}` | Perfil e rotina de um paciente acompanhado |
 | `POST` | `/api/v1/nutritionists/me/patients/{patientId}/end` | Nutricionista encerra o acompanhamento de um paciente |
 | `GET` | `/api/v1/foods` | Busca alimentos por nome (paginado, filtro por fonte) |
 | `GET` | `/api/v1/foods/{id}` | Detalhes de um alimento |
@@ -181,9 +183,14 @@ O paciente solicita acompanhamento a um nutricionista. O aceite cria o vínculo,
 | `POST` | `/api/v1/nutritionists/me/requests/{id}/accept` | Nutricionista |
 | `POST` | `/api/v1/nutritionists/me/requests/{id}/reject` | Nutricionista |
 | `GET` | `/api/v1/nutritionists/me/patients?search=` | Nutricionista |
+| `GET` | `/api/v1/nutritionists/me/patients/{patientId}` | Nutricionista |
 | `POST` | `/api/v1/nutritionists/me/patients/{patientId}/end` | Nutricionista |
 
 O nutricionista só responde as solicitações destinadas a ele e só vê os próprios pacientes. Um recurso de outro usuário responde `404`.
+
+**Perfil e rotina do paciente:** para montar o plano, o nutricionista vê a idade, o sexo biológico, a altura, o objetivo e a rotina de cada paciente que acompanha (`GET /nutritionists/me/patients/{patientId}`). A rota segue o princípio da necessidade da LGPD: devolve a **idade**, e não a data de nascimento, e não traz CPF nem e-mail. Depois que o acompanhamento termina, ela passa a responder `404`.
+
+A rotina (horários de acordar, dormir e treinar) é preenchida pelo próprio paciente no `PUT /patients/me`, e os três campos são **opcionais**: um campo obrigatório travaria os cadastros que já existem. Não há regra de "janela": quem trabalha à noite pode acordar às 14h e dormir às 6h. A única recusa é a hora de acordar igual à de dormir.
 
 Ciclo de vida de uma solicitação:
 
@@ -292,6 +299,7 @@ Detalhes:
 - **Reordenação completa:** a lista precisa ter todas as refeições do plano, cada uma uma vez. Uma lista incompleta, com repetidos ou com Id de outro plano responde `400`, e nada muda. Mandar a lista inteira evita estados intermediários, como duas refeições na mesma posição.
 - **Respostas:** criar responde `201` com o Id da refeição, e as outras ações respondem `204`. Plano finalizado ou cancelado e limite de refeições atingido respondem `409`. Plano ou refeição que não existem, ou que não são do nutricionista, respondem `404`.
 - **Formato do detalhe:** as rotas de detalhe do plano devolvem `{ "plan": { ... }, "meals": [ ... ] }`, com as refeições já em ordem.
+- **Horário sugerido:** cada refeição pode ter um horário sugerido (`suggestedTime`), opcional. Ele não define a ordem, que continua manual: o jantar de quem trabalha à noite pode ser às 3h e ainda assim vir depois do almoço. A API aceita qualquer horário. Se ele cair fora da rotina do paciente, quem avisa é o front, e a API não bloqueia.
 
 ## Ambiente de staging
 
@@ -310,6 +318,7 @@ O ambiente de testes está publicado em:
 - **Autenticação:** envie o token de acesso no header `Authorization: Bearer <accessToken>`. O token de acesso dura 15 minutos; use o `POST /api/v1/auth/refresh` com o `refreshToken` para obter um par novo. Faça **uma renovação por vez**: duas renovações simultâneas com o mesmo refresh token encerram todas as sessões (detecção de reuso).
 - **Erros:** todas as respostas de erro seguem o formato `ProblemDetails` (`title`, `status` e, em erros de validação, `errors` por campo).
 - **Enums:** trafegam como texto (ex.: `"goal": "MuscleGain"`).
+- **Horários** (rotina do paciente e refeições): no formato `"HH:mm"` na entrada (`"07:00"`), e voltam com segundos (`"07:00:00"`). São horários locais, sem data e sem fuso.
 - **Cadastro de paciente:** responde `202` **sem tokens**. Mostre "verifique seu e-mail", e não faça login automático.
 - **Confirmação de e-mail:** o link abre `/confirmar-email#token=...` no front. A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/email-confirmation/confirm`.
 - **Login com e-mail não confirmado:** um `403` significa "e-mail não confirmado". Mostre a opção de reenviar o link (`POST /api/v1/auth/email-confirmation/resend`).

@@ -13,6 +13,11 @@ namespace NogVita.Domain.Users
         public int HeightInCm { get; private set; }
         public Goal Goal { get; private set; }
 
+        // Rotina, opcional e no horário local do paciente. Sem regra de "janela": quem trabalha à noite acorda depois de dormir.
+        public TimeOnly? WakeUpTime { get; private set; }
+        public TimeOnly? BedTime { get; private set; }
+        public TimeOnly? TrainingTime { get; private set; }
+
         private PatientProfile() { } 
 
         internal PatientProfile(Guid userId, DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)
@@ -32,6 +37,16 @@ namespace NogVita.Domain.Users
             BiologicalSex = biologicalSex;
             HeightInCm = heightInCm;
             Goal = goal;
+        }
+
+        internal void UpdateRoutine(TimeOnly? wakeUpTime, TimeOnly? bedTime, TimeOnly? trainingTime)
+        {
+            if (wakeUpTime is not null && wakeUpTime == bedTime)
+                throw new DomainException("A hora de acordar e a de dormir não podem ser iguais.");
+
+            WakeUpTime = wakeUpTime;
+            BedTime = bedTime;
+            TrainingTime = trainingTime;
         }
 
         private static void Validate(DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)

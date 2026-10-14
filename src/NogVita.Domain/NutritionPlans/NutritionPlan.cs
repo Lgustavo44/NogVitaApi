@@ -86,7 +86,7 @@ public class NutritionPlan : Entity
         Status = NutritionPlanStatus.Finished;
     }
 
-    public Meal AddMeal(string name, string? notes)
+    public Meal AddMeal(string name, string? notes, TimeOnly? suggestedTime = null)
     {
         EnsureEditable();
 
@@ -95,15 +95,15 @@ public class NutritionPlan : Entity
             throw new DomainException($"Um plano pode ter no máximo {MaxMeals} refeições.");
         }
 
-        var meal = new Meal(Id, name, notes, _meals.Count + 1);
+        var meal = new Meal(Id, name, notes, suggestedTime, _meals.Count + 1);
         _meals.Add(meal);
         return meal;
     }
 
-    public void UpdateMeal(Guid mealId, string name, string? notes)
+    public void UpdateMeal(Guid mealId, string name, string? notes, TimeOnly? suggestedTime = null)
     {
         EnsureEditable();
-        GetMeal(mealId).Update(name, notes);
+        GetMeal(mealId).Update(name, notes, suggestedTime);
     }
 
     public void RemoveMeal(Guid mealId)
