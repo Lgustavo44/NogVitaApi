@@ -913,3 +913,150 @@ Content-Type: application/json
 {
   "refreshToken": "{{loginAntesDaTroca.response.body.$.refreshToken}}"
 }
+
+### ===================== Fase 17: Refeições =====================
+### Rode os logins da Fase 13 antes (loginPaciente, loginNutri1, loginNutri2, meNutri1).
+
+### 0.1 Paciente pede acompanhamento à Nutri 1
+# @name pedidoRefeicoes
+POST {{host}}/api/v1/patients/me/nutritionist-requests
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "nutritionistId": "{{nutri1Id}}"
+}
+
+### 0.2 Nutri 1 vê a caixa de entrada
+# @name caixaRefeicoes
+GET {{host}}/api/v1/nutritionists/me/requests?status=Pending
+Authorization: Bearer {{tokenNutri1}}
+
+### 0.3 Nutri 1 aceita
+POST {{host}}/api/v1/nutritionists/me/requests/{{pedidoRefeicoes.response.body.$.id}}/accept
+Authorization: Bearer {{tokenNutri1}}
+
+### 0.4 Nutri 1 cria o plano
+# @name planoRefeicoes
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "patientId": "{{caixaRefeicoes.response.body.$.items[0].patientId}}",
+  "name": "Plano com refeições",
+  "startDate": "2026-10-20"
+}
+
+@planoId = {{planoRefeicoes.response.body.$.id}}
+
+### A.1 Adicionar o café da manhã → 201
+# @name cafe
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "name": "Café da manhã",
+  "notes": "Beber um copo de água antes."
+}
+
+### A.2 Adicionar o almoço → 201
+# @name almoco
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "name": "Almoço"
+}
+
+### A.3 Adicionar o jantar → 201
+# @name jantar
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "name": "Jantar"
+}
+
+### B. Detalhe do plano → as 3 refeições, na ordem 1, 2, 3
+GET {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}
+Authorization: Bearer {{tokenNutri1}}
+
+### C. Reordenar: jantar, café, almoço → 204
+PUT {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals/order
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "mealIds": [
+    "{{jantar.response.body.$.id}}",
+    "{{cafe.response.body.$.id}}",
+    "{{almoco.response.body.$.id}}"
+  ]
+}
+
+### D. Reordenar com uma refeição faltando → 400
+PUT {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals/order
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "mealIds": [
+    "{{jantar.response.body.$.id}}"
+  ]
+}
+
+### E. Renomear o almoço → 204
+PUT {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals/{{almoco.response.body.$.id}}
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "name": "Almoço pós-treino",
+  "notes": "Até 1 hora depois do treino."
+}
+
+### F. Remover o café (que está no meio) → 204
+DELETE {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals/{{cafe.response.body.$.id}}
+Authorization: Bearer {{tokenNutri1}}
+
+### G. Detalhe → jantar (1) e almoço pós-treino (2), sem buraco
+GET {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}
+Authorization: Bearer {{tokenNutri1}}
+
+### H. Nutri 2 tenta adicionar uma refeição → 404
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals
+Authorization: Bearer {{tokenNutri2}}
+Content-Type: application/json
+
+{
+  "name": "Intrusa"
+}
+
+### I. Ativar o plano → 204
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/activate
+Authorization: Bearer {{tokenNutri1}}
+
+### J. Paciente vê o plano atual → com as 2 refeições, na ordem
+GET {{host}}/api/v1/patients/me/nutrition-plans/current
+Authorization: Bearer {{tokenPaciente}}
+
+### K. Finalizar o plano → 204
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/finish
+Authorization: Bearer {{tokenNutri1}}
+
+### L. Adicionar uma refeição no plano finalizado → 409 (RN17)
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "name": "Ceia"
+}
+
+### M. Remover uma refeição do plano finalizado → 409 (RN17)
+DELETE {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals/{{jantar.response.body.$.id}}
+Authorization: Bearer {{tokenNutri1}}

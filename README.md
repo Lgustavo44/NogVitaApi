@@ -37,12 +37,12 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Acompanhamento nutricional:** o paciente solicita, o nutricionista aceita ou recusa, e qualquer um dos dois pode encerrar, com aviso por e-mail à outra parte
 - **Base de alimentos:** 597 alimentos da TACO, importados na inicialização, e produtos industrializados do [Open Food Facts](https://world.openfoodfacts.org), importados pelo código de barras; busca sem diferenciar acentos
 - **Gestão de alimentos pelo administrador:** ativação e desativação
-- **Plano alimentar:** o nutricionista cria, ativa e finaliza planos para os pacientes que acompanha; o paciente vê o plano atual e o histórico
+- **Plano alimentar:** o nutricionista cria, ativa e finaliza planos para os pacientes que acompanha, com até 10 refeições ordenadas; o paciente vê o plano atual e o histórico
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Em desenvolvimento
 
-- Refeições e alimentos do plano, com cálculo nutricional
+- Alimentos das refeições, com cálculo nutricional
 - Registro de peso
 
 ## Endpoints
@@ -87,6 +87,10 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/nutritionists/me/nutrition-plans/{id}/activate` | Ativa um rascunho (finaliza o plano ativo anterior) |
 | `POST` | `/api/v1/nutritionists/me/nutrition-plans/{id}/finish` | Finaliza o plano ativo |
 | `POST` | `/api/v1/nutritionists/me/nutrition-plans/{id}/cancel` | Cancela um rascunho |
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals` | Acrescenta uma refeição ao fim do plano |
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}` | Atualiza uma refeição |
+| `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}` | Remove uma refeição (renumera as demais) |
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/order` | Reordena as refeições |
 | `GET` | `/api/v1/patients/me/nutrition-plans` | Planos do paciente (paginado, filtro por status) |
 | `GET` | `/api/v1/patients/me/nutrition-plans/current` | Plano ativo do paciente |
 | `GET` | `/api/v1/patients/me/nutrition-plans/{id}` | Detalhes de um plano do paciente |
@@ -270,6 +274,24 @@ Regras:
 - **Acesso:** sem acompanhamento ativo, as rotas do nutricionista respondem `404` (e não `403`), sem revelar se o plano ou o paciente existe. Um plano de outro nutricionista também responde `404`.
 - **O que o paciente vê:** rascunhos e planos cancelados nunca aparecem para ele, nem na lista, nem no detalhe. A lista mostra o plano ativo primeiro e depois os finalizados, do mais recente para o mais antigo.
 - **Histórico preservado:** encerrar o acompanhamento ou trocar de nutricionista não apaga nada. Os planos finalizados continuam visíveis para o paciente.
+
+#### Refeições
+
+As refeições fazem parte do plano: são criadas, alteradas, removidas e reordenadas sempre através dele, e só enquanto o plano estiver em rascunho ou ativo. A ordem é sempre sequencial (1, 2, 3...): uma refeição nova entra no fim, a remoção renumera as demais, e a reordenação recebe a lista completa. Um plano tem no máximo 10 refeições. O detalhe do plano (nutricionista e paciente) traz as refeições em ordem.
+
+| Método | Rota | Acesso |
+|---|---|---|
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals` | Nutricionista |
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}` | Nutricionista |
+| `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}` | Nutricionista |
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/order` | Nutricionista |
+
+Detalhes:
+
+- **Agregado:** a refeição não tem regra própria fora do plano. Quem garante a ordem sequencial, o limite de 10 e o bloqueio em planos finalizados ou cancelados é o `NutritionPlan`, e a refeição só é alterada pelos métodos dele.
+- **Reordenação completa:** a lista precisa ter todas as refeições do plano, cada uma uma vez. Uma lista incompleta, com repetidos ou com Id de outro plano responde `400`, e nada muda. Mandar a lista inteira evita estados intermediários, como duas refeições na mesma posição.
+- **Respostas:** criar responde `201` com o Id da refeição, e as outras ações respondem `204`. Plano finalizado ou cancelado e limite de refeições atingido respondem `409`. Plano ou refeição que não existem, ou que não são do nutricionista, respondem `404`.
+- **Formato do detalhe:** as rotas de detalhe do plano devolvem `{ "plan": { ... }, "meals": [ ... ] }`, com as refeições já em ordem.
 
 ## Ambiente de staging
 

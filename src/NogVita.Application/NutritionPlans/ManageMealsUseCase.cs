@@ -93,9 +93,6 @@ public sealed class ManageMealsUseCase(NutritionistPlanAccess planAccess, IUnitO
     public async Task<ManageMealResult> RemoveAsync(
         Guid nutritionistId, Guid planId, Guid mealId, CancellationToken cancellationToken = default)
     {
-        // TODO 2: as mesmas três checagens do TODO 1
-        //         plan.RemoveMeal(mealId), salvar, Done
-
         var plan = await planAccess.LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
 
         if (plan is null)
