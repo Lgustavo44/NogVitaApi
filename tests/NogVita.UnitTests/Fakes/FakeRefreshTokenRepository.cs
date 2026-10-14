@@ -6,6 +6,7 @@ namespace NogVita.UnitTests.Fakes;
 public sealed class FakeRefreshTokenRepository : IRefreshTokenRepository
 {
     public List<RefreshToken> Tokens { get; } = [];
+    public List<Guid> RevokedUserIds { get; } = [];
 
     public Task<RefreshToken?> GetByHashAsync(string tokenHash, CancellationToken cancellationToken = default)
     {
@@ -19,6 +20,8 @@ public sealed class FakeRefreshTokenRepository : IRefreshTokenRepository
 
     public Task RevokeAllForUserAsync(Guid userId, DateTime nowUtc, CancellationToken cancellationToken = default)
     {
+        RevokedUserIds.Add(userId);
+
         foreach (var token in Tokens.Where(t => t.UserId == userId))
             token.Revoke(nowUtc);
 
