@@ -1,4 +1,5 @@
 using NogVita.Domain.Common;
+using NogVita.Domain.Foods;
 
 namespace NogVita.Domain.NutritionPlans;
 
@@ -181,6 +182,24 @@ public class NutritionPlan : Entity
         Description = normalizedDescription;
         StartDate = startDate;
         EndDate = endDate;
+    }
+
+    public MealFood AddFoodToMeal(Guid mealId, Food food, decimal quantityInGrams, DateTime nowUtc)
+    {
+        EnsureEditable();
+        return GetMeal(mealId).AddFood(food, quantityInGrams, nowUtc);
+    }
+
+    public void UpdateMealFoodQuantity(Guid mealId, Guid mealFoodId, decimal quantityInGrams)
+    {
+        EnsureEditable();
+        GetMeal(mealId).UpdateFoodQuantity(mealFoodId, quantityInGrams);
+    }
+
+    public void RemoveFoodFromMeal(Guid mealId, Guid mealFoodId)
+    {
+        EnsureEditable();
+        GetMeal(mealId).RemoveFood(mealFoodId);
     }
 
     // Todas as refeições do plano, cada uma uma vez: sem faltar, sem repetir e sem Id de fora.
