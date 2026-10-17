@@ -2,14 +2,16 @@ using NogVita.Domain.NutritionPlans;
 
 namespace NogVita.Application.NutritionPlans;
 
-// OutsideRoutine: aviso, e não bloqueio. null quando o paciente não informou a rotina ou a refeição não tem horário.
+// OutsideRoutine: aviso, e não bloqueio. true quando a refeição cai enquanto o paciente dorme;
+// null quando o paciente não informou a rotina ou a refeição não tem horário.
 public sealed record MealResponse(
     Guid Id,
     string Name,
     string? Notes,
     int Order,
     TimeOnly? SuggestedTime,
-    IReadOnlyList<MealFoodResponse> Foods)
+    IReadOnlyList<MealFoodResponse> Foods,
+    bool? OutsideRoutine = null)
 {
     internal NutrientTotals RawTotals => NutrientTotals.FromPortions(Foods.Select(f => f.RawPortion));
 

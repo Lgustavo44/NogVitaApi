@@ -39,11 +39,11 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Base de alimentos:** 597 alimentos da TACO, importados na inicialização, e produtos industrializados do [Open Food Facts](https://world.openfoodfacts.org), importados pelo código de barras; busca sem diferenciar acentos
 - **Gestão de alimentos pelo administrador:** ativação e desativação
 - **Plano alimentar:** o nutricionista cria, ativa e finaliza planos para os pacientes que acompanha, com até 10 refeições ordenadas e até 20 alimentos por refeição; o paciente vê o plano atual e o histórico
+- **Cálculo nutricional:** porção de cada alimento, totais por refeição e do dia, e comparação com a meta diária de calorias e macronutrientes
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Em desenvolvimento
 
-- Cálculo nutricional das refeições e do plano (totais a partir das quantidades e dos valores por 100 g)
 - Registro de peso
 
 ## Endpoints
@@ -96,6 +96,8 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `POST` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods` | Adiciona um alimento à refeição |
 | `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}` | Altera a quantidade de um alimento da refeição |
 | `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}` | Remove um alimento da refeição |
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{id}/target` | Define a meta diária de calorias e macronutrientes |
+| `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{id}/target` | Remove a meta do plano |
 | `GET` | `/api/v1/patients/me/nutrition-plans` | Planos do paciente (paginado, filtro por status) |
 | `GET` | `/api/v1/patients/me/nutrition-plans/current` | Plano ativo do paciente |
 | `GET` | `/api/v1/patients/me/nutrition-plans/{id}` | Detalhes de um plano do paciente |
@@ -328,6 +330,32 @@ Detalhes:
   - Plano finalizado ou cancelado → `409`.
   - Plano, refeição ou item que não existem, ou que não são do nutricionista → `404`.
 - **No detalhe do plano,** cada refeição traz `foods`, na ordem em que foram adicionados, com a quantidade, os dados do snapshot e o texto de atribuição da fonte (`attribution`).
+
+#### Cálculo nutricional e meta
+
+O detalhe do plano calcula os nutrientes em três níveis, a partir das quantidades e dos valores por 100 g guardados no snapshot:
+
+| Nível | Campo | Como é calculado |
+|---|---|---|
+| Alimento | `foods[].portion` | Valor por 100 g × quantidade ÷ 100 |
+| Refeição | `meals[].totals` | Soma das porções dos alimentos da refeição |
+| Dia | `dailyTotals` | Soma dos totais das refeições |
+
+O nutricionista pode definir uma **meta diária** para o plano: as calorias são obrigatórias, e a proteína, o carboidrato e a gordura são opcionais. Com uma meta, o detalhe traz `target`, com a meta, o planejado e a diferença de cada nutriente.
+
+| Método | Rota | Acesso |
+|---|---|---|
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{id}/target` | Nutricionista |
+| `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{id}/target` | Nutricionista |
+
+Detalhes:
+
+- **Valor desconhecido não vira zero:** quando um alimento não tem a informação de um nutriente (por exemplo, a fibra de um produto do Open Food Facts), a porção dele vem `null`. Nos totais, a soma considera só os valores conhecidos, e o campo `isComplete` vem `false` para avisar que o total real pode ser maior. O front deve mostrar algo como "pelo menos 25 g de fibra".
+- **Arredondamento só na resposta:** os cálculos usam a precisão completa, e os valores são arredondados para **uma casa decimal** só na hora de montar a resposta, com o meio arredondado para longe do zero (0,25 vira 0,3). Assim, somar porções arredondadas não acumula erro nos totais.
+- **Diferença em relação à meta:** `difference = planejado − meta`. Negativo significa abaixo da meta, e positivo, acima. Um macronutriente sem meta vem `null` em `target`, e um plano sem meta não traz `target`.
+- **Limites da meta:** calorias maiores que 0 e até 10.000 kcal; cada macronutriente de 0 a 1.000 g. A meta só pode ser definida ou removida em planos em rascunho ou ativos (`409` nos outros).
+- **Cálculo na leitura:** nada disso é guardado no banco. Os totais são calculados a cada consulta, a partir das quantidades e do snapshot, então nunca ficam desatualizados em relação aos alimentos do plano.
+- **Onde fica cada regra:** a conta da porção (`NutritionCalculator`), a soma com `isComplete` (`NutrientTotals`) e os limites da meta (`PlanTarget`) ficam no domínio, testados sem banco. A Application só arredonda e monta as respostas.
 
 ## Ambiente de staging
 
