@@ -41,11 +41,8 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Plano alimentar:** o nutricionista cria, ativa e finaliza planos para os pacientes que acompanha, com até 10 refeições ordenadas e até 20 alimentos por refeição; o paciente vê o plano atual e o histórico
 - **Cálculo nutricional:** porção de cada alimento, totais por refeição e do dia, e comparação com a meta diária de calorias e macronutrientes
 - **Exportação em PDF:** o plano completo, para baixar ou receber por e-mail, no visual da marca
+- **Registro de peso:** pelo paciente ou pelo nutricionista, um por dia, com o histórico e o IMC no detalhe do paciente
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
-
-### Em desenvolvimento
-
-- Registro de peso
 
 ## Endpoints
 
@@ -102,6 +99,12 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `GET` | `/api/v1/nutritionists/me/nutrition-plans/{id}/pdf` | Baixa o PDF de um plano |
 | `GET` | `/api/v1/patients/me/nutrition-plans/{id}/pdf` | Paciente baixa o PDF de um plano |
 | `POST` | `/api/v1/patients/me/nutrition-plans/{id}/pdf/email` | Paciente recebe o PDF no próprio e-mail |
+| `POST` | `/api/v1/patients/me/weight-records` | Paciente registra o próprio peso do dia |
+| `GET` | `/api/v1/patients/me/weight-records` | Histórico de peso do paciente (paginado, filtro por período) |
+| `DELETE` | `/api/v1/patients/me/weight-records/{id}` | Paciente apaga um registro que fez |
+| `POST` | `/api/v1/nutritionists/me/patients/{patientId}/weight-records` | Nutricionista registra o peso de um paciente |
+| `GET` | `/api/v1/nutritionists/me/patients/{patientId}/weight-records` | Histórico de peso de um paciente acompanhado |
+| `DELETE` | `/api/v1/nutritionists/me/weight-records/{id}` | Nutricionista apaga um registro que fez |
 | `GET` | `/api/v1/patients/me/nutrition-plans` | Planos do paciente (paginado, filtro por status) |
 | `GET` | `/api/v1/patients/me/nutrition-plans/current` | Plano ativo do paciente |
 | `GET` | `/api/v1/patients/me/nutrition-plans/{id}` | Detalhes de um plano do paciente |
@@ -395,6 +398,29 @@ Detalhes:
 - **E-mail sempre para o dono da conta:** a rota não recebe endereço. O PDF vai para o e-mail cadastrado do paciente, então ninguém usa a API para mandar o plano de outra pessoa para fora. O limite de 3 envios por hora é **por usuário** (`429` acima disso). Se o envio falhar, a resposta é `503`, sugerindo baixar o PDF.
 - **O PDF segue a identidade visual dos e-mails:** a faixa laranja, a logo e os blocos de destaque cor de polpa. O arquivo se chama `nogvita-plano-AAAA-MM-DD.pdf`, com a data de início do plano.
 - **Gerado na hora:** o PDF é montado a cada pedido (QuestPDF), a partir do mesmo detalhe que a API devolve, e não é guardado. A fonte Roboto vai embutida na DLL, para o PDF sair igual em qualquer servidor, inclusive no contêiner Linux do staging.
+
+### Registro de peso
+
+O paciente registra o próprio peso, e o nutricionista que o acompanha registra o peso medido na consulta. Cada registro guarda quem o fez. Há no máximo um registro por paciente por dia (de hoje até 365 dias atrás): registrar de novo no mesmo dia substitui o próprio registro, mas não o de outra pessoa. Só o autor pode apagar um registro. O detalhe do paciente para o nutricionista mostra o peso mais recente e o IMC, calculado a partir do peso e da altura.
+
+| Método | Rota | Acesso |
+|---|---|---|
+| `POST` | `/api/v1/patients/me/weight-records` | Paciente |
+| `GET` | `/api/v1/patients/me/weight-records?from=&to=` | Paciente |
+| `DELETE` | `/api/v1/patients/me/weight-records/{id}` | Paciente |
+| `POST` | `/api/v1/nutritionists/me/patients/{patientId}/weight-records` | Nutricionista |
+| `GET` | `/api/v1/nutritionists/me/patients/{patientId}/weight-records?from=&to=` | Nutricionista |
+| `DELETE` | `/api/v1/nutritionists/me/weight-records/{id}` | Nutricionista |
+
+Detalhes:
+
+- **Registrar responde de dois jeitos:** `201` quando cria o registro do dia, e `200` quando substitui o próprio registro daquele dia, os dois com `{ "id": ... }`. Se o registro do dia já foi feito pela outra pessoa (o paciente ou o nutricionista), a resposta é `409`, e nada é sobrescrito: o peso medido na consulta não some porque o paciente se pesou em casa, e vice-versa.
+- **Um por dia, também no banco:** o índice único `ux_weight_record_patient_day` (paciente + data) garante a regra mesmo com duas requisições ao mesmo tempo.
+- **A data é opcional:** sem a data, o registro é de hoje, no horário de Brasília. Uma data futura, ou de mais de 365 dias atrás, responde `400`.
+- **Limites:** peso de 20 a 400 kg, guardado com duas casas decimais (78,456 vira 78,46); observações de até 300 caracteres.
+- **Histórico:** paginado, do mais recente para o mais antigo, com filtro opcional por período (`from` e `to`). Cada item informa o peso, a data, as observações, quem registrou (`recordedByName`) e se foi o próprio paciente (`recordedByPatient`).
+- **Acesso do nutricionista:** registrar, ver o histórico e apagar exigem um acompanhamento ativo com o paciente. Fora disso, a resposta é `404`. Ele só apaga os registros que fez.
+- **IMC derivado:** o IMC (`bodyMassIndex`, com uma casa decimal) é calculado a cada consulta, a partir do peso mais recente e da altura do perfil, e nunca guardado. Se o paciente registrar um peso novo, o IMC muda sozinho. Sem nenhum peso registrado, ele vem `null`.
 
 ## Ambiente de staging
 

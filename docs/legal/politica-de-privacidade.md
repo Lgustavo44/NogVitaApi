@@ -1,6 +1,6 @@
 # Política de Privacidade do NogVita
 
-**Última atualização:** 14/10/2026
+**Última atualização:** 17/10/2026
 
 Esta política explica quais dados pessoais o NogVita coleta, para que eles são usados, com quem são compartilhados e quais são os seus direitos, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, a LGPD).
 
@@ -24,10 +24,11 @@ Para qualquer assunto sobre privacidade, inclusive para exercer os seus direitos
 | Data de nascimento, sexo biológico, altura e objetivo (perder peso, manter ou ganhar massa) | Pacientes | Permitir que o nutricionista avalie você e calcule as suas necessidades nutricionais |
 | Rotina: horário em que acorda, em que dorme e em que treina (opcionais) | Pacientes | Permitir que o nutricionista distribua as refeições de acordo com o seu dia |
 | Planos alimentares e refeições, com horários sugeridos | Nutricionistas | Registrar o acompanhamento nutricional do paciente |
+| Peso: o valor, a data e observações opcionais, com quem registrou | Pacientes e nutricionistas | Acompanhar a evolução do paciente e calcular o IMC |
 | Mensagem da solicitação de acompanhamento | Pacientes | Apresentar o seu pedido ao nutricionista escolhido |
 | Número e região do CRN, e apresentação profissional | Nutricionistas | Identificar o profissional e permitir que os pacientes o escolham |
 
-**Dados de saúde são dados sensíveis.** A data de nascimento, o sexo biológico, a altura, o objetivo e a rotina, junto com os planos alimentares e os registros de peso quando essa função estiver disponível, são dados pessoais sensíveis (art. 5º, II, da LGPD). Por isso, só são tratados com o seu **consentimento específico** e apenas para o acompanhamento nutricional (art. 11, I).
+**Dados de saúde são dados sensíveis.** A data de nascimento, o sexo biológico, a altura, o objetivo e a rotina, junto com os planos alimentares e os registros de peso, são dados pessoais sensíveis (art. 5º, II, da LGPD). Por isso, só são tratados com o seu **consentimento específico** e apenas para o acompanhamento nutricional (art. 11, I).
 
 ### Dados gerados pelo uso
 
@@ -50,7 +51,7 @@ Você pode retirar o consentimento a qualquer momento (seção 7). Como os dados
 
 ## 4. Quem pode ver os seus dados
 
-- **Nutricionista que acompanha você:** vê o seu nome, a sua **idade** (calculada, e não a data de nascimento), o sexo biológico, a altura, o objetivo, a sua rotina (horários de acordar, dormir e treinar) e a data de início do acompanhamento, além dos planos alimentares que ele mesmo criou. **Ele não vê o seu CPF nem o seu e-mail.** Ele só tem acesso enquanto o acompanhamento estiver ativo, e só aos próprios pacientes.
+- **Nutricionista que acompanha você:** vê o seu nome, a sua **idade** (calculada, e não a data de nascimento), o sexo biológico, a altura, o objetivo, a sua rotina (horários de acordar, dormir e treinar), a data de início do acompanhamento e o seu **histórico de peso** (inclusive os pesos que você registrou), com o peso mais recente e o IMC calculado a partir dele, além dos planos alimentares que ele mesmo criou. Ele também pode registrar o peso medido na consulta. **Ele não vê o seu CPF nem o seu e-mail.** Ele só tem acesso enquanto o acompanhamento estiver ativo, e só aos próprios pacientes.
 - **Nutricionista que recebe a sua solicitação:** vê o seu nome e a mensagem que você escreveu.
 - **Outros usuários conectados:** se você é nutricionista, o seu nome, o seu CRN e a sua apresentação aparecem na lista de nutricionistas para qualquer usuário conectado, para que os pacientes possam escolher. **O seu e-mail e o seu CPF nunca aparecem nessa lista.**
 - **Administradores do NogVita:** têm acesso aos dados cadastrais para gerenciar contas, como cadastrar nutricionistas e ativar ou desativar contas.
@@ -66,7 +67,7 @@ Para funcionar, o NogVita usa serviços de terceiros que tratam dados em nosso n
 | Render | Hospedagem da API | Estados Unidos |
 | Supabase | Banco de dados | Americas |
 | Vercel | Hospedagem do site | Estados Unidos |
-| Brevo | Envio dos e-mails do serviço (recebe o seu nome e e-mail) | União Europeia |
+| Brevo | Envio dos e-mails do serviço (recebe o seu nome e e-mail, e o PDF do plano alimentar quando você pede para recebê-lo por e-mail) | União Europeia |
 
 **Transferência internacional:** como esses serviços ficam fora do Brasil, os seus dados podem ser armazenados e processados no exterior. Essa transferência é feita para a execução do serviço que você contratou e com fornecedores que adotam padrões de segurança e proteção de dados (art. 33 da LGPD).
 
@@ -77,6 +78,7 @@ Para funcionar, o NogVita usa serviços de terceiros que tratam dados em nosso n
 - **Enquanto a sua conta existir,** guardamos os dados necessários para o serviço.
 - **Se a conta for desativada,** os dados continuam guardados, para que ela possa ser reativada. Para apagá-los, peça a exclusão (seção 7).
 - **Histórico de acompanhamentos:** quando um acompanhamento termina, o registro de início e de fim é mantido como histórico.
+- **Registros de peso:** ficam guardados até serem apagados por quem os registrou, ou até a exclusão da conta. Quando um acompanhamento termina, o nutricionista deixa de ver o seu histórico de peso, mas os registros continuam na sua conta.
 - **Tokens de confirmação de e-mail e de convite:** expiram em 24 horas e em 72 horas, respectivamente, e só podem ser usados uma vez.
 
 Ao receber um pedido de exclusão, apagamos ou anonimizamos os seus dados, exceto os que a lei obrigue a manter.

@@ -17,6 +17,7 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
   - [Paciente](#paciente)
   - [Nutricionista](#nutricionista)
   - [Acompanhamento nutricional](#acompanhamento-nutricional)
+  - [Peso e evolução](#peso-e-evolução)
   - [Alimentos](#alimentos)
   - [Plano alimentar](#plano-alimentar)
   - [Convite de nutricionista](#convite-de-nutricionista)
@@ -526,12 +527,18 @@ O perfil do paciente, com os dados que o nutricionista precisa para montar o pla
   "goal": "WeightLoss",
   "wakeUpTime": "06:00:00",
   "bedTime": "22:30:00",
-  "trainingTime": null
+  "trainingTime": null,
+  "latestWeight": {
+    "weightKg": 72.4,
+    "recordedOn": "2026-10-09"
+  },
+  "bodyMassIndex": 26.6
 }
 ```
 
 - Traz a **idade**, e não a data de nascimento, e **não** traz CPF nem e-mail.
 - Os horários da rotina podem vir `null`, quando o paciente ainda não preencheu. Mostre "não informado".
+- `latestWeight` contém o registro mais recente (`weightKg` e `recordedOn`); sem registros, vem `null`. `bodyMassIndex` é calculado com o peso mais recente e a altura, arredondado a uma casa decimal; também vem `null` quando não há peso registrado.
 - `404` → "Paciente não encontrado." (você não acompanha esse paciente, ou o acompanhamento já terminou)
 
 ##### `POST /api/v1/nutritionists/me/patients/{patientId}/end`
@@ -540,6 +547,92 @@ Sem corpo. Use o **`patientId`** (da lista acima), e não o Id da solicitação.
 
 - `204` → encerrado. O paciente recebe um e-mail.
 - `404` → "Acompanhamento não encontrado." (o paciente não está em acompanhamento com você)
+
+### Peso e evolução
+
+#### Registros do paciente 🧑
+
+##### `POST /api/v1/patients/me/weight-records`
+
+Registra o peso do dia ou de uma data recente.
+
+```json
+{
+  "weightKg": 72.4,
+  "recordedOn": "2026-10-15",
+  "notes": "Após a avaliação."
+}
+```
+
+- `recordedOn` é opcional; quando omitido, usa a data de hoje. A data precisa ser de hoje ou de até **365 dias atrás**.
+- `weightKg` precisa estar entre **20 e 400 kg** e é salvo com duas casas decimais.
+- `notes` é opcional e aceita até **300 caracteres**; texto vazio é normalizado para `null`.
+- Há um registro por paciente por dia. Se o paciente já registrou esse dia, o envio atualiza o registro; se o registro do dia foi feito pelo nutricionista, não é sobrescrito.
+- `201` → registro criado: `{ "id": "<id do registro>" }`
+- `200` → registro do próprio paciente atualizado: `{ "id": "<id do registro>" }`
+- `400` → peso, data ou observações inválidos
+- `404` → "Perfil de paciente não encontrado."
+- `409` → "Já existe um peso registrado neste dia pelo seu nutricionista."
+
+##### `GET /api/v1/patients/me/weight-records?from=2026-10-01&to=2026-10-31&page=1&pageSize=20`
+
+Lista o histórico do paciente, do dia mais recente para o mais antigo. `from` e `to` são opcionais, inclusivos e usam o formato `YYYY-MM-DD`; quando ambos são enviados, `to` não pode ser anterior a `from`. `page` começa em `1` e `pageSize` é `20` por padrão (máximo `100`).
+
+```json
+{
+  "items": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "recordedOn": "2026-10-15",
+      "weightKg": 72.4,
+      "notes": "Após a avaliação.",
+      "recordedByPatient": true,
+      "recordedByName": "Maria Silva"
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 1,
+  "totalPages": 1
+}
+```
+
+- `200` → histórico paginado
+- `400` → intervalo de datas ou paginação inválidos
+
+##### `DELETE /api/v1/patients/me/weight-records/{id}`
+
+- `204` → registro excluído (sem corpo)
+- `404` → registro não encontrado ou não criado pelo paciente autenticado
+
+#### Registros do paciente pelo nutricionista 🥗
+
+Todas essas rotas exigem que o nutricionista autenticado tenha acompanhamento ativo com o paciente.
+
+##### `POST /api/v1/nutritionists/me/patients/{patientId}/weight-records`
+
+Usa o mesmo corpo e as mesmas regras de peso, data e observações descritas no registro pelo paciente.
+
+- `201` → registro criado: `{ "id": "<id do registro>" }`
+- `200` → registro do próprio nutricionista atualizado: `{ "id": "<id do registro>" }`
+- `400` → peso, data ou observações inválidos
+- `404` → "Paciente não encontrado." (inclui paciente sem acompanhamento ativo com este nutricionista)
+- `409` → "Já existe um peso registrado neste dia pelo paciente."
+
+##### `GET /api/v1/nutritionists/me/patients/{patientId}/weight-records?from=2026-10-01&to=2026-10-31&page=1&pageSize=20`
+
+Aceita os mesmos filtros de data e paginação do histórico do paciente e devolve o mesmo formato paginado.
+
+- `200` → histórico paginado
+- `400` → intervalo de datas ou paginação inválidos
+- `404` → "Paciente não encontrado." (inclui paciente sem acompanhamento ativo com este nutricionista)
+
+##### `DELETE /api/v1/nutritionists/me/weight-records/{id}`
+
+A rota recebe o ID do registro, sem `patientId`.
+
+- `204` → registro excluído (sem corpo)
+- `404` → registro não encontrado, criado por outra pessoa ou paciente sem acompanhamento ativo com este nutricionista
 
 ### Alimentos
 
