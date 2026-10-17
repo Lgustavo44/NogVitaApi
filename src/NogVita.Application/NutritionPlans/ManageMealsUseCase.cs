@@ -4,7 +4,7 @@ using NogVita.Domain.NutritionPlans;
 
 namespace NogVita.Application.NutritionPlans;
 
-// SuggestedTime é opcional, no formato "HH:mm". Qualquer horário é aceito: o front avisa quando ele cai fora da rotina do paciente.
+// SuggestedTime é opcional, no formato "HH:mm". Qualquer horário é aceito: fora da rotina do paciente, o detalhe do plano avisa (OutsideRoutine), sem bloquear.
 public sealed record MealRequest(string Name, string? Notes, TimeOnly? SuggestedTime = null);
 
 public sealed class MealRequestValidator : AbstractValidator<MealRequest>

@@ -133,8 +133,22 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
 
         var foodsByMeal = foods.ToLookup(f => f.MealId, f => f.Item);
 
+        // A rotina atual do paciente: se ela mudar, o aviso das refeições acompanha, sem editar o plano.
+        var routine = await context.PatientProfiles
+            .AsNoTracking()
+            .Where(p => p.UserId == plan.PatientId)
+            .Select(p => new { p.WakeUpTime, p.BedTime })
+            .FirstOrDefaultAsync(cancellationToken);
+
         var mealResponses = meals
-            .Select(m => new MealResponse(m.Id, m.Name, m.Notes, m.Order, m.SuggestedTime, foodsByMeal[m.Id].ToList()))
+            .Select(m => new MealResponse(
+                m.Id,
+                m.Name,
+                m.Notes,
+                m.Order,
+                m.SuggestedTime,
+                foodsByMeal[m.Id].ToList(),
+                AwakeWindow.IsOutside(m.SuggestedTime, routine?.WakeUpTime, routine?.BedTime)))
             .ToList();
 
         return new NutritionPlanDetailResponse(plan, mealResponses);

@@ -1194,3 +1194,62 @@ Authorization: Bearer {{tokenNutri1}}
 ### N.2 Paciente vê o plano atual → o café com o feijão (80 g)
 GET {{host}}/api/v1/patients/me/nutrition-plans/current
 Authorization: Bearer {{tokenPaciente}}
+
+### ===================== Fase 19: Cálculo nutricional =====================
+### Rode os logins da Fase 13, e os blocos 0.1 a 0.3 da Fase 18 (o plano, as refeições, o arroz e o feijão).
+
+### A. Definir a meta → 204
+PUT {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/target
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "energyKcal": 2000,
+  "proteinGrams": 150,
+  "carbohydrateGrams": 250,
+  "fatGrams": 70
+}
+
+### B. Arroz no pré-treino, 67 g → 201
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{preTreinoId}}/foods
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "foodId": "{{arrozId}}",
+  "quantityInGrams": 67
+}
+
+### C. O detalhe com as porções, os totais e a meta
+GET {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}
+Authorization: Bearer {{tokenNutri1}}
+
+### D. Meta com 0 kcal → 400
+PUT {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/target
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "energyKcal": 0
+}
+
+### E.1 Remover a meta → 204
+DELETE {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/target
+Authorization: Bearer {{tokenNutri1}}
+
+### E.2 Detalhe → "target": null, e os totais continuam lá
+GET {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}
+Authorization: Bearer {{tokenNutri1}}
+
+### F.1 Definir a meta de novo, só com as calorias → 204
+PUT {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/target
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "energyKcal": 1800
+}
+
+### F.2 Paciente vê o plano atual → com os totais e a comparação (só das calorias)
+GET {{host}}/api/v1/patients/me/nutrition-plans/current
+Authorization: Bearer {{tokenPaciente}}
