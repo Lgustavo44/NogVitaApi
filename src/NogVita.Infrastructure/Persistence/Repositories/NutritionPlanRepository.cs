@@ -9,6 +9,7 @@ internal sealed class NutritionPlanRepository(NogVitaDbContext context) : INutri
     public Task<NutritionPlan?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         context.NutritionPlans
             .Include(p => p.Meals)
+                .ThenInclude(m => m.Foods)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     public Task<NutritionPlan?> GetActiveForPatientAsync(Guid patientId, CancellationToken cancellationToken = default) =>
@@ -23,4 +24,6 @@ internal sealed class NutritionPlanRepository(NogVitaDbContext context) : INutri
         
 
     public void Add(NutritionPlan plan) => context.NutritionPlans.Add(plan);
+
+
 }

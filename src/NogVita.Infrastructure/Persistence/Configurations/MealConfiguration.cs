@@ -27,5 +27,14 @@ public class MealConfiguration : IEntityTypeConfiguration<Meal>
 
         builder.HasIndex(m => m.NutritionPlanId, "ix_meal_nutrition_plan_id")
             .HasDatabaseName("ix_meal_nutrition_plan_id");
+
+        builder.HasMany(m => m.Foods)
+            .WithOne()
+            .HasForeignKey(mf => mf.MealId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(m => m.Foods)
+            .HasField("_foods")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }
