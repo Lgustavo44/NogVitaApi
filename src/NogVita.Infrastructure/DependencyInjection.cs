@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Admin;
@@ -7,6 +7,7 @@ using NogVita.Application.FollowUps;
 using NogVita.Application.Foods;
 using NogVita.Application.Nutritionists;
 using NogVita.Application.NutritionPlans;
+using NogVita.Application.WeightRecords;
 using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Foods.OpenFoodFacts;
 using NogVita.Infrastructure.Pdf;
@@ -49,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
         services.AddSingleton<INutritionPlanPdfRenderer, QuestPdfNutritionPlanRenderer>();
         services.AddScoped<IWeightRecordRepository, WeightRecordRepository>();
+        services.AddScoped<IWeightRecordQueries, WeightRecordQueries>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(emailSettings);
 
