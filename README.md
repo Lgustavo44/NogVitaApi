@@ -38,12 +38,12 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Acompanhamento nutricional:** o paciente solicita, o nutricionista aceita ou recusa, e qualquer um dos dois pode encerrar, com aviso por e-mail à outra parte
 - **Base de alimentos:** 597 alimentos da TACO, importados na inicialização, e produtos industrializados do [Open Food Facts](https://world.openfoodfacts.org), importados pelo código de barras; busca sem diferenciar acentos
 - **Gestão de alimentos pelo administrador:** ativação e desativação
-- **Plano alimentar:** o nutricionista cria, ativa e finaliza planos para os pacientes que acompanha, com até 10 refeições ordenadas; o paciente vê o plano atual e o histórico
+- **Plano alimentar:** o nutricionista cria, ativa e finaliza planos para os pacientes que acompanha, com até 10 refeições ordenadas e até 20 alimentos por refeição; o paciente vê o plano atual e o histórico
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Em desenvolvimento
 
-- Alimentos das refeições, com cálculo nutricional
+- Cálculo nutricional das refeições e do plano (totais a partir das quantidades e dos valores por 100 g)
 - Registro de peso
 
 ## Endpoints
@@ -93,6 +93,9 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}` | Atualiza uma refeição |
 | `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}` | Remove uma refeição (renumera as demais) |
 | `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/order` | Reordena as refeições |
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods` | Adiciona um alimento à refeição |
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}` | Altera a quantidade de um alimento da refeição |
+| `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}` | Remove um alimento da refeição |
 | `GET` | `/api/v1/patients/me/nutrition-plans` | Planos do paciente (paginado, filtro por status) |
 | `GET` | `/api/v1/patients/me/nutrition-plans/current` | Plano ativo do paciente |
 | `GET` | `/api/v1/patients/me/nutrition-plans/{id}` | Detalhes de um plano do paciente |
@@ -301,6 +304,30 @@ Detalhes:
 - **Formato do detalhe:** as rotas de detalhe do plano devolvem `{ "plan": { ... }, "meals": [ ... ] }`, com as refeições já em ordem.
 - **Horário sugerido:** cada refeição pode ter um horário sugerido (`suggestedTime`), opcional. Ele não define a ordem, que continua manual: o jantar de quem trabalha à noite pode ser às 3h e ainda assim vir depois do almoço. A API aceita qualquer horário e **não bloqueia** nenhum.
 - **Aviso de horário fora da rotina:** no detalhe do plano, cada refeição traz `outsideRoutine`, calculado pela API com a rotina **atual** do paciente. Ele é `true` quando a refeição cai enquanto o paciente dorme (uma ceia às 23:30 para quem dorme às 22:30), e `null` quando o paciente não informou a rotina ou a refeição não tem horário. A regra fica no domínio (`AwakeWindow`) e cobre a janela que atravessa a meia-noite: para quem acorda às 14h e dorme às 6h, um jantar às 3h **não** gera aviso. Os horários de acordar e de dormir contam como acordado. Como o cálculo é feito na leitura, se o paciente mudar a rotina, os avisos acompanham sem ninguém editar o plano.
+
+#### Alimentos da refeição
+
+Cada refeição recebe alimentos da base (TACO ou Open Food Facts) com a quantidade em gramas (ou ml, para bebidas), maior que 0 e até 2.000 g. Ao adicionar um alimento, o plano guarda uma cópia (snapshot) do nome, da marca, da fonte, da referência na fonte e dos valores por 100 g daquele momento: planos antigos não mudam quando a base de alimentos é atualizada ou um alimento é desativado. Alimentos inativos não podem ser adicionados, e o mesmo alimento não se repete na mesma refeição (até 20 alimentos por refeição).
+
+| Método | Rota | Acesso |
+|---|---|---|
+| `POST` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods` | Nutricionista |
+| `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}` | Nutricionista |
+| `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}` | Nutricionista |
+
+Detalhes:
+
+- **Por que o snapshot:** um plano é um registro do que foi prescrito. Se o Open Food Facts corrigir os valores de um produto, ou o administrador desativar um alimento, o plano de três meses atrás continua mostrando exatamente o que o paciente recebeu. A cópia guarda também a data em que foi tirada (`snapshotTakenAtUtc`).
+- **Mesma precisão do original:** os nutrientes do snapshot usam o mesmo mapeamento da `tb_food` (`NutrientsMapping`, `numeric(9,4)`), configurado num lugar só, para as duas tabelas nunca divergirem.
+- **Item, e não alimento:** cada alimento adicionado vira um item da refeição (`mealFoodId`). Alterar a quantidade e remover usam o Id do **item**, e não o do alimento.
+- **Regras garantidas em duas camadas:** o caso de uso responde com uma mensagem clara, e o domínio (`Meal.AddFood`) recusa do mesmo jeito se alguém chamar direto. O índice único `ux_meal_food_meal_food` garante no banco que o mesmo alimento não se repete na refeição.
+- **Respostas:** adicionar responde `201` com o Id do item, e as outras ações respondem `204`.
+  - Alimento inexistente ou inativo → `404` ("Alimento não encontrado ou indisponível.").
+  - Alimento repetido → `409` ("Este alimento já está na refeição. Altere a quantidade dele.").
+  - Limite de 20 → `409`.
+  - Plano finalizado ou cancelado → `409`.
+  - Plano, refeição ou item que não existem, ou que não são do nutricionista → `404`.
+- **No detalhe do plano,** cada refeição traz `foods`, na ordem em que foram adicionados, com a quantidade, os dados do snapshot e o texto de atribuição da fonte (`attribution`).
 
 ## Ambiente de staging
 
