@@ -40,6 +40,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Gestão de alimentos pelo administrador:** ativação e desativação
 - **Plano alimentar:** o nutricionista cria, ativa e finaliza planos para os pacientes que acompanha, com até 10 refeições ordenadas e até 20 alimentos por refeição; o paciente vê o plano atual e o histórico
 - **Cálculo nutricional:** porção de cada alimento, totais por refeição e do dia, e comparação com a meta diária de calorias e macronutrientes
+- **Exportação em PDF:** o plano completo, para baixar ou receber por e-mail, no visual da marca
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Em desenvolvimento
@@ -98,6 +99,9 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}` | Remove um alimento da refeição |
 | `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{id}/target` | Define a meta diária de calorias e macronutrientes |
 | `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{id}/target` | Remove a meta do plano |
+| `GET` | `/api/v1/nutritionists/me/nutrition-plans/{id}/pdf` | Baixa o PDF de um plano |
+| `GET` | `/api/v1/patients/me/nutrition-plans/{id}/pdf` | Paciente baixa o PDF de um plano |
+| `POST` | `/api/v1/patients/me/nutrition-plans/{id}/pdf/email` | Paciente recebe o PDF no próprio e-mail |
 | `GET` | `/api/v1/patients/me/nutrition-plans` | Planos do paciente (paginado, filtro por status) |
 | `GET` | `/api/v1/patients/me/nutrition-plans/current` | Plano ativo do paciente |
 | `GET` | `/api/v1/patients/me/nutrition-plans/{id}` | Detalhes de um plano do paciente |
@@ -331,31 +335,50 @@ Detalhes:
   - Plano, refeição ou item que não existem, ou que não são do nutricionista → `404`.
 - **No detalhe do plano,** cada refeição traz `foods`, na ordem em que foram adicionados, com a quantidade, os dados do snapshot e o texto de atribuição da fonte (`attribution`).
 
-#### Cálculo nutricional e meta
+#### Cálculo nutricional
 
-O detalhe do plano calcula os nutrientes em três níveis, a partir das quantidades e dos valores por 100 g guardados no snapshot:
+O sistema calcula os nutrientes de cada alimento na quantidade escolhida (`valor por 100 g × gramas ÷ 100`), o total de cada refeição e o total do dia: calorias, proteínas, carboidratos, gorduras, fibras e sódio. Os totais são sempre recalculados a partir dos alimentos e das quantidades, e nunca armazenados. As contas usam a precisão completa, e só a resposta é arredondada (uma casa decimal). Quando um alimento não informa um nutriente, o total daquele nutriente é marcado como incompleto (`isComplete: false`), em vez de tratar a informação ausente como zero.
 
-| Nível | Campo | Como é calculado |
-|---|---|---|
-| Alimento | `foods[].portion` | Valor por 100 g × quantidade ÷ 100 |
-| Refeição | `meals[].totals` | Soma das porções dos alimentos da refeição |
-| Dia | `dailyTotals` | Soma dos totais das refeições |
-
-O nutricionista pode definir uma **meta diária** para o plano: as calorias são obrigatórias, e a proteína, o carboidrato e a gordura são opcionais. Com uma meta, o detalhe traz `target`, com a meta, o planejado e a diferença de cada nutriente.
+O nutricionista pode definir uma meta diária (calorias e, opcionalmente, proteínas, carboidratos e gorduras), e o detalhe do plano mostra o total planejado comparado com a meta.
 
 | Método | Rota | Acesso |
 |---|---|---|
 | `PUT` | `/api/v1/nutritionists/me/nutrition-plans/{id}/target` | Nutricionista |
 | `DELETE` | `/api/v1/nutritionists/me/nutrition-plans/{id}/target` | Nutricionista |
 
+Onde cada valor aparece no detalhe do plano:
+
+| Nível | Campo |
+|---|---|
+| Alimento | `meals[].foods[].portion` |
+| Refeição | `meals[].totals` |
+| Dia | `dailyTotals` |
+| Meta | `target` (meta, planejado e diferença de cada nutriente; ausente se o plano não tem meta) |
+
 Detalhes:
 
-- **Valor desconhecido não vira zero:** quando um alimento não tem a informação de um nutriente (por exemplo, a fibra de um produto do Open Food Facts), a porção dele vem `null`. Nos totais, a soma considera só os valores conhecidos, e o campo `isComplete` vem `false` para avisar que o total real pode ser maior. O front deve mostrar algo como "pelo menos 25 g de fibra".
-- **Arredondamento só na resposta:** os cálculos usam a precisão completa, e os valores são arredondados para **uma casa decimal** só na hora de montar a resposta, com o meio arredondado para longe do zero (0,25 vira 0,3). Assim, somar porções arredondadas não acumula erro nos totais.
-- **Diferença em relação à meta:** `difference = planejado − meta`. Negativo significa abaixo da meta, e positivo, acima. Um macronutriente sem meta vem `null` em `target`, e um plano sem meta não traz `target`.
+- **Total incompleto:** a soma considera só os valores conhecidos, então o total real pode ser maior. O front deve mostrar algo como "pelo menos 25 g de fibra" (o PDF usa `≥ 25,0`).
+- **Arredondamento:** uma casa decimal, com o meio arredondado para longe do zero (0,25 vira 0,3). Como só a resposta é arredondada, somar porções não acumula erro nos totais.
+- **Diferença em relação à meta:** `difference = planejado − meta`. Negativo significa abaixo da meta, e positivo, acima. Um macronutriente sem meta vem `null` em `target`.
 - **Limites da meta:** calorias maiores que 0 e até 10.000 kcal; cada macronutriente de 0 a 1.000 g. A meta só pode ser definida ou removida em planos em rascunho ou ativos (`409` nos outros).
-- **Cálculo na leitura:** nada disso é guardado no banco. Os totais são calculados a cada consulta, a partir das quantidades e do snapshot, então nunca ficam desatualizados em relação aos alimentos do plano.
 - **Onde fica cada regra:** a conta da porção (`NutritionCalculator`), a soma com `isComplete` (`NutrientTotals`) e os limites da meta (`PlanTarget`) ficam no domínio, testados sem banco. A Application só arredonda e monta as respostas.
+
+#### Exportar o plano
+
+O plano pode ser exportado em PDF, com as refeições, as porções, os totais, a meta e a citação das fontes dos dados. O paciente pode baixar o PDF ou recebê-lo por e-mail, sempre no endereço da própria conta (até 3 envios por hora). O nutricionista pode baixar o PDF dos planos dos pacientes que acompanha.
+
+| Método | Rota | Acesso |
+|---|---|---|
+| `GET` | `/api/v1/patients/me/nutrition-plans/{id}/pdf` | Paciente |
+| `POST` | `/api/v1/patients/me/nutrition-plans/{id}/pdf/email` | Paciente |
+| `GET` | `/api/v1/nutritionists/me/nutrition-plans/{id}/pdf` | Nutricionista |
+
+Detalhes:
+
+- **Mesmo acesso do detalhe:** o PDF segue as mesmas regras das rotas de detalhe. O paciente só exporta planos ativos ou finalizados, e o nutricionista só os que criou, enquanto o acompanhamento estiver ativo. Fora disso, a resposta é `404`.
+- **E-mail sempre para o dono da conta:** a rota não recebe endereço. O PDF vai para o e-mail cadastrado do paciente, então ninguém usa a API para mandar o plano de outra pessoa para fora. O limite de 3 envios por hora é **por usuário** (`429` acima disso). Se o envio falhar, a resposta é `503`, sugerindo baixar o PDF.
+- **O PDF segue a identidade visual dos e-mails:** a faixa laranja, a logo e os blocos de destaque cor de polpa. O arquivo se chama `nogvita-plano-AAAA-MM-DD.pdf`, com a data de início do plano.
+- **Gerado na hora:** o PDF é montado a cada pedido (QuestPDF), a partir do mesmo detalhe que a API devolve, e não é guardado. A fonte Roboto vai embutida na DLL, para o PDF sair igual em qualquer servidor, inclusive no contêiner Linux do staging.
 
 ## Ambiente de staging
 
@@ -386,7 +409,7 @@ O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.
 
 ## Stack
 
-**Em uso:** C# · .NET 10 · ASP.NET Core Web API · Entity Framework Core · PostgreSQL · JWT · FluentValidation · xUnit · Docker (banco de dados) · OpenAPI / Swagger UI · TACO (tabela brasileira de composição de alimentos) · Open Food Facts (API pública de alimentos) · Brevo (e-mail em staging)
+**Em uso:** C# · .NET 10 · ASP.NET Core Web API · Entity Framework Core · PostgreSQL · JWT · FluentValidation · xUnit · Docker (banco de dados) · OpenAPI / Swagger UI · TACO (tabela brasileira de composição de alimentos) · Open Food Facts (API pública de alimentos) · Brevo (e-mail em staging) · QuestPDF (PDF)
 
 **Planejado:** Docker Compose (API + banco) · testes de integração
 
@@ -445,6 +468,14 @@ Pontos em aberto, para o sistema cumprir o que os documentos prometem:
 
 - **Consentimento para dados de saúde:** data de nascimento, sexo biológico, altura e objetivo são dados sensíveis (art. 11 da LGPD), que exigem consentimento específico e destacado. O cadastro de paciente precisa de um *checkbox* desmarcado para isso, e não só da frase "Ao prosseguir, você concorda...".
 - **Exclusão de conta:** ainda não há endpoint para isso. Por enquanto, a exclusão é feita por pedido no e-mail de contato.
+
+## Licenças de terceiros
+
+- **Dados:** TACO 4ª edição (NEPA/UNICAMP), reprodução permitida com citação da fonte · Open Food Facts, sob a Open Database License (ODbL).
+- **QuestPDF:** usado sob a QuestPDF Community License, gratuita para fins de aprendizado e para pessoas e empresas com faturamento anual abaixo de US$ 1 milhão. Não é uma licença open source: o uso comercial por empresas maiores, órgãos públicos ou empresas de capital aberto exige uma licença paga.
+- **Fonte Roboto:** SIL Open Font License 1.1 (o arquivo [`OFL.txt`](src/NogVita.Infrastructure/Pdf/Fonts/OFL.txt) acompanha as fontes).
+
+As citações dos dados aparecem para o usuário no campo `attribution` das respostas de alimentos e no rodapé do PDF. A origem e a conferência do CSV da TACO estão em [`SOURCE.md`](src/NogVita.Infrastructure/Persistence/Seed/Data/SOURCE.md).
 
 ## Identidade visual
 
