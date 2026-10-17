@@ -7,6 +7,7 @@ using NogVita.Application.Foods;
 using NogVita.Application.Nutritionists;
 using NogVita.Application.NutritionPlans;
 using NogVita.Application.Patients;
+using NogVita.Application.WeightRecords;
 
 namespace NogVita.Application;
 
@@ -72,6 +73,11 @@ public static class DependencyInjection
         services.AddScoped<ManageMealsUseCase>();
         services.AddScoped<ManageMealFoodsUseCase>();
         services.AddScoped<PlanPdfUseCase>();
+
+        // Registro de peso (WeightRecords)
+        services.AddScoped<RecordWeightUseCase>();
+        services.AddScoped<DeleteWeightRecordUseCase>();
+        services.AddScoped<NutritionistWeightQueriesUseCase>();
 
         return services;
     }
