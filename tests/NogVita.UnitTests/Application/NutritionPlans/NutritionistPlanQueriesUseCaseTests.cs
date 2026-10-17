@@ -55,7 +55,9 @@ public class NutritionistPlanQueriesUseCaseTests
 
     private NutritionPlanResponse CreateResponse() =>
         new(Guid.NewGuid(), _patientId, "Paciente", _nutritionist.Id, "Nutri", "Plano", null,
-            new DateOnly(2026, 10, 1), null, NutritionPlanStatus.Active, DateTime.UtcNow);
+            new DateOnly(2026, 10, 1), null, NutritionPlanStatus.Active,
+            TargetEnergyKcal: null, TargetProteinGrams: null, TargetCarbohydrateGrams: null, TargetFatGrams: null,
+            CreatedAt: DateTime.UtcNow);
 
     private sealed class StubPlanQueries : INutritionPlanQueries
     {

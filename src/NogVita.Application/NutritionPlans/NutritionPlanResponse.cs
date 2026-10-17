@@ -15,7 +15,11 @@ public sealed record NutritionPlanResponse(
     DateOnly StartDate,
     DateOnly? EndDate,
     NutritionPlanStatus Status,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    decimal? TargetEnergyKcal,
+    decimal? TargetProteinGrams,
+    decimal? TargetCarbohydrateGrams,
+    decimal? TargetFatGrams);
 
 public sealed record NutritionPlanListRequest : PageRequest
 {

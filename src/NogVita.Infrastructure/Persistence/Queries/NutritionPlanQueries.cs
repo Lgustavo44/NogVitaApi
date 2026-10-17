@@ -79,7 +79,11 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             p.StartDate,
             p.EndDate,
             p.Status,
-            p.CreatedAt);
+            p.CreatedAt,
+            p.TargetEnergyKcal,
+            p.TargetProteinGrams,
+            p.TargetCarbohydrateGrams,
+            p.TargetFatGrams);
 
     // Duas consultas: o plano (com os nomes do paciente e do nutricionista) e, se ele existir, as refeições em ordem.
     private async Task<NutritionPlanDetailResponse?> WithMealsAsync(
