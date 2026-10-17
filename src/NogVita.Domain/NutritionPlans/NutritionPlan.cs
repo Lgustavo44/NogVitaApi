@@ -15,6 +15,10 @@ public class NutritionPlan : Entity
     public DateOnly StartDate { get; private set; }
     public DateOnly? EndDate { get; private set; }
     public NutritionPlanStatus Status { get; private set; }
+    public decimal? TargetEnergyKcal { get; private set; }
+    public decimal? TargetProteinGrams { get; private set; }
+    public decimal? TargetCarbohydrateGrams { get; private set; }
+    public decimal? TargetFatGrams { get; private set; }
 
     public const int MaxMeals = 10;
 
@@ -200,6 +204,31 @@ public class NutritionPlan : Entity
     {
         EnsureEditable();
         GetMeal(mealId).RemoveFood(mealFoodId);
+    }
+
+    public PlanTarget? Target => TargetEnergyKcal is null
+    ? null
+    : new PlanTarget(TargetEnergyKcal.Value, TargetProteinGrams, TargetCarbohydrateGrams, TargetFatGrams);
+
+    public void SetTarget(PlanTarget target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        EnsureEditable();
+
+        TargetEnergyKcal = target.EnergyKcal;
+        TargetProteinGrams = target.ProteinGrams;
+        TargetCarbohydrateGrams = target.CarbohydrateGrams;
+        TargetFatGrams = target.FatGrams;
+    }
+
+    public void ClearTarget()
+    {
+        EnsureEditable();
+
+        TargetEnergyKcal = null;
+        TargetProteinGrams = null;
+        TargetCarbohydrateGrams = null;
+        TargetFatGrams = null;
     }
 
     // Todas as refeições do plano, cada uma uma vez: sem faltar, sem repetir e sem Id de fora.
