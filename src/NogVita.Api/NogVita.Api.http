@@ -1253,3 +1253,109 @@ Content-Type: application/json
 ### F.2 Paciente vê o plano atual → com os totais e a comparação (só das calorias)
 GET {{host}}/api/v1/patients/me/nutrition-plans/current
 Authorization: Bearer {{tokenPaciente}}
+
+
+### ===================== Fase 20: Registro de peso =====================
+### Rode os logins da Fase 13 antes. O vínculo Paciente ↔ Nutri 1 precisa estar ativo.
+
+@pacientePesoId = {{caixaRefeicoes.response.body.$.items[0].patientId}}
+
+### A. Paciente registra o peso de hoje → 201
+# @name pesoHoje
+POST {{host}}/api/v1/patients/me/weight-records
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "weightKg": 80.4,
+  "notes": "Em jejum."
+}
+
+### B. Paciente registra de novo hoje → 200 (substitui o próprio)
+POST {{host}}/api/v1/patients/me/weight-records
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "weightKg": 80.1,
+  "notes": "Corrigido."
+}
+
+### C. Paciente registra um peso de 7 dias atrás → 201  (troque a data)
+POST {{host}}/api/v1/patients/me/weight-records
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "weightKg": 81.3,
+  "recordedOn": "2026-10-10"
+}
+
+### D. Data no futuro → 400  (troque para amanhã)
+POST {{host}}/api/v1/patients/me/weight-records
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "weightKg": 80,
+  "recordedOn": "2026-12-31"
+}
+
+### E. Peso impossível → 400
+POST {{host}}/api/v1/patients/me/weight-records
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "weightKg": 800
+}
+
+### F. Nutri 1 registra o peso da consulta, de 3 dias atrás → 201  (troque a data)
+# @name pesoConsulta
+POST {{host}}/api/v1/nutritionists/me/patients/{{pacientePesoId}}/weight-records
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "weightKg": 80.9,
+  "recordedOn": "2026-10-14",
+  "notes": "Balança do consultório."
+}
+
+### G. Paciente tenta registrar no dia da consulta → 409 (D155)
+POST {{host}}/api/v1/patients/me/weight-records
+Authorization: Bearer {{tokenPaciente}}
+Content-Type: application/json
+
+{
+  "weightKg": 79,
+  "recordedOn": "2026-10-14"
+}
+
+### H. Paciente vê o histórico → 3 registros, o mais recente primeiro
+GET {{host}}/api/v1/patients/me/weight-records
+Authorization: Bearer {{tokenPaciente}}
+
+### I. Paciente tenta apagar o registro da consulta → 404 (D158)
+DELETE {{host}}/api/v1/patients/me/weight-records/{{pesoConsulta.response.body.$.id}}
+Authorization: Bearer {{tokenPaciente}}
+
+### J. Nutri 1 vê o histórico do paciente → os 3 registros
+GET {{host}}/api/v1/nutritionists/me/patients/{{pacientePesoId}}/weight-records
+Authorization: Bearer {{tokenNutri1}}
+
+### K. Nutri 2 tenta ver o histórico → 404
+GET {{host}}/api/v1/nutritionists/me/patients/{{pacientePesoId}}/weight-records
+Authorization: Bearer {{tokenNutri2}}
+
+### L. Nutri 1 vê o detalhe do paciente → com o "latestWeight" (80.1, de hoje) e o "bodyMassIndex"
+GET {{host}}/api/v1/nutritionists/me/patients/{{pacientePesoId}}
+Authorization: Bearer {{tokenNutri1}}
+
+### M. Paciente apaga o próprio registro de hoje → 204
+DELETE {{host}}/api/v1/patients/me/weight-records/{{pesoHoje.response.body.$.id}}
+Authorization: Bearer {{tokenPaciente}}
+
+### N. Detalhe de novo → o "latestWeight" agora é o de 2026-10-14 (80.9, da consulta)
+GET {{host}}/api/v1/nutritionists/me/patients/{{pacientePesoId}}
+Authorization: Bearer {{tokenNutri1}}
