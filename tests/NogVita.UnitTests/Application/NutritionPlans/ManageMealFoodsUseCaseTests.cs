@@ -1,0 +1,143 @@
+using NogVita.Application.FollowUps;
+using NogVita.Application.NutritionPlans;
+using NogVita.Domain.Foods;
+using NogVita.Domain.FollowUps;
+using NogVita.Domain.NutritionPlans;
+using NogVita.Domain.Users;
+using NogVita.UnitTests.Fakes;
+
+namespace NogVita.UnitTests.Application.NutritionPlans;
+
+public class ManageMealFoodsUseCaseTests
+{
+    private readonly FakeUserRepository _userRepository = new();
+    private readonly FakeCareRelationshipRepository _relationshipRepository = new();
+    private readonly FakeNutritionPlanRepository _planRepository = new();
+    private readonly FakeFoodRepository _foodRepository = new();
+    private readonly FakeUnitOfWork _unitOfWork = new();
+    private readonly User _nutritionist;
+    private readonly NutritionPlan _plan;
+    private readonly Meal _meal;
+    private readonly Food _rice;
+
+    public ManageMealFoodsUseCaseTests()
+    {
+        _nutritionist = new User("Nutri Teste", "nutri@email.com", Cpf.Create("12345678909"));
+        _nutritionist.SetPasswordHash("hash");
+        _nutritionist.ConfirmEmail(DateTime.UtcNow);
+        _nutritionist.CreateNutritionistProfile(1, "123456");
+        _nutritionist.NutritionistProfile!.Activate();
+        _userRepository.Add(_nutritionist);
+
+        var patientId = Guid.NewGuid();
+        _relationshipRepository.Add(new NutritionistRequest(patientId, _nutritionist.Id, null).Accept(DateTime.UtcNow));
+
+        _plan = new NutritionPlan(patientId, _nutritionist.Id, "Plano", null, new DateOnly(2026, 10, 1), null);
+        _meal = _plan.AddMeal("Almoço", null);
+        _planRepository.Add(_plan);
+
+        _rice = Food.FromTaco(3, "Arroz, tipo 1, cozido", null, new NutrientsPer100g(128.26m, 2.52m, 28.06m, 0.23m, 1.56m, 1.22m));
+        _foodRepository.Add(_rice);
+    }
+
+    private ManageMealFoodsUseCase CreateUseCase() =>
+        new(
+            new NutritionistPlanAccess(new CareAccessService(_userRepository, _relationshipRepository), _planRepository),
+            _foodRepository,
+            _unitOfWork,
+            TimeProvider.System);
+
+    [Fact]
+    public async Task Should_Add_Active_Food()
+    {
+        var result = await CreateUseCase().AddAsync(
+            _nutritionist.Id, _plan.Id, _meal.Id, new AddMealFoodRequest(_rice.Id, 150m), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.Done, result.Result);
+        var item = Assert.Single(_meal.Foods);
+        Assert.Equal(item.Id, result.MealFoodId);
+        Assert.NotEqual(_rice.Id, result.MealFoodId);
+        Assert.Equal(1, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Reject_Inactive_Food()
+    {
+        _rice.Deactivate();
+
+        var result = await CreateUseCase().AddAsync(
+            _nutritionist.Id, _plan.Id, _meal.Id, new AddMealFoodRequest(_rice.Id, 150m), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.FoodNotFound, result.Result);
+        Assert.Empty(_meal.Foods);
+    }
+
+    [Fact]
+    public async Task Should_Reject_Same_Food_Twice()
+    {
+        var useCase = CreateUseCase();
+        await useCase.AddAsync(_nutritionist.Id, _plan.Id, _meal.Id, new AddMealFoodRequest(_rice.Id, 150m), TestContext.Current.CancellationToken);
+
+        var second = await useCase.AddAsync(
+            _nutritionist.Id, _plan.Id, _meal.Id, new AddMealFoodRequest(_rice.Id, 50m), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.AlreadyInMeal, second.Result);
+        Assert.Single(_meal.Foods);
+        Assert.Equal(1, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Not_Add_To_Meal_Of_Another_Plan()
+    {
+        var otherPlan = new NutritionPlan(_plan.PatientId, _nutritionist.Id, "Outro", null, new DateOnly(2026, 10, 1), null);
+        var otherMeal = otherPlan.AddMeal("Jantar", null);
+        _planRepository.Add(otherPlan);
+
+        var result = await CreateUseCase().AddAsync(
+            _nutritionist.Id, _plan.Id, otherMeal.Id, new AddMealFoodRequest(_rice.Id, 150m), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.NotFound, result.Result);
+        Assert.Empty(otherMeal.Foods);
+    }
+
+    [Fact]
+    public async Task Should_Update_Quantity_And_Keep_Snapshot()
+    {
+        var item = _plan.AddFoodToMeal(_meal.Id, _rice, 100m, DateTime.UtcNow);
+        var snapshot = item.Snapshot;
+
+        var result = await CreateUseCase().UpdateQuantityAsync(
+            _nutritionist.Id, _plan.Id, _meal.Id, item.Id, new UpdateMealFoodRequest(200m), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.Done, result);
+        Assert.Equal(200m, item.QuantityInGrams);
+        Assert.Same(snapshot, item.Snapshot);
+    }
+
+    [Fact]
+    public async Task Should_Remove_Item()
+    {
+        var item = _plan.AddFoodToMeal(_meal.Id, _rice, 100m, DateTime.UtcNow);
+
+        var result = await CreateUseCase().RemoveAsync(
+            _nutritionist.Id, _plan.Id, _meal.Id, item.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.Done, result);
+        Assert.Empty(_meal.Foods);
+        Assert.Equal(1, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Not_Change_Finished_Plan()
+    {
+        var item = _plan.AddFoodToMeal(_meal.Id, _rice, 100m, DateTime.UtcNow);
+        _plan.Activate();
+        _plan.Finish(new DateOnly(2026, 10, 20));
+
+        var result = await CreateUseCase().RemoveAsync(
+            _nutritionist.Id, _plan.Id, _meal.Id, item.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.InvalidState, result);
+        Assert.Single(_meal.Foods);
+    }
+}

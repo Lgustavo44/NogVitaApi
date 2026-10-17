@@ -83,8 +83,8 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
 
     // Duas consultas: o plano (com os nomes do paciente e do nutricionista) e, se ele existir, as refeições em ordem.
     private async Task<NutritionPlanDetailResponse?> WithMealsAsync(
-        IQueryable<NutritionPlan> plans,
-        CancellationToken cancellationToken)
+      IQueryable<NutritionPlan> plans,
+      CancellationToken cancellationToken)
     {
         var plan = await Project(plans).FirstOrDefaultAsync(cancellationToken);
 
@@ -97,24 +97,40 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             .AsNoTracking()
             .Where(m => m.NutritionPlanId == plan.Id)
             .OrderBy(m => m.Order)
-            .Select(m => new { m.Id, m.Name, m.Notes, m.SuggestedTime, m.Order })
+            .Select(m => new { m.Id, m.Name, m.Notes, m.Order, m.SuggestedTime })
             .ToListAsync(cancellationToken);
 
-        // A rotina atual do paciente: se ela mudar, o aviso das refeições acompanha, sem editar o plano.
-        var routine = await context.PatientProfiles
+        var mealIds = meals.Select(m => m.Id).ToList();
+
+        var foods = await context.Set<MealFood>()
             .AsNoTracking()
-            .Where(p => p.UserId == plan.PatientId)
-            .Select(p => new { p.WakeUpTime, p.BedTime })
-            .FirstOrDefaultAsync(cancellationToken);
+            .Where(f => mealIds.Contains(f.MealId))
+            .OrderBy(f => f.CreatedAt)
+            .Select(f => new
+            {
+                f.MealId,
+                Item = new MealFoodResponse(
+                    f.Id,
+                    f.FoodId,
+                    f.QuantityInGrams,
+                    f.Snapshot.Name,
+                    f.Snapshot.Brand,
+                    f.Snapshot.Source,
+                    f.Snapshot.SourceReference,
+                    f.Snapshot.TakenAtUtc,
+                    f.Snapshot.Nutrients.EnergyKcal,
+                    f.Snapshot.Nutrients.Protein,
+                    f.Snapshot.Nutrients.Carbohydrate,
+                    f.Snapshot.Nutrients.Fat,
+                    f.Snapshot.Nutrients.Fiber,
+                    f.Snapshot.Nutrients.SodiumMg)
+            })
+            .ToListAsync(cancellationToken);
+
+        var foodsByMeal = foods.ToLookup(f => f.MealId, f => f.Item);
 
         var mealResponses = meals
-            .Select(m => new MealResponse(
-                m.Id,
-                m.Name,
-                m.Notes,
-                m.SuggestedTime,
-                m.Order,
-                AwakeWindow.IsOutside(m.SuggestedTime, routine?.WakeUpTime, routine?.BedTime)))
+            .Select(m => new MealResponse(m.Id, m.Name, m.Notes, m.Order, m.SuggestedTime, foodsByMeal[m.Id].ToList()))
             .ToList();
 
         return new NutritionPlanDetailResponse(plan, mealResponses);
