@@ -68,6 +68,7 @@ public static class DependencyInjection
         services.AddScoped<ImportProductUseCase>();
         services.AddScoped<SetFoodActiveUseCase>();
         services.AddScoped<ManageMealsUseCase>();
+        services.AddScoped<ManageMealFoodsUseCase>();
 
 
         return services;
