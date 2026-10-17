@@ -465,6 +465,113 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.ToTable("tb_meal", (string)null);
                 });
 
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.MealFood", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("FoodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("food_id");
+
+                    b.Property<Guid>("MealId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("meal_id");
+
+                    b.Property<decimal>("QuantityInGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("quantity_in_grams");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Snapshot", "NogVita.Domain.NutritionPlans.MealFood.Snapshot#FoodSnapshot", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("Brand")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("snapshot_brand");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("snapshot_name");
+
+                            b1.Property<string>("Source")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("snapshot_source");
+
+                            b1.Property<string>("SourceReference")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("snapshot_source_reference");
+
+                            b1.Property<DateTime>("TakenAtUtc")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("snapshot_taken_at_utc");
+
+                            b1.ComplexProperty(typeof(Dictionary<string, object>), "Nutrients", "NogVita.Domain.NutritionPlans.MealFood.Snapshot#FoodSnapshot.Nutrients#NutrientsPer100g", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<decimal?>("Carbohydrate")
+                                        .HasPrecision(9, 4)
+                                        .HasColumnType("numeric(9,4)")
+                                        .HasColumnName("snapshot_nutrients_carbohydrate");
+
+                                    b2.Property<decimal?>("EnergyKcal")
+                                        .HasPrecision(9, 4)
+                                        .HasColumnType("numeric(9,4)")
+                                        .HasColumnName("snapshot_nutrients_energy_kcal");
+
+                                    b2.Property<decimal?>("Fat")
+                                        .HasPrecision(9, 4)
+                                        .HasColumnType("numeric(9,4)")
+                                        .HasColumnName("snapshot_nutrients_fat");
+
+                                    b2.Property<decimal?>("Fiber")
+                                        .HasPrecision(9, 4)
+                                        .HasColumnType("numeric(9,4)")
+                                        .HasColumnName("snapshot_nutrients_fiber");
+
+                                    b2.Property<decimal?>("Protein")
+                                        .HasPrecision(9, 4)
+                                        .HasColumnType("numeric(9,4)")
+                                        .HasColumnName("snapshot_nutrients_protein");
+
+                                    b2.Property<decimal?>("SodiumMg")
+                                        .HasPrecision(9, 4)
+                                        .HasColumnType("numeric(9,4)")
+                                        .HasColumnName("snapshot_nutrients_sodium_mg");
+                                });
+                        });
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_meal_food");
+
+                    b.HasIndex(new[] { "FoodId" }, "ix_meal_food_food_id")
+                        .HasDatabaseName("ix_meal_food_food_id");
+
+                    b.HasIndex(new[] { "MealId", "FoodId" }, "ux_meal_food_meal_food")
+                        .IsUnique()
+                        .HasDatabaseName("ux_meal_food_meal_food");
+
+                    b.ToTable("tb_meal_food", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.NutritionPlans.NutritionPlan", b =>
                 {
                     b.Property<Guid>("Id")
@@ -786,6 +893,23 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_tb_meal_nutrition_plans_nutrition_plan_id");
                 });
 
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.MealFood", b =>
+                {
+                    b.HasOne("NogVita.Domain.Foods.Food", null)
+                        .WithMany()
+                        .HasForeignKey("FoodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_meal_food_tb_food_food_id");
+
+                    b.HasOne("NogVita.Domain.NutritionPlans.Meal", null)
+                        .WithMany("Foods")
+                        .HasForeignKey("MealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_meal_food_tb_meal_meal_id");
+                });
+
             modelBuilder.Entity("NogVita.Domain.NutritionPlans.NutritionPlan", b =>
                 {
                     b.HasOne("NogVita.Domain.Users.User", null)
@@ -821,6 +945,11 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tb_patient_profile_users_user_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.Meal", b =>
+                {
+                    b.Navigation("Foods");
                 });
 
             modelBuilder.Entity("NogVita.Domain.NutritionPlans.NutritionPlan", b =>

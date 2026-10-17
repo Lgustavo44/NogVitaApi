@@ -41,17 +41,7 @@ public class FoodConfiguration : IEntityTypeConfiguration<Food>
         builder.Property(f => f.IsActive)
             .IsRequired();
 
-        builder.ComplexProperty(f => f.Nutrients, nutrients =>
-        {
-            nutrients.Ignore(n => n.IsComplete);
-
-            nutrients.Property(n => n.EnergyKcal).HasPrecision(9, 4);
-            nutrients.Property(n => n.Protein).HasPrecision(9, 4);
-            nutrients.Property(n => n.Carbohydrate).HasPrecision(9, 4);
-            nutrients.Property(n => n.Fat).HasPrecision(9, 4);
-            nutrients.Property(n => n.Fiber).HasPrecision(9, 4);
-            nutrients.Property(n => n.SodiumMg).HasPrecision(9, 4);
-        });
+        builder.ComplexProperty(f => f.Nutrients, NutrientsMapping.Configure);
 
         builder.HasIndex(f => new { f.Source, f.SourceReference }, "ux_food_source_reference")
             .HasDatabaseName("ux_food_source_reference")
