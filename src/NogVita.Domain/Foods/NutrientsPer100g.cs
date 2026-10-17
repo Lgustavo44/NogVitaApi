@@ -31,6 +31,15 @@ public sealed record NutrientsPer100g
         Fat = Validate(fat, MaxGrams, "gordura");
         Fiber = Validate(fiber, MaxGrams, "fibra");
         SodiumMg = Validate(sodiumMg, MaxSodiumMg, "sódio");
+
+        // D149: 100 g de alimento não contêm mais de 100 g de macronutrientes. Um macro não informado não entra na soma.
+        // A fibra fica fora: alguns rótulos já incluem a fibra no carboidrato, e ela seria contada duas vezes.
+        var macrosTotal = (Protein ?? 0) + (Carbohydrate ?? 0) + (Fat ?? 0);
+
+        if (macrosTotal > MaxGrams)
+        {
+            throw new DomainException("A soma de proteína, carboidrato e gordura não pode passar de 100 g em 100 g de alimento.");
+        }
     }
 
     public bool IsComplete =>

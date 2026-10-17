@@ -20,6 +20,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Email\Assets\logo.png" LogicalName="NogVita.Email.logo.png" />
     <EmbeddedResource Include="Persistence\Seed\Data\taco_composicao.csv" LogicalName="NogVita.Infrastructure.Seed.taco_composicao.csv" />
+    <EmbeddedResource Include="Persistence\Seed\Data\off_brasil.csv" LogicalName="NogVita.Infrastructure.Seed.off_brasil.csv" />
     <EmbeddedResource Include="Pdf\Fonts\Roboto-Regular.ttf" LogicalName="NogVita.Infrastructure.Fonts.Roboto-Regular.ttf" />
     <EmbeddedResource Include="Pdf\Fonts\Roboto-Bold.ttf" LogicalName="NogVita.Infrastructure.Fonts.Roboto-Bold.ttf" />
   </ItemGroup>
