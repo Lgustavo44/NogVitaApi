@@ -13,6 +13,7 @@ namespace NogVita.Api.Controllers;
 public sealed class NutritionistNutritionPlansController(
     CreateNutritionPlanUseCase createPlanUseCase,
     ManageNutritionPlanUseCase managePlanUseCase,
+    PlanPdfUseCase planPdfUseCase,
     NutritionistPlanQueriesUseCase planQueriesUseCase) : ControllerBase
 {
     [HttpPost("nutrition-plans")]
@@ -43,6 +44,15 @@ public sealed class NutritionistNutritionPlansController(
 
         return plan is null ? PlanNotFound() : Ok(plan);
     }
+
+    [HttpGet("nutrition-plans/{id:guid}/pdf")]
+    public async Task<IActionResult> DownloadPdf(Guid id, CancellationToken cancellationToken)
+    {
+        var file = await planPdfUseCase.RenderForNutritionistAsync(User.GetUserId(), id, cancellationToken);
+
+        return file is null ? PlanNotFound() : File(file.Content, "application/pdf", file.FileName);
+    }
+
 
     [HttpPut("nutrition-plans/{id:guid}")]
     public async Task<IActionResult> Update(Guid id, UpdateNutritionPlanRequest request, CancellationToken cancellationToken) =>

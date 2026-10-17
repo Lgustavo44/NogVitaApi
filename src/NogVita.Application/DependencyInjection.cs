@@ -10,66 +10,68 @@ using NogVita.Application.Patients;
 
 namespace NogVita.Application;
 
+// Um bloco por pasta (namespace) da Application. Em cada bloco, primeiro os serviços de apoio, depois os casos de uso.
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services, RefreshTokenSettings refreshTokenSettings)
     {
-        // Configurações e serviços compartilhados
+        // Compartilhados
         services.AddSingleton(refreshTokenSettings);
         services.AddSingleton(TimeProvider.System);
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
-        // Autenticação
+        // Autenticação e senha (Auth)
         services.AddScoped<TokenIssuer>();
+        services.AddScoped<PasswordResetNotificationService>();
         services.AddScoped<LoginUseCase>();
         services.AddScoped<RefreshTokenUseCase>();
         services.AddScoped<LogoutUseCase>();
-        services.AddScoped<PasswordResetNotificationService>();
         services.AddScoped<RequestPasswordResetUseCase>();
         services.AddScoped<ConfirmPasswordResetUseCase>();
 
-        // Pacientes
+        // Pacientes e confirmação de e-mail (Patients)
+        services.AddScoped<EmailConfirmationService>();
         services.AddScoped<RegisterPatientUseCase>();
+        services.AddScoped<ConfirmEmailUseCase>();
+        services.AddScoped<ResendEmailConfirmationUseCase>();
         services.AddScoped<GetMyPatientProfileUseCase>();
         services.AddScoped<UpdateMyPatientProfileUseCase>();
-        services.AddScoped<EmailConfirmationService>();
 
-        // Nutricionistas
+        // Nutricionistas e convites (Nutritionists)
         services.AddScoped<NutritionistInvitationService>();
         services.AddScoped<PreRegisterNutritionistUseCase>();
         services.AddScoped<ResendNutritionistInvitationUseCase>();
-        services.AddScoped<PreRegisterNutritionistUseCase>();
         services.AddScoped<AcceptNutritionistInvitationUseCase>();
-        services.AddScoped<RespondNutritionistRequestUseCase>();
         services.AddScoped<GetMyNutritionistProfileUseCase>();
         services.AddScoped<UpdateMyNutritionistProfileUseCase>();
-        services.AddScoped<CareAccessService>();
-        services.AddScoped<CreateNutritionPlanUseCase>();
-        services.AddScoped<ManageNutritionPlanUseCase>();
-        services.AddScoped<NutritionistPlanQueriesUseCase>();
-        services.AddScoped<NutritionistPlanAccess>();
 
-        // Admin
-        services.AddScoped<DeactivateUserUseCase>();
+        // Administração de contas (Admin)
         services.AddScoped<ActivateUserUseCase>();
-        services.AddScoped<ConfirmEmailUseCase>();
-        services.AddScoped<ResendEmailConfirmationUseCase>();
+        services.AddScoped<DeactivateUserUseCase>();
 
-        // Follow-ups
+        // Acompanhamento nutricional (FollowUps)
+        services.AddScoped<CareAccessService>();
         services.AddScoped<FollowUpNotificationService>();
         services.AddScoped<RequestNutritionistUseCase>();
         services.AddScoped<CancelNutritionistRequestUseCase>();
+        services.AddScoped<RespondNutritionistRequestUseCase>();
         services.AddScoped<GetMyCareRelationshipUseCase>();
         services.AddScoped<GetFollowedPatientUseCase>();
         services.AddScoped<EndCareRelationshipUseCase>();
 
-        // Foods
+        // Base de alimentos (Foods)
         services.AddScoped<LookupProductByBarcodeUseCase>();
         services.AddScoped<ImportProductUseCase>();
         services.AddScoped<SetFoodActiveUseCase>();
+
+        // Planos, refeições e PDF (NutritionPlans)
+        services.AddScoped<NutritionistPlanAccess>();
+        services.AddScoped<CreateNutritionPlanUseCase>();
+        services.AddScoped<ManageNutritionPlanUseCase>();
+        services.AddScoped<NutritionistPlanQueriesUseCase>();
         services.AddScoped<ManageMealsUseCase>();
         services.AddScoped<ManageMealFoodsUseCase>();
-
+        services.AddScoped<PlanPdfUseCase>();
 
         return services;
     }

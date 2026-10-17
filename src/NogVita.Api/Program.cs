@@ -115,6 +115,15 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
+    options.AddPolicy("plan-email", httpContext =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.User.FindFirst("sub")?.Value ?? "anonymous",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 3,
+            Window = TimeSpan.FromHours(1)
+        }));
+
     options.AddPolicy("food-lookup", httpContext =>
     RateLimitPartition.GetFixedWindowLimiter(
         partitionKey: httpContext.User.FindFirst("sub")?.Value
