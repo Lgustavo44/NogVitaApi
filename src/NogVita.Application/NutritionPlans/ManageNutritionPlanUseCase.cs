@@ -138,4 +138,61 @@ public sealed class ManageNutritionPlanUseCase(
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return ManageNutritionPlanResult.Done;
     }
+
+    public sealed record PlanTargetRequest(
+    decimal EnergyKcal,
+    decimal? ProteinGrams,
+    decimal? CarbohydrateGrams,
+    decimal? FatGrams);
+
+    public sealed class PlanTargetRequestValidator : AbstractValidator<PlanTargetRequest>
+    {
+        public PlanTargetRequestValidator()
+        {
+            RuleFor(r => r.EnergyKcal).GreaterThan(0).LessThanOrEqualTo(PlanTarget.MaxEnergyKcal);
+            RuleFor(r => r.ProteinGrams).InclusiveBetween(0, PlanTarget.MaxMacroGrams).When(r => r.ProteinGrams is not null);
+            RuleFor(r => r.CarbohydrateGrams).InclusiveBetween(0, PlanTarget.MaxMacroGrams).When(r => r.CarbohydrateGrams is not null);
+            RuleFor(r => r.FatGrams).InclusiveBetween(0, PlanTarget.MaxMacroGrams).When(r => r.FatGrams is not null);
+        }
+    }
+
+    public async Task<ManageNutritionPlanResult> SetTargetAsync(
+    Guid nutritionistId, Guid planId, PlanTargetRequest request, CancellationToken cancellationToken = default)
+    {
+        var plan = await planAccess.LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
+        if (plan is null)
+        {
+            return ManageNutritionPlanResult.NotFound;
+        }
+
+        if (!plan.IsEditable)
+        {
+            return ManageNutritionPlanResult.InvalidState;
+        }
+
+        plan.SetTarget(new PlanTarget(request.EnergyKcal, request.ProteinGrams, request.CarbohydrateGrams, request.FatGrams));
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return ManageNutritionPlanResult.Done;
+    }
+
+    public async Task<ManageNutritionPlanResult> ClearTargetAsync(
+        Guid nutritionistId, Guid planId, CancellationToken cancellationToken = default)
+    {
+        var plan = await planAccess.LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
+
+        if (plan is null)
+        {
+            return ManageNutritionPlanResult.NotFound;
+        }
+
+        if (!plan.IsEditable)
+        {
+            return ManageNutritionPlanResult.InvalidState;
+        }
+
+        plan.ClearTarget();
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return ManageNutritionPlanResult.Done;
+    }
 }

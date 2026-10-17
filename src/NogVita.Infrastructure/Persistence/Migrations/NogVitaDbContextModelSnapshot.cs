@@ -615,6 +615,26 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("status");
 
+                    b.Property<decimal?>("TargetCarbohydrateGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("target_carbohydrate_grams");
+
+                    b.Property<decimal?>("TargetEnergyKcal")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("target_energy_kcal");
+
+                    b.Property<decimal?>("TargetFatGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("target_fat_grams");
+
+                    b.Property<decimal?>("TargetProteinGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("target_protein_grams");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");

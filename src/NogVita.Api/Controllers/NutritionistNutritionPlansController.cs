@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using NogVita.Api.Extensions;
 using NogVita.Application.NutritionPlans;
 using NogVita.Domain.Users;
+using static NogVita.Application.NutritionPlans.ManageNutritionPlanUseCase;
 
 namespace NogVita.Api.Controllers;
 
@@ -58,6 +59,14 @@ public sealed class NutritionistNutritionPlansController(
     [HttpPost("nutrition-plans/{id:guid}/cancel")]
     public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken) =>
         ToActionResult(await managePlanUseCase.CancelAsync(User.GetUserId(), id, cancellationToken));
+
+    [HttpPut("nutrition-plans/{id:guid}/target")]
+    public async Task<IActionResult> SetTarget(Guid id, PlanTargetRequest request, CancellationToken cancellationToken) =>
+    ToActionResult(await managePlanUseCase.SetTargetAsync(User.GetUserId(), id, request, cancellationToken));
+
+    [HttpDelete("nutrition-plans/{id:guid}/target")]
+    public async Task<IActionResult> ClearTarget(Guid id, CancellationToken cancellationToken) =>
+        ToActionResult(await managePlanUseCase.ClearTargetAsync(User.GetUserId(), id, cancellationToken));
 
     private IActionResult ToActionResult(ManageNutritionPlanResult result) => result switch
     {

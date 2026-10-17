@@ -24,6 +24,10 @@ public class NutritionPlanConfiguration : IEntityTypeConfiguration<NutritionPlan
 
         builder.Property(p => p.StartDate).IsRequired();
         builder.Property(p => p.EndDate).IsRequired(false);
+        builder.Property(p => p.TargetEnergyKcal).HasPrecision(7, 2);
+        builder.Property(p => p.TargetProteinGrams).HasPrecision(7, 2);
+        builder.Property(p => p.TargetCarbohydrateGrams).HasPrecision(7, 2);
+        builder.Property(p => p.TargetFatGrams).HasPrecision(7, 2);
 
         builder.Property(p => p.Status)
             .HasConversion<string>()
