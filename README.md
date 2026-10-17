@@ -36,7 +36,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Perfil do nutricionista:** consulta dos próprios dados e edição da apresentação (bio)
 - **Lista de nutricionistas:** para qualquer usuário logado, paginada, com busca por nome e filtro por região do CRN, sem expor e-mail nem CPF
 - **Acompanhamento nutricional:** o paciente solicita, o nutricionista aceita ou recusa, e qualquer um dos dois pode encerrar, com aviso por e-mail à outra parte
-- **Base de alimentos:** 597 alimentos da TACO, importados na inicialização, e produtos industrializados do [Open Food Facts](https://world.openfoodfacts.org), importados pelo código de barras; busca sem diferenciar acentos
+- **Base de alimentos:** 597 alimentos da TACO e 22.728 produtos brasileiros do [Open Food Facts](https://world.openfoodfacts.org), importados na inicialização, e outros produtos avulsos importados pelo código de barras; busca sem diferenciar acentos
 - **Gestão de alimentos pelo administrador:** ativação e desativação
 - **Plano alimentar:** o nutricionista cria, ativa e finaliza planos para os pacientes que acompanha, com até 10 refeições ordenadas e até 20 alimentos por refeição; o paciente vê o plano atual e o histórico
 - **Cálculo nutricional:** porção de cada alimento, totais por refeição e do dia, e comparação com a meta diária de calorias e macronutrientes
@@ -218,13 +218,15 @@ Pending ──aceite──▶ Accepted  (cria o acompanhamento)
 A base de alimentos combina duas fontes, e cada alimento informa a sua origem:
 
 - **TACO 4ª edição (NEPA/UNICAMP):** 597 alimentos genéricos brasileiros, importados automaticamente na inicialização.
-- **Open Food Facts (ODbL):** produtos industrializados, importados pelo código de barras quando o nutricionista confirma.
+- **Open Food Facts (ODbL):** produtos industrializados, de dois jeitos:
+  - **uma base de 22.728 produtos brasileiros**, importada em segundo plano na inicialização, para a busca por nome já encontrar os produtos de mercado;
+  - **produtos avulsos**, importados pelo código de barras quando o nutricionista confirma (os que não estão na base).
 
-Os valores são guardados por 100 g. Valores fisicamente impossíveis (por exemplo, mais de 100 g de um nutriente em 100 g de alimento) são recusados.
+Os valores são guardados por 100 g. Valores fisicamente impossíveis são recusados: mais de 100 g de um nutriente, ou mais de 100 g de proteína, carboidrato e gordura somados, em 100 g de alimento.
 
 | Método | Rota | Acesso | Descrição |
 |---|---|---|---|
-| `GET` | `/api/v1/foods?search=&source=` | Nutricionista, Admin | Busca por nome, sem diferenciar acentos e maiúsculas |
+| `GET` | `/api/v1/foods?search=&source=` | Nutricionista, Admin | Busca por palavras no nome, em qualquer ordem, sem diferenciar acentos e maiúsculas |
 | `GET` | `/api/v1/foods/{id}` | Nutricionista, Admin | Detalhe do alimento |
 | `GET` | `/api/v1/foods/barcode/{barcode}` | Nutricionista, Admin | Prévia do produto: primeiro na base local, depois no Open Food Facts |
 | `POST` | `/api/v1/foods/barcode/{barcode}/import` | Nutricionista, Admin | Importa o produto (`201`, ou `200` se já existia) |
@@ -237,7 +239,21 @@ Os valores são guardados por 100 g. Valores fisicamente impossíveis (por exemp
 - O CSV vai embutido na DLL, e a origem dos dados (commit, hash, conferência com a planilha oficial e o significado dos marcadores `Tr`, `NA` e `*`) está documentada em [`SOURCE.md`](src/NogVita.Infrastructure/Persistence/Seed/Data/SOURCE.md).
 - Traço (`Tr`) vira 0. Nutriente não analisado ou não aplicável vira `null`, que significa "sem informação", e nunca zero.
 
-**Open Food Facts:**
+**Base brasileira do Open Food Facts (importação em massa):**
+
+- **De onde vem:** um recorte dos produtos vendidos no Brasil, tirado do `food.parquet` que o Open Food Facts publica no Hugging Face (4,8 milhões de produtos do mundo todo) e filtrado com o DuckDB. O resultado é um CSV de 2 MB (`off_brasil.csv`), embutido na DLL como o da TACO.
+- **O filtro aplica todas as regras do domínio**, para nenhum produto ser recusado no meio da importação: código de barras válido, nome e marca dentro do tamanho máximo, os limites físicos de cada nutriente, a soma dos macronutrientes e o sódio. Ele também exclui os produtos com **energia incoerente** com os macronutrientes pelos fatores de Atwater (diferença maior que 20% ou 20 kcal). Essa regra vale só para a importação em massa, porque ninguém revisa milhares de produtos, ao contrário da importação avulsa, em que o nutricionista vê a prévia. Dos 37.060 produtos brasileiros, 22.728 passaram.
+- **Um teste garante o filtro:** ele passa cada uma das 22.728 linhas pelo domínio de verdade (`OpenFoodFactsCsvReaderTests`). Se o filtro esquecer alguma regra, o teste mostra qual produto falha.
+- **Fibra e sódio não são exigidos:** 8.619 produtos não informam a fibra, e 7.355, o sódio. Eles entram assim mesmo, e o total do nutriente que falta aparece como incompleto, e nunca como zero.
+- **Em segundo plano:** a importação roda num `BackgroundService` depois que a API já está atendendo, para a Render não cancelar o deploy por demora na inicialização. Enquanto ela roda, o resto da API funciona normalmente.
+- **Em lotes de mil:** cada lote é salvo e "esquecido" pelo EF (`ChangeTracker.Clear()`), para a memória não crescer com dezenas de milhares de objetos (o plano gratuito da Render tem 512 MB). No banco local, a importação inteira leva cerca de 8 segundos.
+- **Idempotente pelo código de barras:** só entram os códigos que ainda não existem. Se a importação for interrompida (num deploy, ou quando a Render "dorme" a API), a próxima inicialização continua de onde parou, e um produto importado antes, ou desativado pelo administrador, não é duplicado nem reativado.
+- **Uma linha com problema não derruba as outras:** se o domínio recusar um produto, ele é pulado e registrado no log com o motivo, e a importação continua. Diferente da TACO, que é tudo ou nada, porque um erro num produto da comunidade não diz nada sobre os outros.
+- **Busca por palavras:** cada palavra digitada precisa aparecer no nome, em qualquer ordem e posição. Assim, "coca zero" encontra "Coca-Cola Zero Açúcar", e "arroz tipo 1 cozido" encontra o "Arroz, tipo 1, cozido" da TACO. Hífen e pontuação também separam as palavras, porque a base escreve "Coca-Cola" e "Coca Cola" dos dois jeitos. A busca usa no máximo 8 palavras, e com os 23 mil alimentos responde em cerca de 50 ms no banco local.
+- **Espaço no banco:** a tabela de alimentos ocupa cerca de 7,5 MB com os índices, em torno de 1,5% dos 500 MB do plano gratuito do Supabase.
+- **Origem, filtro completo e licença:** o SQL para reproduzir o arquivo, os números de cada etapa do filtro e as limitações conhecidas estão em [`SOURCE-OFF.md`](src/NogVita.Infrastructure/Persistence/Seed/Data/SOURCE-OFF.md).
+
+**Open Food Facts (produto avulso, pelo código de barras):**
 
 - **Prévia antes de importar:** a consulta pelo código de barras não grava nada. O nutricionista vê os dados e só então confirma a importação.
 - **Base local primeiro:** se o produto já foi importado, a prévia e a importação usam a base local, sem chamar o serviço externo. Um produto desativado pelo administrador não volta por uma nova importação.
@@ -472,6 +488,7 @@ Pontos em aberto, para o sistema cumprir o que os documentos prometem:
 ## Licenças de terceiros
 
 - **Dados:** TACO 4ª edição (NEPA/UNICAMP), reprodução permitida com citação da fonte · Open Food Facts, sob a Open Database License (ODbL).
+- **Base derivada do Open Food Facts:** o `off_brasil.csv` é uma base derivada do Open Food Facts e, pela cláusula share-alike da ODbL, é disponibilizado **sob a mesma licença** (ODbL 1.0, com os conteúdos individuais sob a Database Contents License). O arquivo público no repositório, com a licença declarada e o filtro documentado em [`SOURCE-OFF.md`](src/NogVita.Infrastructure/Persistence/Seed/Data/SOURCE-OFF.md), cumpre essa obrigação.
 - **QuestPDF:** usado sob a QuestPDF Community License, gratuita para fins de aprendizado e para pessoas e empresas com faturamento anual abaixo de US$ 1 milhão. Não é uma licença open source: o uso comercial por empresas maiores, órgãos públicos ou empresas de capital aberto exige uma licença paga.
 - **Fonte Roboto:** SIL Open Font License 1.1 (o arquivo [`OFL.txt`](src/NogVita.Infrastructure/Pdf/Fonts/OFL.txt) acompanha as fontes).
 

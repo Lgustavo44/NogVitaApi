@@ -587,7 +587,9 @@ Usado na busca, no detalhe e na importação. Exemplo com os valores reais do ar
 
 #### `GET /api/v1/foods?search=arroz&source=Taco`
 
-Busca por nome, sem diferenciar acentos e maiúsculas (`acucar` encontra "Açúcar"). Só traz alimentos ativos, em ordem alfabética.
+Busca por **palavras** no nome: cada palavra digitada precisa aparecer, em qualquer ordem e posição, sem diferenciar acentos e maiúsculas. Por exemplo, `coca zero` encontra "Coca-Cola Zero Açúcar", `acucar mascavo` encontra "Açúcar, mascavo", e `zero coca` dá o mesmo resultado que `coca zero`. Hífen e pontuação também separam as palavras, e a busca usa no máximo 8. Só traz alimentos ativos, em ordem alfabética.
+
+> A base tem cerca de 23 mil alimentos (a TACO e 22.728 produtos brasileiros do Open Food Facts). Uma palavra genérica, como `feijao`, traz muitos resultados: incentive o usuário a digitar mais de uma palavra, e use o filtro `source=Taco` para mostrar só os alimentos genéricos.
 
 | Parâmetro | Padrão | Descrição |
 |---|---|---|

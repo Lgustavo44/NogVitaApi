@@ -8,14 +8,23 @@ namespace NogVita.Infrastructure.Persistence.Queries;
 
 internal sealed class FoodQueries(NogVitaDbContext context) : IFoodQueries
 {
+    private const int MaxSearchWords = 8;
+
+    // Hífen e pontuação também separam: a base escreve "Coca-Cola" e "Coca Cola", e "coca-cola zero" precisa achar as duas.
+    private static readonly char[] WordSeparators = [' ', '\t', '-', ',', '.', '/', '(', ')'];
+
     public Task<PagedResponse<FoodResponse>> SearchAsync(FoodSearchRequest request, CancellationToken cancellationToken = default)
     {
-        var pattern = $"%{QueryableExtensions.EscapeLikePattern(request.Search.Trim())}%";
-
         var query = context.Foods
             .AsNoTracking()
-            .Where(f => f.IsActive)
-            .Where(f => EF.Functions.ILike(EF.Functions.Unaccent(f.Name), EF.Functions.Unaccent(pattern), @"\"));
+            .Where(f => f.IsActive);
+
+        // Cada palavra precisa aparecer no nome, em qualquer ordem e posição: "coca zero" acha "Coca-Cola Zero Açúcar".
+        foreach (var word in SearchWords(request.Search))
+        {
+            var pattern = $"%{QueryableExtensions.EscapeLikePattern(word)}%";
+            query = query.Where(f => EF.Functions.ILike(EF.Functions.Unaccent(f.Name), EF.Functions.Unaccent(pattern), @"\"));
+        }
 
         if (request.Source is not null)
         {
@@ -27,6 +36,18 @@ internal sealed class FoodQueries(NogVitaDbContext context) : IFoodQueries
             .ThenBy(f => f.Id)
             .Select(ToResponse())
             .ToPagedResponseAsync(request, cancellationToken);
+    }
+
+    internal static IReadOnlyList<string> SearchWords(string search)
+    {
+        var words = search
+            .Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(MaxSearchWords)
+            .ToList();
+
+        // Um texto só de separadores (como "--") vira a busca pelo texto original, para não listar a base inteira.
+        return words.Count > 0 ? words : [search.Trim()];
     }
 
     public Task<FoodResponse?> GetByIdAsync(Guid id, bool includeInactive, CancellationToken cancellationToken = default)
