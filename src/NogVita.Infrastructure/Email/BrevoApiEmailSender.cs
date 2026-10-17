@@ -1,12 +1,19 @@
-using System.Net.Http.Json;
-using System.Net;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Common;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace NogVita.Infrastructure.Email;
 
 public sealed class BrevoApiEmailSender(HttpClient httpClient, EmailSettings settings) : IEmailSender
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
     public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         // A API da Brevo não anexa imagens inline: a logo é trocada pela URL pública.
@@ -21,10 +28,13 @@ public sealed class BrevoApiEmailSender(HttpClient httpClient, EmailSettings set
             to = new[] { new { email = message.To } },
             subject = message.Subject,
             htmlContent,
-            textContent = message.TextBody
+            textContent = message.TextBody,
+            attachment = message.Attachments is { Count: > 0 } attachments
+                ? attachments.Select(a => new { name = a.FileName, content = Convert.ToBase64String(a.Content) }).ToArray()
+                : null
         };
 
-        using var response = await httpClient.PostAsJsonAsync("v3/smtp/email", payload, cancellationToken);
+        using var response = await httpClient.PostAsJsonAsync("v3/smtp/email", payload, JsonOptions, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {

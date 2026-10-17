@@ -23,6 +23,11 @@ public sealed class MailKitEmailSender(EmailSettings settings) : IEmailSender
             TextBody = message.TextBody
         };
 
+        foreach (var attachment in message.Attachments ?? [])
+        {
+            builder.Attachments.Add(attachment.FileName, attachment.Content, ContentType.Parse(attachment.ContentType));
+        }
+
         if (message.HtmlBody.Contains($"cid:{EmailLayout.LogoContentId}", StringComparison.Ordinal))
         {
             var logo = builder.LinkedResources.Add("nogvita-logo.png", LogoPng.Value, new ContentType("image", "png"));
