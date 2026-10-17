@@ -1060,3 +1060,137 @@ Content-Type: application/json
 ### M. Remover uma refeição do plano finalizado → 409 (RN17)
 DELETE {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoId}}/meals/{{jantar.response.body.$.id}}
 Authorization: Bearer {{tokenNutri1}}
+
+### ===================== Fase 18: Alimentos da refeição =====================
+### Rode os logins da Fase 13 e o login do admin (Fase 15) antes.
+### Rode também o G.1 da Fase 17B (planoHorarios) se ele não estiver na sessão.
+
+### 0.1 Detalhe do plano → para pegar os Ids das refeições
+# @name detalheHorarios
+GET {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoHorarios.response.body.$.id}}
+Authorization: Bearer {{tokenNutri1}}
+
+@planoAlimentosId = {{planoHorarios.response.body.$.id}}
+@cafeId = {{detalheHorarios.response.body.$.meals[0].id}}
+@preTreinoId = {{detalheHorarios.response.body.$.meals[1].id}}
+
+### 0.2 Buscar o arroz
+# @name buscaArroz
+GET {{host}}/api/v1/foods?search=arroz%20tipo%201%20cozido
+Authorization: Bearer {{tokenNutri1}}
+
+### 0.3 Buscar o feijão
+# @name buscaFeijaoPlano
+GET {{host}}/api/v1/foods?search=feijao%20carioca%20cozido
+Authorization: Bearer {{tokenNutri1}}
+
+@arrozId = {{buscaArroz.response.body.$.items[0].id}}
+@feijaoId = {{buscaFeijaoPlano.response.body.$.items[0].id}}
+
+### A. Arroz no café, 150 g → 201
+# @name itemArroz
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{cafeId}}/foods
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "foodId": "{{arrozId}}",
+  "quantityInGrams": 150
+}
+
+### B. Arroz no café de novo → 409 (D141)
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{cafeId}}/foods
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "foodId": "{{arrozId}}",
+  "quantityInGrams": 50
+}
+
+### C. Feijão no café, 80 g → 201
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{cafeId}}/foods
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "foodId": "{{feijaoId}}",
+  "quantityInGrams": 80
+}
+
+### D. Quantidade 0 → 400 (RN18)
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{preTreinoId}}/foods
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "foodId": "{{arrozId}}",
+  "quantityInGrams": 0
+}
+
+### E. Quantidade acima de 2000 g → 400 (D142)
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{preTreinoId}}/foods
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "foodId": "{{arrozId}}",
+  "quantityInGrams": 2500
+}
+
+### F. Mudar o arroz para 120 g → 204
+PUT {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{cafeId}}/foods/{{itemArroz.response.body.$.id}}
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "quantityInGrams": 120
+}
+
+### G. Detalhe → o café com o arroz (120 g) e o feijão (80 g), com o snapshot e a atribuição
+GET {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}
+Authorization: Bearer {{tokenNutri1}}
+
+### H. Admin desativa o FEIJÃO → 204
+POST {{host}}/api/v1/admin/foods/{{feijaoId}}/deactivate
+Authorization: Bearer {{tokenAdmin}}
+
+### I. Detalhe de novo → o feijão CONTINUA no café, com os mesmos valores (o snapshot, item 24)
+GET {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}
+Authorization: Bearer {{tokenNutri1}}
+
+### J. Feijão no pré-treino → 404 (RN19: inativo)
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{preTreinoId}}/foods
+Authorization: Bearer {{tokenNutri1}}
+Content-Type: application/json
+
+{
+  "foodId": "{{feijaoId}}",
+  "quantityInGrams": 80
+}
+
+### K. Admin reativa o feijão (para não atrapalhar os próximos roteiros) → 204
+POST {{host}}/api/v1/admin/foods/{{feijaoId}}/activate
+Authorization: Bearer {{tokenAdmin}}
+
+### L. Nutri 2 tenta adicionar no plano da Nutri 1 → 404
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{cafeId}}/foods
+Authorization: Bearer {{tokenNutri2}}
+Content-Type: application/json
+
+{
+  "foodId": "{{arrozId}}",
+  "quantityInGrams": 100
+}
+
+### M. Remover o arroz → 204
+DELETE {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/meals/{{cafeId}}/foods/{{itemArroz.response.body.$.id}}
+Authorization: Bearer {{tokenNutri1}}
+
+### N.1 Ativar o plano → 204
+POST {{host}}/api/v1/nutritionists/me/nutrition-plans/{{planoAlimentosId}}/activate
+Authorization: Bearer {{tokenNutri1}}
+
+### N.2 Paciente vê o plano atual → o café com o feijão (80 g)
+GET {{host}}/api/v1/patients/me/nutrition-plans/current
+Authorization: Bearer {{tokenPaciente}}
