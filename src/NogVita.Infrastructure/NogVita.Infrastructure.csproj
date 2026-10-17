@@ -12,11 +12,16 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="10.0.12" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.23.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="QuestPDF" Version="2026.9.1" />
+    <!-- Dependência indireta do MailKit (via MimeKit), fixada na 10.0.13: até a 10.0.12 há duas vulnerabilidades de negação de serviço (GHSA-846f-f764-76mx e GHSA-2fmv-rv2c-59x7). -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Email\Assets\logo.png" LogicalName="NogVita.Email.logo.png" />
     <EmbeddedResource Include="Persistence\Seed\Data\taco_composicao.csv" LogicalName="NogVita.Infrastructure.Seed.taco_composicao.csv" />
+    <EmbeddedResource Include="Pdf\Fonts\Roboto-Regular.ttf" LogicalName="NogVita.Infrastructure.Fonts.Roboto-Regular.ttf" />
+    <EmbeddedResource Include="Pdf\Fonts\Roboto-Bold.ttf" LogicalName="NogVita.Infrastructure.Fonts.Roboto-Bold.ttf" />
   </ItemGroup>
 	<ItemGroup>
 		<InternalsVisibleTo Include="NogVita.UnitTests" />

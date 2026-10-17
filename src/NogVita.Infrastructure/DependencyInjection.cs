@@ -9,6 +9,7 @@ using NogVita.Application.Nutritionists;
 using NogVita.Application.NutritionPlans;
 using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Foods.OpenFoodFacts;
+using NogVita.Infrastructure.Pdf;
 using NogVita.Infrastructure.Persistence;
 using NogVita.Infrastructure.Persistence.Queries;
 using NogVita.Infrastructure.Persistence.Repositories;
@@ -44,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<INutritionPlanRepository, NutritionPlanRepository>();
         services.AddScoped<INutritionPlanQueries, NutritionPlanQueries>();
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+        services.AddSingleton<INutritionPlanPdfRenderer, QuestPdfNutritionPlanRenderer>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(emailSettings);
 
