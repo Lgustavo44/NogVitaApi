@@ -829,6 +829,55 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.ToTable("tb_user", (string)null);
                 });
 
+            modelBuilder.Entity("NogVita.Domain.WeightRecords.WeightRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<Guid>("RecordedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by_user_id");
+
+                    b.Property<DateOnly>("RecordedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("recorded_on");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<decimal>("WeightKg")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("weight_kg");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_weight_record");
+
+                    b.HasIndex("RecordedByUserId")
+                        .HasDatabaseName("ix_tb_weight_record_recorded_by_user_id");
+
+                    b.HasIndex("PatientId", "RecordedOn")
+                        .IsUnique()
+                        .HasDatabaseName("ux_weight_record_patient_day");
+
+                    b.ToTable("tb_weight_record", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.Auth.EmailConfirmationToken", b =>
                 {
                     b.HasOne("NogVita.Domain.Users.User", null)
@@ -965,6 +1014,23 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tb_patient_profile_users_user_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.WeightRecords.WeightRecord", b =>
+                {
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_weight_record_tb_user_patient_id");
+
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_weight_record_tb_user_recorded_by_user_id");
                 });
 
             modelBuilder.Entity("NogVita.Domain.NutritionPlans.Meal", b =>

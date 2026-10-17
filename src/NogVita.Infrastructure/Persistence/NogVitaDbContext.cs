@@ -7,6 +7,7 @@ using NogVita.Domain.Foods;
 using NogVita.Domain.Invitations;
 using NogVita.Domain.NutritionPlans;
 using NogVita.Domain.Users;
+using NogVita.Domain.WeightRecords;
 
 namespace NogVita.Infrastructure.Persistence;
 
@@ -23,6 +24,7 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<Food> Foods => Set<Food>();
     public DbSet<NutritionPlan> NutritionPlans => Set<NutritionPlan>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<WeightRecord> WeightRecords => Set<WeightRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
