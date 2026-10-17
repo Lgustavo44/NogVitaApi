@@ -56,4 +56,18 @@ public class NutrientsPer100gTests
 
         Assert.Equal(100m, oil.Fat);
     }
+
+    [Fact]
+    public void Should_Reject_Macros_Above_100_Grams_In_Total()
+    {
+        Assert.Throws<DomainException>(() => new NutrientsPer100g(500m, 50m, 40m, 20m, 0m, 0m));
+    }
+
+    [Fact]
+    public void Should_Accept_Pure_Sugar()
+    {
+        var sugar = new NutrientsPer100g(387m, 0m, 100m, 0m, 0m, 0m);
+
+        Assert.Equal(100m, sugar.Carbohydrate);
+    }
 }

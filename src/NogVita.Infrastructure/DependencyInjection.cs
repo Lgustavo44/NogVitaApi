@@ -42,6 +42,8 @@ public static class DependencyInjection
         services.AddScoped<IFoodRepository, FoodRepository>();
         services.AddScoped<IFoodQueries, FoodQueries>();
         services.AddScoped<TacoFoodSeeder>();
+        services.AddScoped<OpenFoodFactsBulkSeeder>();
+        services.AddHostedService<OpenFoodFactsImportHostedService>();
         services.AddScoped<INutritionPlanRepository, NutritionPlanRepository>();
         services.AddScoped<INutritionPlanQueries, NutritionPlanQueries>();
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
