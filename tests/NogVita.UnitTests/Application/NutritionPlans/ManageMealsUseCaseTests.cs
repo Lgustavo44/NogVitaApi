@@ -13,7 +13,7 @@ public class ManageMealsUseCaseTests
     private readonly FakeCareRelationshipRepository _relationshipRepository = new();
     private readonly FakeNutritionPlanRepository _planRepository = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
-    private readonly Guid _patientId = Guid.NewGuid();
+    private readonly Guid _patientId;
     private readonly User _nutritionist;
     private readonly NutritionPlan _plan;
 
@@ -25,6 +25,7 @@ public class ManageMealsUseCaseTests
         _nutritionist.CreateNutritionistProfile(1, "123456");
         _nutritionist.NutritionistProfile!.Activate();
         _userRepository.Add(_nutritionist);
+        _patientId = TestData.AddPatient(_userRepository).Id;
 
         _relationshipRepository.Add(new NutritionistRequest(_patientId, _nutritionist.Id, null).Accept(DateTime.UtcNow));
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NogVita.Application.Abstractions;
+using NogVita.Domain.Audit;
 using NogVita.Domain.Auth;
 using NogVita.Domain.Common;
 using NogVita.Domain.FollowUps;
@@ -25,6 +26,7 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<NutritionPlan> NutritionPlans => Set<NutritionPlan>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<WeightRecord> WeightRecords => Set<WeightRecord>();
+    public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

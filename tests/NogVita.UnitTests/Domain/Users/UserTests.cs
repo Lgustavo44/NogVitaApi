@@ -56,7 +56,7 @@ public class UserTests
         user.SetPasswordHash("password123");
         user.Activate();
         Assert.True(user.IsActive);
-        user.Deactivate();
+        user.Deactivate(DateTime.UtcNow);
         Assert.False(user.IsActive);
     }
 
@@ -224,10 +224,53 @@ public class UserTests
         var user = TestData.CreateUser();
         user.SetPasswordHash("hash-antigo");
         user.ConfirmEmail(DateTime.UtcNow);
-        user.Deactivate();
+        user.Deactivate(DateTime.UtcNow);
 
         user.ResetPassword("hash-novo", DateTime.UtcNow);
 
         Assert.False(user.IsActive);
+    }
+
+    [Fact]
+    public void Deactivate_Should_Mark_Admin_Block()
+    {
+        var user = TestData.CreateUser();
+        user.SetPasswordHash("password123");
+        user.ConfirmEmail(DateTime.UtcNow);
+        var now = new DateTime(2026, 10, 28, 12, 0, 0, DateTimeKind.Utc);
+
+        user.Deactivate(now);
+
+        Assert.True(user.IsBlockedByAdmin);
+        Assert.Equal(now, user.DeactivatedAtUtc);
+    }
+
+    [Fact]
+    public void Confirming_Email_Should_Not_Undo_Admin_Block()
+    {
+        var user = TestData.CreateUser();
+        user.SetPasswordHash("password123");
+        user.Deactivate(DateTime.UtcNow);
+
+        user.ConfirmEmail(DateTime.UtcNow);
+
+        Assert.True(user.IsEmailConfirmed);
+        Assert.False(user.IsActive);
+        Assert.True(user.IsBlockedByAdmin);
+    }
+
+    [Fact]
+    public void Admin_Activation_Should_Remove_Block()
+    {
+        var user = TestData.CreateUser();
+        user.SetPasswordHash("password123");
+        user.ConfirmEmail(DateTime.UtcNow);
+        user.Deactivate(DateTime.UtcNow);
+
+        user.Activate();
+
+        Assert.True(user.IsActive);
+        Assert.False(user.IsBlockedByAdmin);
+        Assert.Null(user.DeactivatedAtUtc);
     }
 }

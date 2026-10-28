@@ -13,11 +13,17 @@ internal sealed class FoodQueries(NogVitaDbContext context) : IFoodQueries
     // Hífen e pontuação também separam: a base escreve "Coca-Cola" e "Coca Cola", e "coca-cola zero" precisa achar as duas.
     private static readonly char[] WordSeparators = [' ', '\t', '-', ',', '.', '/', '(', ')'];
 
-    public Task<PagedResponse<FoodResponse>> SearchAsync(FoodSearchRequest request, CancellationToken cancellationToken = default)
+    public Task<PagedResponse<FoodResponse>> SearchAsync(
+        FoodSearchRequest request,
+        bool includeInactive = false,
+        CancellationToken cancellationToken = default)
     {
-        var query = context.Foods
-            .AsNoTracking()
-            .Where(f => f.IsActive);
+        var query = context.Foods.AsNoTracking();
+
+        if (!includeInactive)
+        {
+            query = query.Where(f => f.IsActive);
+        }
 
         // Cada palavra precisa aparecer no nome, em qualquer ordem e posição: "coca zero" acha "Coca-Cola Zero Açúcar".
         foreach (var word in SearchWords(request.Search))

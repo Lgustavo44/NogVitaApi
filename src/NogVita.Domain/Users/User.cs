@@ -12,6 +12,11 @@ namespace NogVita.Domain.Users
         public bool IsAdmin { get; private set; }
         public DateTime? EmailConfirmedAtUtc { get; private set; }
         public bool IsEmailConfirmed => EmailConfirmedAtUtc is not null;
+
+        // Bloqueio explícito pelo admin (D163). Separado do IsActive, que também fica falso enquanto o e-mail não é confirmado.
+        public DateTime? DeactivatedAtUtc { get; private set; }
+        public bool IsBlockedByAdmin => DeactivatedAtUtc is not null;
+
         public PatientProfile? PatientProfile { get; private set; }
         public NutritionistProfile? NutritionistProfile { get; private set; }
 
@@ -69,17 +74,20 @@ namespace NogVita.Domain.Users
             PasswordHash = passwordHash;
         }
 
+        // Ativação pelo admin: também desfaz o bloqueio.
         public void Activate()
         {
             if (PasswordHash is null)
                 throw new DomainException("Não é possível ativar um usuário sem senha definida.");
 
             IsActive = true;
+            DeactivatedAtUtc = null;
         }
 
-        public void Deactivate()
+        public void Deactivate(DateTime nowUtc)
         {
             IsActive = false;
+            DeactivatedAtUtc = nowUtc;
         }
 
         public void GrantAdmin()
@@ -113,7 +121,14 @@ namespace NogVita.Domain.Users
         {
             if (IsEmailConfirmed) return;
             EmailConfirmedAtUtc = nowUtc;
-            Activate();
+
+            // Confirmar o e-mail nunca desfaz um bloqueio do admin (o furo da Fase 11B).
+            if (IsBlockedByAdmin) return;
+
+            if (PasswordHash is null)
+                throw new DomainException("Não é possível ativar um usuário sem senha definida.");
+
+            IsActive = true;
         }
 
         public void ResetPassword(string passwordHash, DateTime nowUtc)

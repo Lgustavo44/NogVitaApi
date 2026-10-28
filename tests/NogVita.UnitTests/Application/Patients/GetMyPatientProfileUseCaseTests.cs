@@ -21,7 +21,7 @@ public class GetMyPatientProfileUseCaseTests
     public async Task Should_Return_Null_When_User_Is_Inactive()
     {
         var user = CreatePatient();
-        user.Deactivate();
+        user.Deactivate(DateTime.UtcNow);
         var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), _timeProvider);
 
         var response = await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);

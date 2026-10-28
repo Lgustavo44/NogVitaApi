@@ -109,7 +109,7 @@ public class RefreshTokenUseCaseTests
     {
         var user = CreateActiveUser();
         var token = StoreToken(user);
-        user.Deactivate();
+        user.Deactivate(DateTime.UtcNow);
         var useCase = CreateUseCase(user);
 
         var response = await useCase.ExecuteAsync(new RefreshRequest(StoredTokenValue), TestContext.Current.CancellationToken);

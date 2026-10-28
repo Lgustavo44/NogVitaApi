@@ -24,6 +24,55 @@ namespace NogVita.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "unaccent");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("NogVita.Domain.Audit.AdminAuditEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("action");
+
+                    b.Property<Guid>("AdminUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_user_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("details");
+
+                    b.Property<DateTime>("OccurredAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at_utc");
+
+                    b.Property<Guid>("TargetUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_user_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_admin_audit_entry");
+
+                    b.HasIndex("AdminUserId")
+                        .HasDatabaseName("ix_tb_admin_audit_entry_admin_user_id");
+
+                    b.HasIndex("TargetUserId")
+                        .HasDatabaseName("ix_tb_admin_audit_entry_target_user_id");
+
+                    b.ToTable("tb_admin_audit_entry", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.Auth.EmailConfirmationToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -783,6 +832,10 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<DateTime?>("DeactivatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deactivated_at_utc");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(254)
@@ -876,6 +929,16 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ux_weight_record_patient_day");
 
                     b.ToTable("tb_weight_record", (string)null);
+                });
+
+            modelBuilder.Entity("NogVita.Domain.Audit.AdminAuditEntry", b =>
+                {
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_admin_audit_entry_users_admin_user_id");
                 });
 
             modelBuilder.Entity("NogVita.Domain.Auth.EmailConfirmationToken", b =>

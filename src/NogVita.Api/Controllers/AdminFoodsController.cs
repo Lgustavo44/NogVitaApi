@@ -8,8 +8,15 @@ namespace NogVita.Api.Controllers;
 [ApiController]
 [Route("api/v1/admin/foods")]
 [Authorize(Roles = Roles.Admin)]
-public sealed class AdminFoodsController(SetFoodActiveUseCase setFoodActiveUseCase) : ControllerBase
+public sealed class AdminFoodsController(
+    SetFoodActiveUseCase setFoodActiveUseCase,
+    IFoodQueries foodQueries) : ControllerBase
 {
+    // Endpoint separado, e não um ?includeInactive=true na busca comum: o nutricionista nunca vê os inativos.
+    [HttpGet]
+    public async Task<IActionResult> Search([FromQuery] FoodSearchRequest request, CancellationToken cancellationToken) =>
+        Ok(await foodQueries.SearchAsync(request, includeInactive: true, cancellationToken));
+
     [HttpPost("{id:guid}/activate")]
     public Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken) =>
         SetActive(id, active: true, cancellationToken);

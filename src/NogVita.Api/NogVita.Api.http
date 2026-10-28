@@ -1383,3 +1383,6 @@ Authorization: Bearer {{tokenAdmin}}
 ### E. Reativar a Ana → 204. Os acompanhamentos continuam encerrados: os pacientes precisam pedir de novo
 POST {{host}}/api/v1/admin/users/11111111-0000-4000-8000-000000000002/activate
 Authorization: Bearer {{tokenAdmin}}
+### F. Busca do admin, com os inativos → os alimentos desativados aparecem com "isActive": false
+GET {{host}}/api/v1/admin/foods?search=feijao
+Authorization: Bearer {{tokenAdmin}}

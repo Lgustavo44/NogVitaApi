@@ -30,7 +30,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Perfil do paciente:** consulta e atualização dos próprios dados, com idade calculada e rotina opcional (horários de acordar, dormir e treinar)
 - **Perfil do paciente para o nutricionista:** idade, sexo, altura, objetivo e rotina, só para quem o acompanha, sem CPF nem e-mail
 - **Painel do administrador:** listagens paginadas de usuários, pacientes e nutricionistas, com busca e filtros
-- **Ativação e desativação de contas:** desativar revoga todas as sessões do usuário. Desativar um nutricionista também encerra os acompanhamentos dele (os pacientes são avisados por e-mail e ficam livres para escolher outro), finaliza ou cancela os planos em aberto e recusa as solicitações pendentes
+- **Ativação e desativação de contas:** desativar revoga todas as sessões do usuário. Desativar um nutricionista também encerra os acompanhamentos dele (os pacientes são avisados por e-mail e ficam livres para escolher outro), finaliza ou cancela os planos em aberto e recusa as solicitações pendentes. Desativar um paciente tira o acesso do nutricionista aos dados dele enquanto durar o bloqueio
 - **Pré-cadastro de nutricionistas pelo administrador**, com convite enviado por e-mail (link de uso único, válido por 72 horas). Um pré-cadastro nunca aceito pode ser cancelado, o que libera o CPF, o e-mail e o CRN
 - **Aceite do convite:** um usuário novo define a senha (o que também confirma o e-mail, já que o link chegou nele); um usuário que já é paciente só ativa o novo papel, sem trocar a senha
 - **Perfil do nutricionista:** consulta dos próprios dados e edição da apresentação (bio)
@@ -78,6 +78,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `GET` | `/api/v1/foods/{id}` | Detalhes de um alimento |
 | `GET` | `/api/v1/foods/barcode/{barcode}` | Prévia de um produto pelo código de barras |
 | `POST` | `/api/v1/foods/barcode/{barcode}/import` | Importa um produto do Open Food Facts |
+| `GET` | `/api/v1/admin/foods?search=&source=` | Busca de alimentos do admin, incluindo os inativos |
 | `POST` | `/api/v1/admin/foods/{id}/activate` | Reativa um alimento |
 | `POST` | `/api/v1/admin/foods/{id}/deactivate` | Desativa um alimento |
 | `POST` | `/api/v1/nutritionists/me/nutrition-plans` | Cria um plano (rascunho) para um paciente |
@@ -235,6 +236,7 @@ Os valores são guardados por 100 g. Valores fisicamente impossíveis são recus
 | `GET` | `/api/v1/foods/{id}` | Nutricionista, Admin | Detalhe do alimento |
 | `GET` | `/api/v1/foods/barcode/{barcode}` | Nutricionista, Admin | Prévia do produto: primeiro na base local, depois no Open Food Facts |
 | `POST` | `/api/v1/foods/barcode/{barcode}/import` | Nutricionista, Admin | Importa o produto (`201`, ou `200` se já existia) |
+| `GET` | `/api/v1/admin/foods?search=&source=` | Admin | A mesma busca, incluindo os inativos (`isActive: false`), para encontrar o que reativar |
 | `POST` | `/api/v1/admin/foods/{id}/activate` | Admin | Reativa um alimento |
 | `POST` | `/api/v1/admin/foods/{id}/deactivate` | Admin | Desativa um alimento (ele some da busca) |
 
@@ -499,6 +501,9 @@ tests/
 - O aceite do convite nunca altera a senha de uma conta existente
 - Cabeçalhos de segurança em todas as respostas, inclusive nos erros 401, 403 e 429: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` e `Referrer-Policy: no-referrer`. Nas rotas `/api`, também `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'` e `Cache-Control: no-store`, para dados de saúde não ficarem no cache do navegador (o Swagger fica de fora, porque precisa carregar os próprios scripts)
 - Sem o cabeçalho `Server: Kestrel`, que anunciaria a tecnologia do servidor
+- Seguro por padrão: a política de autorização padrão exige login em toda rota. Só as rotas marcadas com `[AllowAnonymous]` (login, cadastro, confirmação de e-mail, redefinição de senha, convite, `/health` e o OpenAPI) ficam abertas, e um controller novo que esqueça o `[Authorize]` nasce fechado
+- Bloqueio pelo admin explícito (`deactivated_at_utc`), separado do "e-mail ainda não confirmado": confirmar o e-mail, redefinir a senha ou aceitar um convite nunca reativa uma conta bloqueada
+- Trilha de auditoria (`tb_admin_audit_entry`) para ações do admin que apagam dados, começando pelo cancelamento de pré-cadastro. Guarda o admin, a ação, o Id afetado e um resumo, sem dados pessoais de quem foi apagado
 - `AllowedHosts` restrito (`localhost` em desenvolvimento, `nogvitaapi.onrender.com` no staging): requisições com outro `Host` recebem `400`. Os links dos e-mails já usam o `Frontend:BaseUrl`, nunca o `Host` da requisição; a restrição é uma segunda camada
 
 ## Termos de Uso e Privacidade

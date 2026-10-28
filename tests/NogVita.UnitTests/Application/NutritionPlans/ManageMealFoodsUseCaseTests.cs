@@ -29,7 +29,7 @@ public class ManageMealFoodsUseCaseTests
         _nutritionist.NutritionistProfile!.Activate();
         _userRepository.Add(_nutritionist);
 
-        var patientId = Guid.NewGuid();
+        var patientId = TestData.AddPatient(_userRepository).Id;
         _relationshipRepository.Add(new NutritionistRequest(patientId, _nutritionist.Id, null).Accept(DateTime.UtcNow));
 
         _plan = new NutritionPlan(patientId, _nutritionist.Id, "Plano", null, new DateOnly(2026, 10, 1), null);

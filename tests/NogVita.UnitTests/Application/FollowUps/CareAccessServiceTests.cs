@@ -9,7 +9,8 @@ public class CareAccessServiceTests
 {
     private readonly FakeUserRepository _userRepository = new();
     private readonly FakeCareRelationshipRepository _relationshipRepository = new();
-    private readonly Guid _patientId = Guid.NewGuid();
+    private readonly User _patient;
+    private Guid _patientId => _patient.Id;
     private readonly User _nutritionist;
 
     public CareAccessServiceTests()
@@ -20,6 +21,12 @@ public class CareAccessServiceTests
         _nutritionist.CreateNutritionistProfile(1, "123456");
         _nutritionist.NutritionistProfile!.Activate();
         _userRepository.Add(_nutritionist);
+
+        _patient = new User("Paciente Teste", "paciente@email.com", Cpf.Create("11144477735"));
+        _patient.SetPasswordHash("hash");
+        _patient.ConfirmEmail(DateTime.UtcNow);
+        _patient.CreatePatientProfile(new DateOnly(1995, 3, 10), BiologicalSex.Female, 165, Goal.WeightLoss);
+        _userRepository.Add(_patient);
     }
 
     private CareAccessService CreateService() => new(_userRepository, _relationshipRepository);
@@ -63,7 +70,17 @@ public class CareAccessServiceTests
     public async Task Should_Deny_Deactivated_Nutritionist()
     {
         Link(_nutritionist.Id);
-        _nutritionist.Deactivate();
+        _nutritionist.Deactivate(DateTime.UtcNow);
+
+        Assert.False(await CreateService().NutritionistFollowsPatientAsync(
+            _nutritionist.Id, _patientId, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Should_Deny_Patient_Deactivated_By_Admin()
+    {
+        Link(_nutritionist.Id);
+        _patient.Deactivate(DateTime.UtcNow);
 
         Assert.False(await CreateService().NutritionistFollowsPatientAsync(
             _nutritionist.Id, _patientId, TestContext.Current.CancellationToken));

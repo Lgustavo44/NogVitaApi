@@ -20,6 +20,13 @@ public sealed class CareAccessService(
 
         var relationship = await relationshipRepository.GetActiveForPatientAsync(patientId, cancellationToken);
 
-        return relationship is not null && relationship.NutritionistId == nutritionistId;
+        if (relationship is null || relationship.NutritionistId != nutritionistId)
+        {
+            return false;
+        }
+
+        // Paciente bloqueado pelo admin (D163) fica fora do alcance do nutricionista, mesmo com o vínculo ativo.
+        var patient = await userRepository.GetByIdAsync(patientId, cancellationToken);
+        return patient is { IsBlockedByAdmin: false };
     }
 }
