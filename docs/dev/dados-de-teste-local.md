@@ -38,7 +38,7 @@ O script roda numa transação e pode ser executado mais de uma vez: o que já e
 | `admin.teste@nogvita.test` | Admin | Ativo | Painel do administrador, pré-cadastro de nutricionista, ativar e desativar contas e alimentos |
 | `nutri.ana@nogvita.test` | Nutricionista | Ativa, CRN-3 10001 | Acompanha a Carla, tem uma solicitação pendente do Diego, planos e refeições |
 | `nutri.bruno@nogvita.test` | Nutricionista | Ativo, CRN-8 20002 | Já acompanhou a Carla (encerrado). Sem pacientes hoje: rotas de paciente respondem `404` |
-| `nutri.convite@nogvita.test` | Nutricionista | **Convite pendente** (sem senha) | Não consegue entrar. Teste o reenvio de convite pelo admin |
+| `nutri.convite@nogvita.test` | Nutricionista | **Convite pendente** (sem senha) | Não consegue entrar. Teste o reenvio de convite pelo admin, ou o cancelamento do pré-cadastro (que apaga a conta: rode o seed de novo para recriá-la) |
 | `paciente.carla@nogvita.test` | Paciente | Ativa, acompanhada pela Ana | Plano atual com 4 refeições, histórico com o plano do Bruno, rotina preenchida |
 | `paciente.diego@nogvita.test` | Paciente | Ativo, sem acompanhamento | Solicitação pendente para a Ana, rotina de **turno da noite** (acorda 14h, dorme 6h) |
 | `paciente.elisa@nogvita.test` | Paciente | **E-mail não confirmado** | Login com senha certa responde `403`. Teste o reenvio da confirmação |

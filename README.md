@@ -30,8 +30,8 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Perfil do paciente:** consulta e atualização dos próprios dados, com idade calculada e rotina opcional (horários de acordar, dormir e treinar)
 - **Perfil do paciente para o nutricionista:** idade, sexo, altura, objetivo e rotina, só para quem o acompanha, sem CPF nem e-mail
 - **Painel do administrador:** listagens paginadas de usuários, pacientes e nutricionistas, com busca e filtros
-- **Ativação e desativação de contas:** desativar revoga todas as sessões do usuário
-- **Pré-cadastro de nutricionistas pelo administrador**, com convite enviado por e-mail (link de uso único, válido por 72 horas)
+- **Ativação e desativação de contas:** desativar revoga todas as sessões do usuário. Desativar um nutricionista também encerra os acompanhamentos dele (os pacientes são avisados por e-mail e ficam livres para escolher outro), finaliza ou cancela os planos em aberto e recusa as solicitações pendentes
+- **Pré-cadastro de nutricionistas pelo administrador**, com convite enviado por e-mail (link de uso único, válido por 72 horas). Um pré-cadastro nunca aceito pode ser cancelado, o que libera o CPF, o e-mail e o CRN
 - **Aceite do convite:** um usuário novo define a senha (o que também confirma o e-mail, já que o link chegou nele); um usuário que já é paciente só ativa o novo papel, sem trocar a senha
 - **Perfil do nutricionista:** consulta dos próprios dados e edição da apresentação (bio)
 - **Lista de nutricionistas:** para qualquer usuário logado, paginada, com busca por nome e filtro por região do CRN, sem expor e-mail nem CPF
@@ -110,7 +110,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `GET` | `/api/v1/patients/me/nutrition-plans/{id}` | Detalhes de um plano do paciente |
 | `GET` | `/api/v1/admin/users` | Lista usuários (paginado, com busca e filtro) |
 | `GET` | `/api/v1/admin/users/{id}` | Detalhes de um usuário |
-| `POST` | `/api/v1/admin/users/{id}/deactivate` | Desativa a conta e revoga as sessões |
+| `POST` | `/api/v1/admin/users/{id}/deactivate` | Desativa a conta e revoga as sessões (no nutricionista, encerra também os acompanhamentos) |
 | `POST` | `/api/v1/admin/users/{id}/activate` | Reativa a conta |
 | `GET` | `/api/v1/admin/patients` | Lista pacientes (paginado) |
 | `GET` | `/api/v1/admin/patients/{id}` | Detalhes de um paciente |
@@ -118,6 +118,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 | `GET` | `/api/v1/admin/nutritionists/{id}` | Detalhes de um nutricionista |
 | `POST` | `/api/v1/admin/nutritionists` | Pré-cadastra um nutricionista e envia o convite |
 | `POST` | `/api/v1/admin/nutritionists/{id}/invitation` | Reenvia o convite (invalida os anteriores) |
+| `DELETE` | `/api/v1/admin/nutritionists/{id}` | Cancela um pré-cadastro cujo convite nunca foi aceito |
 | `POST` | `/api/v1/auth/invitations/accept` | Aceita o convite |
 
 > 📘 Formatos de requisição e resposta, erros e fluxos estão no **[guia de consumo da API](docs/API.md)**.
@@ -215,6 +216,7 @@ Pending ──aceite──▶ Accepted  (cria o acompanhamento)
 - Só uma solicitação `Pending` pode ser respondida ou cancelada; nos outros estados, a resposta é `409`.
 - Os dois índices únicos parciais (`status = 'Pending'` e `ended_at_utc IS NULL`) protegem a regra mesmo com duas requisições simultâneas, que a checagem no código sozinha não pegaria.
 - Encerrar não apaga nada: o vínculo ganha a data de encerramento e quem encerrou, preservando o histórico.
+- **Nutricionista desativado:** quando o administrador desativa a conta de um nutricionista, os acompanhamentos dele são encerrados em nome do admin, e as solicitações pendentes passam a `Rejected`. Sem isso, o paciente ficaria preso a um acompanhamento que ninguém mais consegue encerrar e não poderia pedir outro nutricionista. Reativar a conta não recria os acompanhamentos.
 
 ### Alimentos
 
@@ -481,7 +483,8 @@ tests/
 
 ## Segurança
 
-- Senhas armazenadas com PBKDF2 (HMAC-SHA512, 100 mil iterações)
+- Senhas armazenadas com PBKDF2 (HMAC-SHA512, 100 mil iterações). Se os parâmetros do hash mudarem, o hash antigo é refeito no próximo login bem-sucedido, sem pedir uma senha nova
+- Login com tempo de resposta uniforme: quando o e-mail não existe (ou a conta ainda não tem senha), a senha é verificada contra um hash falso, com o mesmo custo. Assim, o tempo não revela quais e-mails estão cadastrados
 - Política de senha do NIST: mínimo de 15 caracteres, sem regras de composição e com lista de bloqueio
 - Refresh tokens armazenados apenas como hash SHA-256
 - Mesma resposta para qualquer falha de login, evitando enumeração de usuários
@@ -494,6 +497,9 @@ tests/
 - Redefinir a senha encerra todas as sessões abertas e avisa o dono da conta por e-mail
 - O link do convite leva o token no fragmento da URL, que nunca é enviado a servidores
 - O aceite do convite nunca altera a senha de uma conta existente
+- Cabeçalhos de segurança em todas as respostas, inclusive nos erros 401, 403 e 429: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` e `Referrer-Policy: no-referrer`. Nas rotas `/api`, também `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'` e `Cache-Control: no-store`, para dados de saúde não ficarem no cache do navegador (o Swagger fica de fora, porque precisa carregar os próprios scripts)
+- Sem o cabeçalho `Server: Kestrel`, que anunciaria a tecnologia do servidor
+- `AllowedHosts` restrito (`localhost` em desenvolvimento, `nogvitaapi.onrender.com` no staging): requisições com outro `Host` recebem `400`. Os links dos e-mails já usam o `Frontend:BaseUrl`, nunca o `Host` da requisição; a restrição é uma segunda camada
 
 ## Termos de Uso e Privacidade
 

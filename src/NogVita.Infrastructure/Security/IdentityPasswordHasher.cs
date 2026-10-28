@@ -8,16 +8,32 @@ public sealed class IdentityPasswordHasher : IPasswordHasher
 {
     private readonly PasswordHasher<User> _hasher = new();
 
+    // Gerado uma vez, com os mesmos parâmetros dos hashes reais, para o custo da verificação ser igual.
+    private readonly Lazy<string> _dummyHash;
+
+    public IdentityPasswordHasher()
+    {
+        _dummyHash = new Lazy<string>(() => _hasher.HashPassword(null!, Guid.NewGuid().ToString()));
+    }
+
     public string Hash(string password)
     {
         return _hasher.HashPassword(null!, password);
     }
 
-    public bool Verify(string passwordHash, string password)
+    public PasswordCheck Verify(string? passwordHash, string password)
     {
-        var result = _hasher.VerifyHashedPassword(null!, passwordHash, password);
+        if (passwordHash is null)
+        {
+            _hasher.VerifyHashedPassword(null!, _dummyHash.Value, password);
+            return PasswordCheck.Failed;
+        }
 
-        return result is PasswordVerificationResult.Success
-                      or PasswordVerificationResult.SuccessRehashNeeded;
+        return _hasher.VerifyHashedPassword(null!, passwordHash, password) switch
+        {
+            PasswordVerificationResult.Success => PasswordCheck.Success,
+            PasswordVerificationResult.SuccessRehashNeeded => PasswordCheck.SuccessRehashNeeded,
+            _ => PasswordCheck.Failed
+        };
     }
 }

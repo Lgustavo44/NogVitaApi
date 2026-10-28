@@ -1,6 +1,6 @@
 # Política de Privacidade do NogVita
 
-**Última atualização:** 17/10/2026
+**Última atualização:** 28/10/2026
 
 Esta política explica quais dados pessoais o NogVita coleta, para que eles são usados, com quem são compartilhados e quais são os seus direitos, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, a LGPD).
 
@@ -51,7 +51,7 @@ Você pode retirar o consentimento a qualquer momento (seção 7). Como os dados
 
 ## 4. Quem pode ver os seus dados
 
-- **Nutricionista que acompanha você:** vê o seu nome, a sua **idade** (calculada, e não a data de nascimento), o sexo biológico, a altura, o objetivo, a sua rotina (horários de acordar, dormir e treinar), a data de início do acompanhamento e o seu **histórico de peso** (inclusive os pesos que você registrou), com o peso mais recente e o IMC calculado a partir dele, além dos planos alimentares que ele mesmo criou. Ele também pode registrar o peso medido na consulta. **Ele não vê o seu CPF nem o seu e-mail.** Ele só tem acesso enquanto o acompanhamento estiver ativo, e só aos próprios pacientes.
+- **Nutricionista que acompanha você:** vê o seu nome, a sua **idade** (calculada, e não a data de nascimento), o sexo biológico, a altura, o objetivo, a sua rotina (horários de acordar, dormir e treinar), a data de início do acompanhamento e o seu **histórico de peso** (inclusive os pesos que você registrou), com o peso mais recente e o IMC calculado a partir dele, além dos planos alimentares que ele mesmo criou. Ele também pode registrar o peso medido na consulta. **Ele não vê o seu CPF nem o seu e-mail.** Ele só tem acesso enquanto o acompanhamento estiver ativo, e só aos próprios pacientes. Se a conta do nutricionista for desativada pelo administrador, o acompanhamento é encerrado, ele perde o acesso aos seus dados e você recebe um aviso por e-mail.
 - **Nutricionista que recebe a sua solicitação:** vê o seu nome e a mensagem que você escreveu.
 - **Outros usuários conectados:** se você é nutricionista, o seu nome, o seu CRN e a sua apresentação aparecem na lista de nutricionistas para qualquer usuário conectado, para que os pacientes possam escolher. **O seu e-mail e o seu CPF nunca aparecem nessa lista.**
 - **Administradores do NogVita:** têm acesso aos dados cadastrais para gerenciar contas, como cadastrar nutricionistas e ativar ou desativar contas.

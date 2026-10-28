@@ -54,4 +54,17 @@ public sealed class FakeUserRepository : IUserRepository
     {
         Users.Add(user);
     }
+
+    public List<NutritionistProfile> RemovedNutritionistProfiles { get; } = [];
+
+    public void RemoveNutritionistProfile(NutritionistProfile profile)
+    {
+        RemovedNutritionistProfiles.Add(profile);
+    }
+
+    public Task RemoveAsync(User user, CancellationToken cancellationToken = default)
+    {
+        Users.Remove(user);
+        return Task.CompletedTask;
+    }
 }

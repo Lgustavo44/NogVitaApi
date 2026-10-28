@@ -1,6 +1,5 @@
 using NogVita.Application.Abstractions;
 using NogVita.Application.Common;
-using NogVita.Domain.NutritionPlans;
 
 namespace NogVita.Application.FollowUps;
 
@@ -22,20 +21,8 @@ public sealed class EndCareRelationshipUseCase(
             return false;
         }
         relationship.End(currentUserId, timeProvider.GetUtcNow().UtcDateTime);
-        var today = BrazilianCalendar.Today(timeProvider);
-        var openPlans = await planRepository.ListOpenAsync(relationship.NutritionistId, relationship.PatientId, cancellationToken);
-
-        foreach (var plan in openPlans)
-        {
-            if (plan.Status == NutritionPlanStatus.Active)
-            {
-                plan.Finish(today);
-            }
-            else
-            {
-                plan.Cancel();
-            }
-        }
+        await planRepository.CloseOpenPlansAsync(
+            relationship.NutritionistId, relationship.PatientId, BrazilianCalendar.Today(timeProvider), cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var otherUserId = currentUserId == relationship.PatientId ? relationship.NutritionistId : relationship.PatientId;

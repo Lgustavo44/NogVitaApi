@@ -12,7 +12,8 @@ namespace NogVita.Api.Controllers;
 public sealed class AdminNutritionistsController(
     IAdminUserQueries adminUserQueries,
     PreRegisterNutritionistUseCase preRegisterNutritionistUseCase,
-    ResendNutritionistInvitationUseCase resendNutritionistInvitationUseCase) : ControllerBase
+    ResendNutritionistInvitationUseCase resendNutritionistInvitationUseCase,
+    CancelNutritionistPreRegistrationUseCase cancelPreRegistrationUseCase) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] AdminUserListRequest request, CancellationToken cancellationToken)
@@ -57,6 +58,22 @@ public sealed class AdminNutritionistsController(
             ResendInvitationStatus.EmailFailed => Ok(new { invitationEmailSent = false }),
             ResendInvitationStatus.NotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Nutricionista não encontrado."),
             ResendInvitationStatus.AlreadyActive => Problem(statusCode: StatusCodes.Status409Conflict, title: "O nutricionista já aceitou o convite."),
+            _ => throw new InvalidOperationException($"Resultado não tratado: {status}")
+        };
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> CancelPreRegistration(Guid id, CancellationToken cancellationToken)
+    {
+        var status = await cancelPreRegistrationUseCase.ExecuteAsync(id, cancellationToken);
+
+        return status switch
+        {
+            CancelPreRegistrationStatus.Cancelled => NoContent(),
+            CancelPreRegistrationStatus.NotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Nutricionista não encontrado."),
+            CancelPreRegistrationStatus.AlreadyAccepted => Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "O nutricionista já aceitou o convite. Para tirar o acesso, desative a conta."),
             _ => throw new InvalidOperationException($"Resultado não tratado: {status}")
         };
     }

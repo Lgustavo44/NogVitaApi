@@ -22,9 +22,12 @@ public sealed class LoginUseCase(
     {
         var user = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
 
-        if (user?.PasswordHash is null || !passwordHasher.Verify(user.PasswordHash, request.Password))
+        // Sempre verifica a senha, mesmo sem usuário: o tempo de resposta não revela se o e-mail existe.
+        var check = passwordHasher.Verify(user?.PasswordHash, request.Password);
+
+        if (user is null || check == PasswordCheck.Failed)
         {
-            return new LoginResult(LoginStatus.InvalidCredentials);
+            return InvalidCredentials;
         }
 
         if (!user.IsEmailConfirmed)
@@ -34,7 +37,13 @@ public sealed class LoginUseCase(
 
         if (!user.IsActive)
         {
-            return new LoginResult(LoginStatus.InvalidCredentials);
+            return InvalidCredentials;
+        }
+
+        // Hash com parâmetros antigos: aproveita a senha em texto, que só existe agora, para gerar um novo.
+        if (check == PasswordCheck.SuccessRehashNeeded)
+        {
+            user.SetPasswordHash(passwordHasher.Hash(request.Password));
         }
 
         var tokens = tokenIssuer.Issue(user);

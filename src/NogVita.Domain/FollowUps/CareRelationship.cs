@@ -28,6 +28,14 @@ public class CareRelationship : Entity
             throw new DomainException("Só o paciente ou o nutricionista podem encerrar o acompanhamento.");
         }
 
+        Close(endedByUserId, nowUtc);
+    }
+
+    // Quando o admin desativa o nutricionista, o acompanhamento é encerrado em nome do admin.
+    public void EndByAdmin(Guid adminId, DateTime nowUtc) => Close(adminId, nowUtc);
+
+    private void Close(Guid endedByUserId, DateTime nowUtc)
+    {
         if (!IsActive)
         {
             throw new DomainException("Este acompanhamento já foi encerrado.");

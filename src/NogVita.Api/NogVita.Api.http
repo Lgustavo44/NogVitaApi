@@ -1359,3 +1359,27 @@ Authorization: Bearer {{tokenPaciente}}
 ### N. Detalhe de novo → o "latestWeight" agora é o de 2026-10-14 (80.9, da consulta)
 GET {{host}}/api/v1/nutritionists/me/patients/{{pacientePesoId}}
 Authorization: Bearer {{tokenNutri1}}
+
+
+# ==== Fase 21: desativar nutricionista e cancelar pré-cadastro ====
+# Usa os usuários de docs/dev/dados-de-teste-local.md e o login do admin (item com @name loginAdmin).
+
+### A. Cancelar o pré-cadastro do "Nutri Convite Pendente" (sem senha) → 204, e o CPF, o e-mail e o CRN ficam livres
+DELETE {{host}}/api/v1/admin/nutritionists/11111111-0000-4000-8000-000000000004
+Authorization: Bearer {{tokenAdmin}}
+
+### B. De novo → 404 (a conta saiu inteira)
+DELETE {{host}}/api/v1/admin/nutritionists/11111111-0000-4000-8000-000000000004
+Authorization: Bearer {{tokenAdmin}}
+
+### C. Cancelar o pré-cadastro da Ana, que já aceitou o convite → 409
+DELETE {{host}}/api/v1/admin/nutritionists/11111111-0000-4000-8000-000000000002
+Authorization: Bearer {{tokenAdmin}}
+
+### D. Desativar a Ana → 204, os acompanhamentos dela terminam e os pacientes recebem o e-mail (veja no Mailpit)
+POST {{host}}/api/v1/admin/users/11111111-0000-4000-8000-000000000002/deactivate
+Authorization: Bearer {{tokenAdmin}}
+
+### E. Reativar a Ana → 204. Os acompanhamentos continuam encerrados: os pacientes precisam pedir de novo
+POST {{host}}/api/v1/admin/users/11111111-0000-4000-8000-000000000002/activate
+Authorization: Bearer {{tokenAdmin}}

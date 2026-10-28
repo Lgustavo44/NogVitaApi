@@ -55,4 +55,29 @@ public sealed class UserRepository(NogVitaDbContext context) : IUserRepository
     {
         context.Users.Add(user);
     }
+
+    public void RemoveNutritionistProfile(NutritionistProfile profile)
+    {
+        context.NutritionistProfiles.Remove(profile);
+    }
+
+    public async Task RemoveAsync(User user, CancellationToken cancellationToken = default)
+    {
+        // As FKs para tb_user são Restrict: os tokens e os perfis saem junto, no mesmo SaveChanges.
+        context.NutritionistInvitations.RemoveRange(
+            await context.NutritionistInvitations.Where(t => t.UserId == user.Id).ToListAsync(cancellationToken));
+        context.EmailConfirmationTokens.RemoveRange(
+            await context.EmailConfirmationTokens.Where(t => t.UserId == user.Id).ToListAsync(cancellationToken));
+        context.PasswordResetTokens.RemoveRange(
+            await context.PasswordResetTokens.Where(t => t.UserId == user.Id).ToListAsync(cancellationToken));
+        context.RefreshTokens.RemoveRange(
+            await context.RefreshTokens.Where(t => t.UserId == user.Id).ToListAsync(cancellationToken));
+
+        if (user.NutritionistProfile is not null)
+            context.NutritionistProfiles.Remove(user.NutritionistProfile);
+        if (user.PatientProfile is not null)
+            context.PatientProfiles.Remove(user.PatientProfile);
+
+        context.Users.Remove(user);
+    }
 }

@@ -14,5 +14,11 @@ internal sealed class NutritionistRequestRepository(NogVitaDbContext context) : 
             r => r.PatientId == patientId && r.Status == NutritionistRequestStatus.Pending,
             cancellationToken);
 
+    public async Task<IReadOnlyList<NutritionistRequest>> ListPendingForNutritionistAsync(
+        Guid nutritionistId, CancellationToken cancellationToken = default) =>
+        await context.NutritionistRequests
+            .Where(r => r.NutritionistId == nutritionistId && r.Status == NutritionistRequestStatus.Pending)
+            .ToListAsync(cancellationToken);
+
     public void Add(NutritionistRequest request) => context.NutritionistRequests.Add(request);
 }

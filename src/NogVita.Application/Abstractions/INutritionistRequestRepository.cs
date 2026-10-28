@@ -6,5 +6,6 @@ public interface INutritionistRequestRepository
 {
     Task<NutritionistRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> HasPendingForPatientAsync(Guid patientId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<NutritionistRequest>> ListPendingForNutritionistAsync(Guid nutritionistId, CancellationToken cancellationToken = default);
     void Add(NutritionistRequest request);
 }

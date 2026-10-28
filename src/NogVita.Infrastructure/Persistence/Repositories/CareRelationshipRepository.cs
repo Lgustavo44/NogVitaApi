@@ -11,5 +11,11 @@ internal sealed class CareRelationshipRepository(NogVitaDbContext context) : ICa
             r => r.PatientId == patientId && r.EndedAtUtc == null,
             cancellationToken);
 
+    public async Task<IReadOnlyList<CareRelationship>> ListActiveForNutritionistAsync(
+        Guid nutritionistId, CancellationToken cancellationToken = default) =>
+        await context.CareRelationships
+            .Where(r => r.NutritionistId == nutritionistId && r.EndedAtUtc == null)
+            .ToListAsync(cancellationToken);
+
     public void Add(CareRelationship relationship) => context.CareRelationships.Add(relationship);
 }

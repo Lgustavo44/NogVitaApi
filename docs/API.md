@@ -428,6 +428,7 @@ O paciente escolhe um nutricionista na [lista de nutricionistas](#nutricionista)
 - Cada paciente tem no máximo **um acompanhamento ativo** e **uma solicitação pendente** por vez.
 - Status da solicitação (`status`): `Pending`, `Accepted`, `Rejected` ou `Cancelled`. Só uma solicitação `Pending` pode ser aceita, recusada ou cancelada.
 - Um recurso de outro usuário (solicitação de outro nutricionista, paciente que não é seu) responde `404`, e não `403`.
+- Se o administrador **desativar a conta do nutricionista**, todos os acompanhamentos dele são encerrados (o paciente recebe o mesmo e-mail de encerramento) e as solicitações pendentes para ele passam a `Rejected`. O paciente fica livre para escolher outro nutricionista.
 
 As listagens aceitam `page` e `pageSize` (como as outras) e devolvem o mesmo formato paginado (`items`, `page`, `pageSize`, `totalItems`, `totalPages`). As solicitações vêm da mais recente para a mais antiga.
 
@@ -1018,7 +1019,7 @@ Formato de cada item em `items`:
 - **patients:** `id`, `name`, `email`, `isActive`, `birthDate`, `goal`, `createdAt`
 - **nutritionists:** `id`, `name`, `email`, `isActive`, `crnRegion`, `crnNumber`, `isProfileActive`, `createdAt`
 
-> Em nutricionistas, `isActive` é a situação da **conta**, e `isProfileActive` indica se o **convite já foi aceito**. Nutricionista com `isProfileActive: false` é um convite pendente (dá para reenviar).
+> Em nutricionistas, `isActive` é a situação da **conta**, e `isProfileActive` indica se o **convite já foi aceito**. Nutricionista com `isProfileActive: false` é um convite pendente: dá para reenviar o convite ou cancelar o pré-cadastro.
 
 #### Detalhes
 
@@ -1047,11 +1048,24 @@ Formato de cada item em `items`:
 
 Desativa a conta e encerra todas as sessões dela.
 
+Se a conta for de um **nutricionista**, a desativação também libera os pacientes dele:
+
+- todos os acompanhamentos ativos são encerrados, em nome do admin;
+- o plano ativo de cada paciente é finalizado na data de hoje, e os rascunhos são cancelados;
+- as solicitações pendentes para ele passam a `Rejected`;
+- cada paciente recebe o e-mail de acompanhamento encerrado.
+
+Desativar um **paciente** não encerra o acompanhamento dele.
+
+> Vale pedir confirmação na tela antes de desativar um nutricionista, avisando que os acompanhamentos dele serão encerrados.
+
 - `204` → desativada
 - `404` → usuário não encontrado
 - `409` → "Você não pode desativar a sua própria conta."
 
 #### `POST /api/v1/admin/users/{id}/activate`
+
+Reativar um nutricionista **não** recria os acompanhamentos encerrados na desativação: os pacientes precisam solicitar de novo.
 
 - `204` → reativada
 - `404` → usuário não encontrado
@@ -1092,6 +1106,20 @@ Gera um convite novo e invalida os anteriores.
 - `200` → `{ "invitationEmailSent": true }` (ou `false`, se o e-mail falhou)
 - `404` → "Nutricionista não encontrado."
 - `409` → "O nutricionista já aceitou o convite."
+
+#### `DELETE /api/v1/admin/nutritionists/{id}`
+
+Cancela um pré-cadastro cujo convite **nunca foi aceito**. Serve, por exemplo, para corrigir um e-mail digitado errado ou para quem desistiu: enquanto o pré-cadastro existe, o CPF, o e-mail e o CRN ficam presos a ele.
+
+- Se a conta foi criada **só pelo pré-cadastro** (a pessoa nunca definiu senha), ela é apagada inteira. O CPF, o e-mail e o CRN ficam livres para um novo cadastro.
+- Se a pessoa **já era paciente**, a conta continua: saem só o perfil de nutricionista e o convite, e o CRN fica livre.
+- Os links de convite já enviados deixam de funcionar.
+
+Sem corpo.
+
+- `204` → pré-cadastro cancelado
+- `404` → "Nutricionista não encontrado." (inclusive depois de cancelado)
+- `409` → "O nutricionista já aceitou o convite. Para tirar o acesso, desative a conta."
 
 ## Fluxos
 
@@ -1199,6 +1227,10 @@ Nutri: abre o link → tela lê o token do hash
        POST /auth/invitations/accept { token, password? }
        ├─ 204 → vai para o login
        └─ 400 "Defina uma senha..." → pede a senha e envia de novo
+
+Convite que nunca foi aceito (isProfileActive: false):
+  Admin: POST /admin/nutritionists/{id}/invitation   → reenvia o convite
+     ou  DELETE /admin/nutritionists/{id}            → cancela o pré-cadastro
 ```
 
 ## Checklist do frontend
@@ -1222,3 +1254,5 @@ Nutri: abre o link → tela lê o token do hash
 - [ ] Aviso (sem bloqueio) nas refeições com `outsideRoutine: true`, sem recalcular a regra no front
 - [ ] Campo `attribution` exibido nas telas que mostram dados de alimentos (TACO e Open Food Facts)
 - [ ] Busca de alimentos só a partir de 2 letras, com *debounce*
+- [ ] Admin: confirmação antes de desativar um nutricionista, avisando que os acompanhamentos dele serão encerrados
+- [ ] Admin: botões "Reenviar convite" e "Cancelar pré-cadastro" nos nutricionistas com `isProfileActive: false`
