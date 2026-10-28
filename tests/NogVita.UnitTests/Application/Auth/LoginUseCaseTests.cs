@@ -26,6 +26,8 @@ public class LoginUseCaseTests
         return user;
     }
 
+    // Instância por teste, para contar as verificações sem interferência dos outros testes.
+    private readonly FakePasswordHasher _passwordHasher = new();
     private readonly FakeRefreshTokenRepository _refreshTokenRepository = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
     private readonly FakeSecureTokenService _secureTokenService = new();
@@ -39,7 +41,74 @@ public class LoginUseCaseTests
             new RefreshTokenSettings { ExpirationDays = 7 },
             TimeProvider.System);
 
-        return new LoginUseCase(new FakeUserRepository(user), PasswordHasher, tokenIssuer, _unitOfWork);
+        return new LoginUseCase(new FakeUserRepository(user), _passwordHasher, tokenIssuer, _unitOfWork);
+    }
+
+    [Fact]
+    public async Task Should_Verify_Password_Even_When_User_Not_Found()
+    {
+        var useCase = CreateUseCase(null);
+
+        await useCase.ExecuteAsync(new LoginRequest(ValidEmail, ValidPassword), TestContext.Current.CancellationToken);
+
+        // O mesmo custo de quem existe: o tempo de resposta não revela o e-mail.
+        Assert.Equal(1, _passwordHasher.VerifyCount);
+    }
+
+    [Fact]
+    public async Task Should_Verify_Password_Even_When_User_Has_No_Password()
+    {
+        var user = TestData.CreateUser(); // pré-cadastro de nutricionista: conta sem senha
+        var useCase = CreateUseCase(user);
+
+        var result = await useCase.ExecuteAsync(new LoginRequest(ValidEmail, ValidPassword), TestContext.Current.CancellationToken);
+
+        Assert.Equal(LoginStatus.InvalidCredentials, result.Status);
+        Assert.Equal(1, _passwordHasher.VerifyCount);
+    }
+
+    [Fact]
+    public async Task Should_Rehash_Outdated_Password_On_Successful_Login()
+    {
+        var user = TestData.CreateUser();
+        user.SetPasswordHash($"{FakePasswordHasher.OutdatedPrefix}{ValidPassword}");
+        user.ConfirmEmail(DateTime.UtcNow);
+        var useCase = CreateUseCase(user);
+
+        var result = await useCase.ExecuteAsync(new LoginRequest(ValidEmail, ValidPassword), TestContext.Current.CancellationToken);
+
+        Assert.Equal(LoginStatus.Succeeded, result.Status);
+        Assert.Equal(_passwordHasher.Hash(ValidPassword), user.PasswordHash);
+        Assert.Equal(1, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Not_Rehash_When_Login_Is_Refused()
+    {
+        const string outdatedHash = $"{FakePasswordHasher.OutdatedPrefix}{ValidPassword}";
+        var user = TestData.CreateUser();
+        user.SetPasswordHash(outdatedHash);
+        user.ConfirmEmail(DateTime.UtcNow);
+        user.Deactivate();
+        var useCase = CreateUseCase(user);
+
+        var result = await useCase.ExecuteAsync(new LoginRequest(ValidEmail, ValidPassword), TestContext.Current.CancellationToken);
+
+        Assert.Equal(LoginStatus.InvalidCredentials, result.Status);
+        Assert.Equal(outdatedHash, user.PasswordHash);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Keep_Current_Hash_When_No_Rehash_Is_Needed()
+    {
+        var user = CreateActiveUser();
+        var originalHash = user.PasswordHash;
+        var useCase = CreateUseCase(user);
+
+        await useCase.ExecuteAsync(new LoginRequest(ValidEmail, ValidPassword), TestContext.Current.CancellationToken);
+
+        Assert.Equal(originalHash, user.PasswordHash);
     }
 
     [Fact]

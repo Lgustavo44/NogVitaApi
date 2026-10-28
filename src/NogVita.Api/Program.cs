@@ -16,6 +16,9 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Sem o "Server: Kestrel" nas respostas: não há motivo para anunciar a tecnologia do servidor.
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
 builder.Services
     .AddControllers(options =>
     {
@@ -150,6 +153,25 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseForwardedHeaders();
+
+// Cabeçalhos de segurança, antes de qualquer outro middleware: valem também para os 401, 403 e 429.
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "no-referrer";
+
+    // Só na API: o Swagger é uma página de verdade e precisa carregar os scripts e os estilos dele.
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
+        headers["Cache-Control"] = "no-store";
+    }
+
+    await next();
+});
 
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {

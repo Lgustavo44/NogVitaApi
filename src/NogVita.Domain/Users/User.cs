@@ -126,6 +126,23 @@ namespace NogVita.Domain.Users
             }
         }
 
+        // Cancela um pré-cadastro cujo convite nunca foi aceito, liberando o CRN.
+        public NutritionistProfile RemovePendingNutritionistProfile()
+        {
+            if (NutritionistProfile is null)
+                throw new DomainException("O usuário não possui perfil de nutricionista.");
+            if (NutritionistProfile.IsActive)
+                throw new DomainException("O nutricionista já aceitou o convite.");
+
+            var profile = NutritionistProfile;
+            NutritionistProfile = null;
+            return profile;
+        }
+
+        // Conta criada só pelo pré-cadastro: nunca definiu senha nem tem perfil de paciente.
+        public bool IsOnlyPendingNutritionist =>
+            PasswordHash is null && PatientProfile is null && NutritionistProfile is { IsActive: false };
+
         public void UpdateNutritionistProfile(string? bio)
         {
             if (NutritionistProfile is null)
