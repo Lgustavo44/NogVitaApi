@@ -24,8 +24,7 @@ public class AcceptNutritionistInvitationUseCaseTests
 
     private User AddNewNutritionist()
     {
-        var user = new User("Ana Lima", "ana@nogvita.local", Cpf.Create("123.456.789-09"));
-        user.CreateNutritionistProfile(3, "12345");
+        var user = TestUsers.PendingNutritionist("Ana Lima", "ana@nogvita.local");
         _userRepository.Add(user);
         return user;
     }

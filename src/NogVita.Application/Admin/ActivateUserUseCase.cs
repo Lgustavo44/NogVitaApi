@@ -1,4 +1,5 @@
 using NogVita.Application.Abstractions;
+using NogVita.Domain.Audit;
 
 namespace NogVita.Application.Admin;
 
@@ -9,9 +10,9 @@ public enum ActivateUserResult
     PasswordNotDefined
 }
 
-public sealed class ActivateUserUseCase(IUserRepository userRepository, IUnitOfWork unitOfWork)
+public sealed class ActivateUserUseCase(IUserRepository userRepository, IUnitOfWork unitOfWork, AdminAuditLog auditLog)
 {
-    public async Task<ActivateUserResult> ExecuteAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<ActivateUserResult> ExecuteAsync(Guid adminId, Guid userId, CancellationToken cancellationToken = default)
     {
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
 
@@ -22,6 +23,8 @@ public sealed class ActivateUserUseCase(IUserRepository userRepository, IUnitOfW
 
         user.Activate();
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        auditLog.Record(adminId, AdminAuditAction.UserActivated, user.Id);
         return ActivateUserResult.Success;
     }
 }

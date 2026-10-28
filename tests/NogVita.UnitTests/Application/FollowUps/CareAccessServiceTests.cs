@@ -7,44 +7,24 @@ namespace NogVita.UnitTests.Application.FollowUps;
 
 public class CareAccessServiceTests
 {
-    private readonly FakeUserRepository _userRepository = new();
-    private readonly FakeCareRelationshipRepository _relationshipRepository = new();
-    private readonly User _patient;
-    private Guid _patientId => _patient.Id;
-    private readonly User _nutritionist;
+    private readonly CareScenario _care = new(following: false);
 
-    public CareAccessServiceTests()
-    {
-        _nutritionist = new User("Nutri Teste", "nutri@email.com", Cpf.Create("12345678909"));
-        _nutritionist.SetPasswordHash("hash");
-        _nutritionist.ConfirmEmail(DateTime.UtcNow);
-        _nutritionist.CreateNutritionistProfile(1, "123456");
-        _nutritionist.NutritionistProfile!.Activate();
-        _userRepository.Add(_nutritionist);
-
-        _patient = new User("Paciente Teste", "paciente@email.com", Cpf.Create("11144477735"));
-        _patient.SetPasswordHash("hash");
-        _patient.ConfirmEmail(DateTime.UtcNow);
-        _patient.CreatePatientProfile(new DateOnly(1995, 3, 10), BiologicalSex.Female, 165, Goal.WeightLoss);
-        _userRepository.Add(_patient);
-    }
-
-    private CareAccessService CreateService() => new(_userRepository, _relationshipRepository);
+    private CareAccessService CreateService() => _care.CareAccess();
 
     private CareRelationship Link(Guid nutritionistId)
     {
-        var relationship = new NutritionistRequest(_patientId, nutritionistId, null).Accept(DateTime.UtcNow);
-        _relationshipRepository.Add(relationship);
+        var relationship = TestUsers.Follow(_care.Patient.Id, nutritionistId);
+        _care.Relationships.Add(relationship);
         return relationship;
     }
 
     [Fact]
     public async Task Should_Allow_Nutritionist_With_Active_Relationship()
     {
-        Link(_nutritionist.Id);
+        Link(_care.Nutritionist.Id);
 
         Assert.True(await CreateService().NutritionistFollowsPatientAsync(
-            _nutritionist.Id, _patientId, TestContext.Current.CancellationToken));
+            _care.Nutritionist.Id, _care.Patient.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -53,36 +33,36 @@ public class CareAccessServiceTests
         Link(Guid.NewGuid());
 
         Assert.False(await CreateService().NutritionistFollowsPatientAsync(
-            _nutritionist.Id, _patientId, TestContext.Current.CancellationToken));
+            _care.Nutritionist.Id, _care.Patient.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public async Task Should_Deny_After_Relationship_Ended()
     {
-        var relationship = Link(_nutritionist.Id);
-        relationship.End(_patientId, DateTime.UtcNow);
+        var relationship = Link(_care.Nutritionist.Id);
+        relationship.End(_care.Patient.Id, DateTime.UtcNow);
 
         Assert.False(await CreateService().NutritionistFollowsPatientAsync(
-            _nutritionist.Id, _patientId, TestContext.Current.CancellationToken));
+            _care.Nutritionist.Id, _care.Patient.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public async Task Should_Deny_Deactivated_Nutritionist()
     {
-        Link(_nutritionist.Id);
-        _nutritionist.Deactivate(DateTime.UtcNow);
+        Link(_care.Nutritionist.Id);
+        _care.Nutritionist.Deactivate(DateTime.UtcNow);
 
         Assert.False(await CreateService().NutritionistFollowsPatientAsync(
-            _nutritionist.Id, _patientId, TestContext.Current.CancellationToken));
+            _care.Nutritionist.Id, _care.Patient.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public async Task Should_Deny_Patient_Deactivated_By_Admin()
     {
-        Link(_nutritionist.Id);
-        _patient.Deactivate(DateTime.UtcNow);
+        Link(_care.Nutritionist.Id);
+        _care.Patient.Deactivate(DateTime.UtcNow);
 
         Assert.False(await CreateService().NutritionistFollowsPatientAsync(
-            _nutritionist.Id, _patientId, TestContext.Current.CancellationToken));
+            _care.Nutritionist.Id, _care.Patient.Id, TestContext.Current.CancellationToken));
     }
 }

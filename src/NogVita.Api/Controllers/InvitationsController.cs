@@ -21,7 +21,6 @@ public sealed class InvitationsController(AcceptNutritionistInvitationUseCase ac
             AcceptInvitationResult.Accepted => NoContent(),
             AcceptInvitationResult.InvalidInvitation => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Convite inválido ou expirado."),
             AcceptInvitationResult.PasswordRequired => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Defina uma senha para ativar sua conta."),
-            _ => throw new InvalidOperationException($"Resultado não tratado: {result}")
         };
     }
 }

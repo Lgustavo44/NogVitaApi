@@ -1,3 +1,5 @@
+using NogVita.Domain.Audit;
+using NogVita.Application.Admin;
 using Microsoft.Extensions.Logging.Abstractions;
 using NogVita.Application.Common;
 using NogVita.Application.Nutritionists;
@@ -14,6 +16,9 @@ public class ResendNutritionistInvitationUseCaseTests
     private readonly FakeSecureTokenService _secureTokenService = new();
     private readonly FakeEmailSender _emailSender = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
+    private static readonly Guid AdminId = Guid.NewGuid();
+    private readonly CapturingLogger<AdminAuditLog> _auditLogger = new();
+    private AdminAuditLog AuditLog => new(_auditLogger);
 
     private ResendNutritionistInvitationUseCase CreateUseCase()
     {
@@ -30,13 +35,13 @@ public class ResendNutritionistInvitationUseCaseTests
             _invitationRepository,
             _unitOfWork,
             invitationService,
-            TimeProvider.System);
+            TimeProvider.System,
+            AuditLog);
     }
 
     private User CreatePendingNutritionist()
     {
-        var user = new User("Ana Lima", "ana@nogvita.local", Cpf.Create("123.456.789-09"));
-        user.CreateNutritionistProfile(3, "12345");
+        var user = TestUsers.PendingNutritionist("Ana Lima", "ana@nogvita.local");
         _userRepository.Add(user);
         return user;
     }
@@ -56,7 +61,7 @@ public class ResendNutritionistInvitationUseCaseTests
         var oldInvitation = AddOldInvitation(user);
         var useCase = CreateUseCase();
 
-        var status = await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+        var status = await useCase.ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(ResendInvitationStatus.Sent, status);
         Assert.True(oldInvitation.IsRevoked);
@@ -75,7 +80,7 @@ public class ResendNutritionistInvitationUseCaseTests
         var user = CreatePendingNutritionist();
         var useCase = CreateUseCase();
 
-        await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+        await useCase.ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         var email = Assert.Single(_emailSender.SentMessages);
         Assert.Contains("defina sua senha", email.TextBody);
@@ -88,7 +93,7 @@ public class ResendNutritionistInvitationUseCaseTests
         _emailSender.ShouldFail = true;
         var useCase = CreateUseCase();
 
-        var status = await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+        var status = await useCase.ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(ResendInvitationStatus.EmailFailed, status);
         Assert.Single(_invitationRepository.Invitations);
@@ -102,7 +107,7 @@ public class ResendNutritionistInvitationUseCaseTests
         user.NutritionistProfile!.Activate();
         var useCase = CreateUseCase();
 
-        var status = await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+        var status = await useCase.ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(ResendInvitationStatus.AlreadyActive, status);
         Assert.Empty(_invitationRepository.Invitations);
@@ -117,7 +122,7 @@ public class ResendNutritionistInvitationUseCaseTests
         _userRepository.Add(user);
         var useCase = CreateUseCase();
 
-        var status = await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+        var status = await useCase.ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(ResendInvitationStatus.NotFound, status);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
@@ -128,9 +133,31 @@ public class ResendNutritionistInvitationUseCaseTests
     {
         var useCase = CreateUseCase();
 
-        var status = await useCase.ExecuteAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var status = await useCase.ExecuteAsync(AdminId, Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         Assert.Equal(ResendInvitationStatus.NotFound, status);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
+        AuditAssert.Nothing(_auditLogger);
+    }
+
+    [Fact]
+    public async Task Should_Audit_Resent_Invitation()
+    {
+        var user = CreatePendingNutritionist();
+
+        await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
+
+        AuditAssert.Recorded(_auditLogger, AdminId, AdminAuditAction.NutritionistInvitationResent, user.Id);
+    }
+
+    [Fact]
+    public async Task Should_Not_Audit_When_Invitation_Was_Already_Accepted()
+    {
+        var user = CreatePendingNutritionist();
+        user.NutritionistProfile!.Activate();
+
+        await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
+
+        AuditAssert.Nothing(_auditLogger);
     }
 }

@@ -6,6 +6,7 @@ using NogVita.Infrastructure.Security;
 
 namespace NogVita.UnitTests.Infrastructure.Security;
 
+[Trait(TestCategories.Key, TestCategories.Slow)] // o PBKDF2 real, com 100 mil iterações, é lento de propósito
 public class IdentityPasswordHasherTests
 {
     private const string Password = "uma senha bem longa aqui";

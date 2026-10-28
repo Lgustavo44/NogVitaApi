@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <!-- D170: um switch que não cobre todos os valores de um enum não compila.
+         Sem o "_ =>", um caso novo esquecido (um status a mais num caso de uso) vira erro de compilação, e não um 500.
+         O CS8524 (valores sem nome, como (Status)99) fica desligado: nunca acontece aqui, e se acontecer vira 500 pelo tratador global. -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS8509</WarningsAsErrors>
+    <NoWarn>$(NoWarn);CS8524</NoWarn>
+  </PropertyGroup>
+</Project>

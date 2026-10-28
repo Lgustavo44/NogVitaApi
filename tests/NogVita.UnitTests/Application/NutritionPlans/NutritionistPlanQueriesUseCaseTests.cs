@@ -10,35 +10,21 @@ namespace NogVita.UnitTests.Application.NutritionPlans;
 
 public class NutritionistPlanQueriesUseCaseTests
 {
-    private readonly FakeUserRepository _userRepository = new();
-    private readonly FakeCareRelationshipRepository _relationshipRepository = new();
+    private readonly CareScenario _care = new(following: false);
     private readonly StubPlanQueries _queries = new();
-    private readonly Guid _patientId;
-    private readonly User _nutritionist;
-
-    public NutritionistPlanQueriesUseCaseTests()
-    {
-        _nutritionist = new User("Nutri Teste", "nutri@email.com", Cpf.Create("12345678909"));
-        _nutritionist.SetPasswordHash("hash");
-        _nutritionist.ConfirmEmail(DateTime.UtcNow);
-        _nutritionist.CreateNutritionistProfile(1, "123456");
-        _nutritionist.NutritionistProfile!.Activate();
-        _userRepository.Add(_nutritionist);
-        _patientId = TestData.AddPatient(_userRepository).Id;
-    }
 
     private NutritionistPlanQueriesUseCase CreateUseCase() =>
-        new(new CareAccessService(_userRepository, _relationshipRepository), _queries);
+        new(_care.CareAccess(), _queries);
 
     [Fact]
     public async Task Should_Hide_Plan_When_Relationship_Ended()
     {
-        var relationship = new NutritionistRequest(_patientId, _nutritionist.Id, null).Accept(DateTime.UtcNow);
-        _relationshipRepository.Add(relationship);
+        var relationship = TestUsers.Follow(_care.Patient.Id, _care.Nutritionist.Id);
+        _care.Relationships.Add(relationship);
         _queries.Plan = CreateResponse();
-        relationship.End(_patientId, DateTime.UtcNow);
+        relationship.End(_care.Patient.Id, DateTime.UtcNow);
 
-        var plan = await CreateUseCase().GetAsync(_nutritionist.Id, _queries.Plan.Id, TestContext.Current.CancellationToken);
+        var plan = await CreateUseCase().GetAsync(_care.Nutritionist.Id, _queries.Plan.Id, TestContext.Current.CancellationToken);
 
         Assert.Null(plan);
     }
@@ -46,19 +32,51 @@ public class NutritionistPlanQueriesUseCaseTests
     [Fact]
     public async Task Should_Return_Plan_While_Following_Patient()
     {
-        _relationshipRepository.Add(new NutritionistRequest(_patientId, _nutritionist.Id, null).Accept(DateTime.UtcNow));
+        _care.Follow();
         _queries.Plan = CreateResponse();
 
-        var plan = await CreateUseCase().GetAsync(_nutritionist.Id, _queries.Plan.Id, TestContext.Current.CancellationToken);
+        var plan = await CreateUseCase().GetAsync(_care.Nutritionist.Id, _queries.Plan.Id, TestContext.Current.CancellationToken);
 
         Assert.NotNull(plan);
     }
 
     private NutritionPlanResponse CreateResponse() =>
-        new(Guid.NewGuid(), _patientId, "Paciente", _nutritionist.Id, "Nutri", "Plano", null,
+        new(Guid.NewGuid(), _care.Patient.Id, "Paciente", _care.Nutritionist.Id, "Nutri", "Plano", null,
             new DateOnly(2026, 10, 1), null, NutritionPlanStatus.Active,
             TargetEnergyKcal: null, TargetProteinGrams: null, TargetCarbohydrateGrams: null, TargetFatGrams: null,
             CreatedAt: DateTime.UtcNow);
+
+    [Fact]
+    public async Task Should_List_Plans_While_Following_Patient()
+    {
+        _care.Follow();
+        _queries.Plan = CreateResponse();
+
+        var page = await CreateUseCase().ListForPatientAsync(
+            _care.Nutritionist.Id, _care.Patient.Id, new NutritionPlanListRequest(), TestContext.Current.CancellationToken);
+
+        Assert.NotNull(page);
+        Assert.Single(page.Items);
+    }
+
+    [Fact]
+    public async Task Should_Not_List_Plans_Of_Patient_Not_Followed()
+    {
+        _queries.Plan = CreateResponse();
+
+        var page = await CreateUseCase().ListForPatientAsync(
+            _care.Nutritionist.Id, _care.Patient.Id, new NutritionPlanListRequest(), TestContext.Current.CancellationToken);
+
+        Assert.Null(page);
+    }
+
+    [Fact]
+    public async Task Should_Return_Null_For_Unknown_Plan()
+    {
+        _care.Follow();
+
+        Assert.Null(await CreateUseCase().GetAsync(_care.Nutritionist.Id, Guid.NewGuid(), TestContext.Current.CancellationToken));
+    }
 
     private sealed class StubPlanQueries : INutritionPlanQueries
     {
@@ -68,7 +86,7 @@ public class NutritionistPlanQueriesUseCaseTests
             Task.FromResult(Plan is null ? null : new NutritionPlanDetailResponse(Plan, []));
 
         public Task<PagedResponse<NutritionPlanResponse>> ListByNutritionistAndPatientAsync(Guid nutritionistId, Guid patientId, NutritionPlanListRequest request, CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
+            Task.FromResult(new PagedResponse<NutritionPlanResponse>(Plan is null ? [] : [Plan], request.Page, request.PageSize, Plan is null ? 0 : 1));
 
         public Task<PagedResponse<NutritionPlanResponse>> ListByPatientAsync(Guid patientId, NutritionPlanListRequest request, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();

@@ -38,7 +38,7 @@ public sealed class AdminNutritionistsController(
     [HttpPost]
     public async Task<IActionResult> PreRegister(PreRegisterNutritionistRequest request, CancellationToken cancellationToken)
     {
-        var result = await preRegisterNutritionistUseCase.ExecuteAsync(request, cancellationToken);
+        var result = await preRegisterNutritionistUseCase.ExecuteAsync(User.GetUserId(), request, cancellationToken);
 
         if (result.Status == PreRegisterNutritionistStatus.Conflict)
             return Problem(statusCode: StatusCodes.Status409Conflict, title: "Não foi possível pré-cadastrar o nutricionista com esses dados.");
@@ -51,7 +51,7 @@ public sealed class AdminNutritionistsController(
     [HttpPost("{id:guid}/invitation")]
     public async Task<IActionResult> ResendInvitation(Guid id, CancellationToken cancellationToken)
     {
-        var status = await resendNutritionistInvitationUseCase.ExecuteAsync(id, cancellationToken);
+        var status = await resendNutritionistInvitationUseCase.ExecuteAsync(User.GetUserId(), id, cancellationToken);
 
         return status switch
         {
@@ -59,7 +59,6 @@ public sealed class AdminNutritionistsController(
             ResendInvitationStatus.EmailFailed => Ok(new { invitationEmailSent = false }),
             ResendInvitationStatus.NotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Nutricionista não encontrado."),
             ResendInvitationStatus.AlreadyActive => Problem(statusCode: StatusCodes.Status409Conflict, title: "O nutricionista já aceitou o convite."),
-            _ => throw new InvalidOperationException($"Resultado não tratado: {status}")
         };
     }
 
@@ -75,7 +74,6 @@ public sealed class AdminNutritionistsController(
             CancelPreRegistrationStatus.AlreadyAccepted => Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: "O nutricionista já aceitou o convite. Para tirar o acesso, desative a conta."),
-            _ => throw new InvalidOperationException($"Resultado não tratado: {status}")
         };
     }
 }

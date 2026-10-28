@@ -9,38 +9,26 @@ namespace NogVita.UnitTests.Application.NutritionPlans;
 
 public class ManageMealsUseCaseTests
 {
-    private readonly FakeUserRepository _userRepository = new();
-    private readonly FakeCareRelationshipRepository _relationshipRepository = new();
+    private readonly CareScenario _care = new();
     private readonly FakeNutritionPlanRepository _planRepository = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
-    private readonly Guid _patientId;
-    private readonly User _nutritionist;
     private readonly NutritionPlan _plan;
 
     public ManageMealsUseCaseTests()
     {
-        _nutritionist = new User("Nutri Teste", "nutri@email.com", Cpf.Create("12345678909"));
-        _nutritionist.SetPasswordHash("hash");
-        _nutritionist.ConfirmEmail(DateTime.UtcNow);
-        _nutritionist.CreateNutritionistProfile(1, "123456");
-        _nutritionist.NutritionistProfile!.Activate();
-        _userRepository.Add(_nutritionist);
-        _patientId = TestData.AddPatient(_userRepository).Id;
 
-        _relationshipRepository.Add(new NutritionistRequest(_patientId, _nutritionist.Id, null).Accept(DateTime.UtcNow));
-
-        _plan = new NutritionPlan(_patientId, _nutritionist.Id, "Plano", null, new DateOnly(2026, 10, 1), null);
+        _plan = new NutritionPlan(_care.Patient.Id, _care.Nutritionist.Id, "Plano", null, new DateOnly(2026, 10, 1), null);
         _planRepository.Add(_plan);
     }
 
     private ManageMealsUseCase CreateUseCase() =>
-        new(new NutritionistPlanAccess(new CareAccessService(_userRepository, _relationshipRepository), _planRepository), _unitOfWork);
+        new(new NutritionistPlanAccess(_care.CareAccess(), _planRepository), _unitOfWork);
 
     [Fact]
     public async Task Should_Add_Meal_To_Own_Plan()
     {
         var result = await CreateUseCase().AddAsync(
-            _nutritionist.Id, _plan.Id, new MealRequest("Café da manhã", null), TestContext.Current.CancellationToken);
+            _care.Nutritionist.Id, _plan.Id, new MealRequest("Café da manhã", null), TestContext.Current.CancellationToken);
 
         Assert.Equal(ManageMealResult.Done, result.Result);
         var meal = Assert.Single(_plan.Meals);
@@ -55,7 +43,7 @@ public class ManageMealsUseCaseTests
         _plan.Finish(new DateOnly(2026, 10, 20));
 
         var result = await CreateUseCase().AddAsync(
-            _nutritionist.Id, _plan.Id, new MealRequest("Ceia", null), TestContext.Current.CancellationToken);
+            _care.Nutritionist.Id, _plan.Id, new MealRequest("Ceia", null), TestContext.Current.CancellationToken);
 
         Assert.Equal(ManageMealResult.InvalidState, result.Result);
         Assert.Empty(_plan.Meals);
@@ -64,13 +52,13 @@ public class ManageMealsUseCaseTests
     [Fact]
     public async Task Should_Not_Remove_Meal_Of_Another_Plan()
     {
-        var otherPlan = new NutritionPlan(_patientId, _nutritionist.Id, "Outro", null, new DateOnly(2026, 10, 1), null);
+        var otherPlan = new NutritionPlan(_care.Patient.Id, _care.Nutritionist.Id, "Outro", null, new DateOnly(2026, 10, 1), null);
         var otherMeal = otherPlan.AddMeal("Almoço", null);
         _planRepository.Add(otherPlan);
         _plan.AddMeal("Café", null);
 
         var result = await CreateUseCase().RemoveAsync(
-            _nutritionist.Id, _plan.Id, otherMeal.Id, TestContext.Current.CancellationToken);
+            _care.Nutritionist.Id, _plan.Id, otherMeal.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(ManageMealResult.NotFound, result);
         Assert.Single(otherPlan.Meals);
@@ -84,7 +72,7 @@ public class ManageMealsUseCaseTests
         _plan.AddMeal("Almoço", null);
 
         var result = await CreateUseCase().ReorderAsync(
-            _nutritionist.Id, _plan.Id, new ReorderMealsRequest([breakfast.Id]), TestContext.Current.CancellationToken);
+            _care.Nutritionist.Id, _plan.Id, new ReorderMealsRequest([breakfast.Id]), TestContext.Current.CancellationToken);
 
         Assert.Equal(ManageMealResult.InvalidOrder, result);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
@@ -97,7 +85,7 @@ public class ManageMealsUseCaseTests
         var lunch = _plan.AddMeal("Almoço", null);
 
         var result = await CreateUseCase().ReorderAsync(
-            _nutritionist.Id, _plan.Id, new ReorderMealsRequest([lunch.Id, breakfast.Id]), TestContext.Current.CancellationToken);
+            _care.Nutritionist.Id, _plan.Id, new ReorderMealsRequest([lunch.Id, breakfast.Id]), TestContext.Current.CancellationToken);
 
         Assert.Equal(ManageMealResult.Done, result);
         Assert.Equal(1, lunch.Order);
@@ -114,7 +102,7 @@ public class ManageMealsUseCaseTests
         }
 
         var result = await CreateUseCase().AddAsync(
-            _nutritionist.Id, _plan.Id, new MealRequest("Uma a mais", null), TestContext.Current.CancellationToken);
+            _care.Nutritionist.Id, _plan.Id, new MealRequest("Uma a mais", null), TestContext.Current.CancellationToken);
 
         Assert.Equal(ManageMealResult.LimitReached, result.Result);
     }
@@ -127,5 +115,72 @@ public class ManageMealsUseCaseTests
 
         Assert.Equal(ManageMealResult.NotFound, result.Result);
         Assert.Empty(_plan.Meals);
+    }
+
+    [Fact]
+    public async Task Should_Update_Meal_Without_Changing_Order()
+    {
+        _plan.AddMeal("Café", null);
+        var lunch = _plan.AddMeal("Almoço", null);
+
+        var result = await CreateUseCase().UpdateAsync(
+            _care.Nutritionist.Id, _plan.Id, lunch.Id, new MealRequest("Almoço leve", "Sem fritura.", new TimeOnly(12, 30)),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealResult.Done, result);
+        Assert.Equal("Almoço leve", lunch.Name);
+        Assert.Equal(new TimeOnly(12, 30), lunch.SuggestedTime);
+        Assert.Equal(2, lunch.Order);
+    }
+
+    [Fact]
+    public async Task Should_Not_Update_Unknown_Meal()
+    {
+        var result = await CreateUseCase().UpdateAsync(
+            _care.Nutritionist.Id, _plan.Id, Guid.NewGuid(), new MealRequest("Lanche", null), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealResult.NotFound, result);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Not_Update_Meal_Of_Finished_Plan()
+    {
+        var meal = _plan.AddMeal("Café", null);
+        _plan.Activate();
+        _plan.Finish(new DateOnly(2026, 10, 20));
+
+        var result = await CreateUseCase().UpdateAsync(
+            _care.Nutritionist.Id, _plan.Id, meal.Id, new MealRequest("Outro", null), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealResult.InvalidState, result);
+        Assert.Equal("Café", meal.Name);
+    }
+
+    [Fact]
+    public async Task Should_Remove_Meal_And_Renumber_The_Others()
+    {
+        var breakfast = _plan.AddMeal("Café", null);
+        var lunch = _plan.AddMeal("Almoço", null);
+        var dinner = _plan.AddMeal("Jantar", null);
+
+        var result = await CreateUseCase().RemoveAsync(_care.Nutritionist.Id, _plan.Id, lunch.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealResult.Done, result);
+        Assert.Equal([breakfast.Id, dinner.Id], _plan.Meals.OrderBy(m => m.Order).Select(m => m.Id));
+        Assert.Equal(2, dinner.Order);
+    }
+
+    [Fact]
+    public async Task Should_Not_Remove_Meal_Of_Finished_Plan()
+    {
+        var meal = _plan.AddMeal("Café", null);
+        _plan.Activate();
+        _plan.Finish(new DateOnly(2026, 10, 20));
+
+        var result = await CreateUseCase().RemoveAsync(_care.Nutritionist.Id, _plan.Id, meal.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealResult.InvalidState, result);
+        Assert.Single(_plan.Meals);
     }
 }

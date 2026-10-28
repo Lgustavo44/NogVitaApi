@@ -145,10 +145,25 @@ As mensagens (`title` e `errors`) já estão em português e podem ser mostradas
 | `401` | Sem token, token expirado ou credenciais inválidas | Tentar renovar o token; se falhar, mandar para o login |
 | `403` | Usuário autenticado, mas sem o papel necessário; **no login**, e-mail ainda não confirmado | Mostrar "sem permissão"; no login, oferecer o reenvio do link |
 | `404` | Recurso não encontrado | Mostrar o `title` |
-| `409` | Conflito (dados já em uso, regra de negócio) | Mostrar o `title` |
+| `409` | Conflito: dados já em uso, ou a mesma ação enviada duas vezes ao mesmo tempo (um clique duplo) | Mostrar o `title` e recarregar a tela: o dado já existe |
+| `422` | A requisição estava certa, mas uma regra de negócio a recusou | Mostrar o `title` |
 | `429` | Muitas tentativas | Pedir para o usuário esperar um minuto |
+| `500` | Erro inesperado no servidor | Mostrar o `title` genérico e oferecer "tentar de novo". Se o usuário relatar o problema, peça o `traceId` |
 
 > `401` gerado pela falta ou expiração do token e `403` de falta de papel vêm **sem corpo**. Trate esses casos pelo status, e não pelo `title`. A exceção é o `403` do login (e-mail não confirmado), que vem com `title`.
+
+Os erros `409`, `422` e `500` gerados fora dos endpoints (pelo tratador global) também vêm em ProblemDetails, com um `traceId`:
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.6.1",
+  "title": "Ocorreu um erro inesperado. Tente novamente em instantes.",
+  "status": 500,
+  "traceId": "00-598a0bdad90c52b58bc53e724ba17162-d3473fbb2fdea148-00"
+}
+```
+
+Um `500` **nunca** traz detalhes internos (mensagem da exceção, SQL, pilha de chamadas). O detalhe fica no log do servidor, e o `traceId` é o mesmo nos dois: com ele, dá para achar o erro que o usuário viu.
 
 ## Endpoints
 

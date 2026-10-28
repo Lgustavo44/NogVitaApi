@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NogVita.Api.Extensions;
 using NogVita.Application.Foods;
 using NogVita.Domain.Users;
 
@@ -27,7 +28,7 @@ public sealed class AdminFoodsController(
 
     private async Task<IActionResult> SetActive(Guid id, bool active, CancellationToken cancellationToken)
     {
-        var found = await setFoodActiveUseCase.ExecuteAsync(id, active, cancellationToken);
+        var found = await setFoodActiveUseCase.ExecuteAsync(User.GetUserId(), id, active, cancellationToken);
 
         return found
             ? NoContent()

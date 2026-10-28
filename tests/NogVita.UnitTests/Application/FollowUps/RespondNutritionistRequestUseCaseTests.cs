@@ -17,11 +17,7 @@ public class RespondNutritionistRequestUseCaseTests
 
     public RespondNutritionistRequestUseCaseTests()
     {
-        _nutritionist = new User("Nutri Teste", "nutri@email.com", Cpf.Create("12345678909"));
-        _nutritionist.SetPasswordHash("hash");
-        _nutritionist.ConfirmEmail(DateTime.UtcNow);
-        _nutritionist.CreateNutritionistProfile(1, "123456");
-        _nutritionist.NutritionistProfile!.Activate();
+        _nutritionist = TestUsers.Nutritionist();
         _userRepository.Add(_nutritionist);
     }
 

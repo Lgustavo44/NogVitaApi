@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Admin;
@@ -26,7 +28,12 @@ public static class DependencyInjection
     {
         services.AddDbContext<NogVitaDbContext>(options =>
             options.UseNpgsql(connectionString)
-                   .UseSnakeCaseNamingConvention());
+                   .UseSnakeCaseNamingConvention()
+                   // Uma falha ao salvar já chega ao tratador global: um índice único vira 409 (sem ser erro),
+                   // e o resto vira 500, logado com a exceção completa. O log do próprio EF só duplicaria.
+                   .ConfigureWarnings(warnings => warnings.Log(
+                       (CoreEventId.SaveChangesFailed, LogLevel.Debug),
+                       (RelationalEventId.CommandError, LogLevel.Debug))));
 
         //models
         services.AddHealthChecks().AddDbContextCheck<NogVitaDbContext>();
@@ -44,7 +51,11 @@ public static class DependencyInjection
         services.AddScoped<IFoodQueries, FoodQueries>();
         services.AddScoped<TacoFoodSeeder>();
         services.AddScoped<OpenFoodFactsBulkSeeder>();
-        services.AddHostedService<OpenFoodFactsImportHostedService>();
+        // D181: os testes de integração desligam a importação dos 22 mil produtos (OpenFoodFacts:ImportOnStartup = false).
+        if (openFoodFactsSettings.ImportOnStartup)
+        {
+            services.AddHostedService<OpenFoodFactsImportHostedService>();
+        }
         services.AddScoped<INutritionPlanRepository, NutritionPlanRepository>();
         services.AddScoped<INutritionPlanQueries, NutritionPlanQueries>();
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();

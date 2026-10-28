@@ -15,7 +15,8 @@ internal sealed class OpenFoodFactsProductCatalog(
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        NumberHandling = JsonNumberHandling.AllowReadingFromString
+        NumberHandling = JsonNumberHandling.AllowReadingFromString,
+        Converters = { new LenientDecimalConverter() }
     };
 
     public async Task<ProductLookupResult> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken = default)

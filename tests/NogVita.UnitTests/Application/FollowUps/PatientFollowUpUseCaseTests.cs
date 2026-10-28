@@ -36,7 +36,7 @@ public class PatientFollowUpUseCaseTests
 
     private CareRelationship AddActiveRelationship()
     {
-        var relationship = new NutritionistRequest(_patient.Id, _nutritionist.Id, null).Accept(DateTime.UtcNow);
+        var relationship = TestUsers.Follow(_patient.Id, _nutritionist.Id);
         _relationshipRepository.Add(relationship);
         return relationship;
     }
@@ -53,6 +53,21 @@ public class PatientFollowUpUseCaseTests
         Assert.Equal(CancelNutritionistRequestResult.Cancelled, result);
         Assert.Equal(NutritionistRequestStatus.Cancelled, request.Status);
         Assert.Equal(1, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Patient_Should_Not_Cancel_Request_Already_Answered()
+    {
+        var request = new NutritionistRequest(_patient.Id, _nutritionist.Id, null);
+        request.Reject(DateTime.UtcNow);
+        _requestRepository.Add(request);
+
+        var result = await new CancelNutritionistRequestUseCase(_requestRepository, _unitOfWork)
+            .ExecuteAsync(_patient.Id, request.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(CancelNutritionistRequestResult.NotPending, result);
+        Assert.Equal(NutritionistRequestStatus.Rejected, request.Status);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
     }
 
     [Fact]

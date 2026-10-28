@@ -19,20 +19,13 @@ public class WeightRecordUseCasesTests
 
     public WeightRecordUseCasesTests()
     {
-        _patient = new User("Paciente Teste", "paciente@email.com", Cpf.Create("11144477735"));
-        _patient.SetPasswordHash("hash");
-        _patient.ConfirmEmail(DateTime.UtcNow);
-        _patient.CreatePatientProfile(new DateOnly(1995, 3, 10), BiologicalSex.Male, 178, Goal.MuscleGain);
+        _patient = TestUsers.Patient(biologicalSex: BiologicalSex.Male, heightInCm: 178, goal: Goal.MuscleGain);
         _userRepository.Add(_patient);
 
-        _nutritionist = new User("Nutri Teste", "nutri@email.com", Cpf.Create("12345678909"));
-        _nutritionist.SetPasswordHash("hash");
-        _nutritionist.ConfirmEmail(DateTime.UtcNow);
-        _nutritionist.CreateNutritionistProfile(1, "123456");
-        _nutritionist.NutritionistProfile!.Activate();
+        _nutritionist = TestUsers.Nutritionist();
         _userRepository.Add(_nutritionist);
 
-        _relationship = new NutritionistRequest(_patient.Id, _nutritionist.Id, null).Accept(DateTime.UtcNow);
+        _relationship = TestUsers.Follow(_patient.Id, _nutritionist.Id);
         _relationshipRepository.Add(_relationship);
     }
 

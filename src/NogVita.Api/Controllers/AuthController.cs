@@ -28,7 +28,7 @@ public sealed class AuthController(
             LoginStatus.EmailNotConfirmed => Problem(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: "Confirme seu e-mail antes de entrar."),
-            _ => Problem(
+            LoginStatus.InvalidCredentials => Problem(
                 statusCode: StatusCodes.Status401Unauthorized,
                 title: "E-mail ou senha inválidos.")
         };

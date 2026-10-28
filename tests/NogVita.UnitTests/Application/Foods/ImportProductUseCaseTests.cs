@@ -93,4 +93,17 @@ public class ImportProductUseCaseTests
         Assert.Single(_foodRepository.Foods);
         Assert.Equal(0, _catalog.CallCount);
     }
+
+    [Theory]
+    [InlineData("123")]
+    [InlineData("78912345678901234")]
+    [InlineData("abcdefgh")]
+    public async Task Should_Reject_Invalid_Barcode_Without_Saving(string barcode)
+    {
+        var result = await CreateUseCase().ExecuteAsync(barcode, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ImportProductStatus.InvalidBarcode, result.Status);
+        Assert.Empty(_foodRepository.Foods);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
 }

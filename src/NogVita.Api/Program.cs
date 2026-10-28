@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
+using NogVita.Api.Errors;
 using NogVita.Api.Filters;
 using NogVita.Api.OpenApi;
 using NogVita.Application;
@@ -29,6 +30,10 @@ builder.Services
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
+// Toda resposta de erro no mesmo formato (ProblemDetails), inclusive as do tratador global (D167).
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddOpenApi(options =>
 {
@@ -112,12 +117,16 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
+// D181: nos testes de integração, todas as requisições vêm do mesmo "IP" e o limite barraria a suíte.
+// Desligado por configuração (RateLimiting:Enabled = false), as políticas continuam existindo, só sem limite.
+var rateLimitingEnabled = builder.Configuration.GetValue("RateLimiting:Enabled", true);
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
     options.AddPolicy("auth", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
+        !rateLimitingEnabled ? RateLimitPartition.GetNoLimiter("desligado") : RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido",
             factory: _ => new FixedWindowRateLimiterOptions
             {
@@ -127,7 +136,7 @@ builder.Services.AddRateLimiter(options =>
             }));
 
     options.AddPolicy("plan-email", httpContext =>
-    RateLimitPartition.GetFixedWindowLimiter(
+    !rateLimitingEnabled ? RateLimitPartition.GetNoLimiter("desligado") : RateLimitPartition.GetFixedWindowLimiter(
         partitionKey: httpContext.User.FindFirst("sub")?.Value ?? "anonymous",
         factory: _ => new FixedWindowRateLimiterOptions
         {
@@ -136,7 +145,7 @@ builder.Services.AddRateLimiter(options =>
         }));
 
     options.AddPolicy("food-lookup", httpContext =>
-    RateLimitPartition.GetFixedWindowLimiter(
+    !rateLimitingEnabled ? RateLimitPartition.GetNoLimiter("desligado") : RateLimitPartition.GetFixedWindowLimiter(
         partitionKey: httpContext.User.FindFirst("sub")?.Value
             ?? httpContext.Connection.RemoteIpAddress?.ToString()
             ?? "anonymous",
@@ -163,23 +172,33 @@ using (var scope = app.Services.CreateScope())
 app.UseForwardedHeaders();
 
 // Cabeçalhos de segurança, antes de qualquer outro middleware: valem também para os 401, 403 e 429.
+// Gravados no OnStarting, logo antes de a resposta sair: o tratador de exceções limpa os cabeçalhos,
+// e assim eles aparecem também nos 409, 422 e 500 gerados por ele.
 app.Use(async (context, next) =>
 {
-    var headers = context.Response.Headers;
-
-    headers["X-Content-Type-Options"] = "nosniff";
-    headers["X-Frame-Options"] = "DENY";
-    headers["Referrer-Policy"] = "no-referrer";
-
-    // Só na API: o Swagger é uma página de verdade e precisa carregar os scripts e os estilos dele.
-    if (context.Request.Path.StartsWithSegments("/api"))
+    context.Response.OnStarting(() =>
     {
-        headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
-        headers["Cache-Control"] = "no-store";
-    }
+        var headers = context.Response.Headers;
+
+        headers["X-Content-Type-Options"] = "nosniff";
+        headers["X-Frame-Options"] = "DENY";
+        headers["Referrer-Policy"] = "no-referrer";
+
+        // Só na API: o Swagger é uma página de verdade e precisa carregar os scripts e os estilos dele.
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
+            headers["Cache-Control"] = "no-store";
+        }
+
+        return Task.CompletedTask;
+    });
 
     await next();
 });
+
+// D167: o tratador global de exceções, logo depois dos cabeçalhos, para pegar o que vier de qualquer ponto do pipeline.
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
@@ -203,3 +222,6 @@ app.MapControllers();
 app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();
+
+// Público para os testes de integração (WebApplicationFactory<Program>).
+public partial class Program;

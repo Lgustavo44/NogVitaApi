@@ -27,7 +27,7 @@ public sealed class NutritionistWeightRecordsController(
             RecordWeightStatus.RecordedByOther => Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: "Já existe um peso registrado neste dia pelo paciente."),
-            _ => Problem(statusCode: StatusCodes.Status404NotFound, title: "Paciente não encontrado.")
+            RecordWeightStatus.NotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Paciente não encontrado.")
         };
     }
 

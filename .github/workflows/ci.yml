@@ -1,0 +1,47 @@
+# D182: a cada push no main e a cada pull request, o GitHub roda todos os testes,
+# os unitários e os de integração (com o Postgres real, pelo Testcontainers e o Docker do runner).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Menor privilégio: a automação só lê o código.
+permissions:
+  contents: read
+
+# Um push novo na mesma branch cancela a execução anterior, que já ficou velha.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v6
+
+      - name: Instalar o .NET (a versão do global.json)
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Restaurar os pacotes
+        run: dotnet restore
+
+      # O Directory.Build.props transforma o CS8509 em erro (D170): um switch incompleto quebra o build aqui.
+      - name: Compilar
+        run: dotnet build --no-restore --configuration Release
+
+      # Os dois projetos de teste, inclusive os marcados como lentos (Fase 23).
+      - name: Rodar todos os testes
+        run: dotnet test --no-build --configuration Release
+
+      # Fase 23: um resultado de caso de uso (NotFound, InvalidState...) sem nenhum teste reprova a execução.
+      - name: Conferir os resultados de casos de uso sem teste
+        shell: pwsh
+        run: ./scripts/find-untested-results.ps1

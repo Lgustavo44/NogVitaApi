@@ -34,6 +34,10 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(NogVitaDbContext).Assembly);
     }
 
+    // D171: a nova tentativa da conexão (EnableRetryOnFailure) está desligada, e esta estratégia executa uma vez só.
+    // Se um dia for ligada, a operação passa a poder rodar duas vezes com as entidades já alteradas na memória
+    // (na ativação de um plano, o Finish() do plano anterior lançaria uma DomainException). Antes de ligar,
+    // a operação precisa recarregar o que lê (por exemplo, com um ChangeTracker.Clear() no começo de cada tentativa).
     public Task ExecuteInTransactionAsync(Func<CancellationToken, Task> operation, CancellationToken cancellationToken = default)
     {
         var strategy = Database.CreateExecutionStrategy();
@@ -46,7 +50,7 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
         });
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
 
@@ -58,6 +62,14 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
                 entry.Property(e => e.UpdatedAt).CurrentValue = now;
         }
 
-        return base.SaveChangesAsync(cancellationToken);
+        try
+        {
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (UniqueViolationTranslator.TryTranslate(exception, out var conflict))
+        {
+            // Um índice único barrou a gravação (o clique duplo, ou duas abas ao mesmo tempo): 409, e não 500.
+            throw conflict!;
+        }
     }
 }

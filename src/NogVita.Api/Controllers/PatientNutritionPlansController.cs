@@ -58,7 +58,7 @@ public sealed class PatientNutritionPlansController(INutritionPlanQueries planQu
             EmailPlanPdfResult.EmailFailed => Problem(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Não foi possível enviar o e-mail agora. Tente novamente em alguns minutos, ou baixe o PDF."),
-            _ => Problem(statusCode: StatusCodes.Status404NotFound, title: "Plano não encontrado.")
+            EmailPlanPdfResult.NotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Plano não encontrado.")
         };
     }
 }

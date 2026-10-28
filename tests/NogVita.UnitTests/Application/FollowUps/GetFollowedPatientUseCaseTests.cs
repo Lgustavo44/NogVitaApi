@@ -24,11 +24,7 @@ public class GetFollowedPatientUseCaseTests
         _patient.UpdatePatientRoutine(new TimeOnly(6, 0), new TimeOnly(22, 30), new TimeOnly(18, 0));
         _userRepository.Add(_patient);
 
-        _nutritionist = new User("Nutri Teste", "nutri@email.com", Cpf.Create("12345678909"));
-        _nutritionist.SetPasswordHash("hash");
-        _nutritionist.ConfirmEmail(DateTime.UtcNow);
-        _nutritionist.CreateNutritionistProfile(1, "123456");
-        _nutritionist.NutritionistProfile!.Activate();
+        _nutritionist = TestUsers.Nutritionist();
         _userRepository.Add(_nutritionist);
     }
 
@@ -37,7 +33,7 @@ public class GetFollowedPatientUseCaseTests
 
     private CareRelationship Follow()
     {
-        var relationship = new NutritionistRequest(_patient.Id, _nutritionist.Id, null).Accept(DateTime.UtcNow);
+        var relationship = TestUsers.Follow(_patient.Id, _nutritionist.Id);
         _relationshipRepository.Add(relationship);
         return relationship;
     }

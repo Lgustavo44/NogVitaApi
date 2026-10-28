@@ -1,3 +1,4 @@
+using NogVita.Application.Admin;
 using NogVita.Application.Nutritionists;
 using NogVita.Domain.Audit;
 using NogVita.Domain.Invitations;
@@ -10,18 +11,19 @@ public class CancelNutritionistPreRegistrationUseCaseTests
 {
     private readonly FakeUserRepository _userRepository = new();
     private readonly FakeInvitationRepository _invitationRepository = new();
-    private static readonly Guid AdminId = Guid.NewGuid();
 
     private readonly FakeUnitOfWork _unitOfWork = new();
+    private static readonly Guid AdminId = Guid.NewGuid();
+    private readonly CapturingLogger<AdminAuditLog> _auditLogger = new();
+    private AdminAuditLog AuditLog => new(_auditLogger);
     private readonly FakeAdminAuditRepository _auditRepository = new();
 
     private CancelNutritionistPreRegistrationUseCase CreateUseCase() =>
-        new(_userRepository, _invitationRepository, _auditRepository, _unitOfWork, TimeProvider.System);
+        new(_userRepository, _invitationRepository, _auditRepository, _unitOfWork, TimeProvider.System, AuditLog);
 
     private User AddPendingNutritionist()
     {
-        var user = new User("Carla Dias", "carla@nogvita.local", Cpf.Create("123.456.789-09"));
-        user.CreateNutritionistProfile(3, "12345");
+        var user = TestUsers.PendingNutritionist("Carla Dias", "carla@nogvita.local");
         _userRepository.Add(user);
         return user;
     }
@@ -141,5 +143,16 @@ public class CancelNutritionistPreRegistrationUseCaseTests
         await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         Assert.Empty(_auditRepository.Entries);
+        AuditAssert.Nothing(_auditLogger);
+    }
+
+    [Fact]
+    public async Task Should_Write_Audit_Log_Besides_The_Table()
+    {
+        var user = AddPendingNutritionist();
+
+        await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
+
+        AuditAssert.Recorded(_auditLogger, AdminId, AdminAuditAction.NutritionistPreRegistrationCancelled, user.Id);
     }
 }

@@ -1,4 +1,6 @@
 using NogVita.Application.Abstractions;
+using NogVita.Application.Admin;
+using NogVita.Domain.Audit;
 using NogVita.Domain.Users;
 
 namespace NogVita.Application.Nutritionists;
@@ -20,9 +22,10 @@ public sealed record PreRegisterNutritionistResult(
 public sealed class PreRegisterNutritionistUseCase(
     IUserRepository userRepository,
     IUnitOfWork unitOfWork,
-    NutritionistInvitationService invitationService)
+    NutritionistInvitationService invitationService,
+    AdminAuditLog auditLog)
 {
-    public async Task<PreRegisterNutritionistResult> ExecuteAsync(PreRegisterNutritionistRequest request, CancellationToken cancellationToken = default)
+    public async Task<PreRegisterNutritionistResult> ExecuteAsync(Guid adminId, PreRegisterNutritionistRequest request, CancellationToken cancellationToken = default)
     {
         var cpf = Cpf.Create(request.Cpf);
 
@@ -57,6 +60,7 @@ public sealed class PreRegisterNutritionistUseCase(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var emailSent = await invitationService.TrySendAsync(user, token, cancellationToken);
+        auditLog.Record(adminId, AdminAuditAction.NutritionistPreRegistered, user.Id, emailSent ? null : "O e-mail do convite falhou.");
 
         return new PreRegisterNutritionistResult(PreRegisterNutritionistStatus.Created, user.Id, emailSent);
     }
