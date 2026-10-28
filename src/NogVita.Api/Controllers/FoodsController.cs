@@ -17,7 +17,7 @@ public sealed class FoodsController(
     [HttpGet]
     public async Task<IActionResult> Search([FromQuery] FoodSearchRequest request, CancellationToken cancellationToken)
     {
-        var response = await foodQueries.SearchAsync(request, cancellationToken);
+        var response = await foodQueries.SearchAsync(request, cancellationToken: cancellationToken);
 
         return Ok(response);
     }

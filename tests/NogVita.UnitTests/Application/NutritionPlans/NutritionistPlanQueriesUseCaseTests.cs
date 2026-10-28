@@ -13,7 +13,7 @@ public class NutritionistPlanQueriesUseCaseTests
     private readonly FakeUserRepository _userRepository = new();
     private readonly FakeCareRelationshipRepository _relationshipRepository = new();
     private readonly StubPlanQueries _queries = new();
-    private readonly Guid _patientId = Guid.NewGuid();
+    private readonly Guid _patientId;
     private readonly User _nutritionist;
 
     public NutritionistPlanQueriesUseCaseTests()
@@ -24,6 +24,7 @@ public class NutritionistPlanQueriesUseCaseTests
         _nutritionist.CreateNutritionistProfile(1, "123456");
         _nutritionist.NutritionistProfile!.Activate();
         _userRepository.Add(_nutritionist);
+        _patientId = TestData.AddPatient(_userRepository).Id;
     }
 
     private NutritionistPlanQueriesUseCase CreateUseCase() =>

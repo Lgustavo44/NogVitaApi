@@ -70,10 +70,9 @@ internal sealed class FollowUpQueries(NogVitaDbContext context) : IFollowUpQueri
         var query =
             from c in relationships
             join patient in context.Users on c.PatientId equals patient.Id
+            where patient.DeactivatedAtUtc == null // o mesmo critério do CareAccessService: paciente bloqueado some da lista
             select new { c, patient };
 
-        // TODO 2: se request.Search tiver texto → filtrar por x.patient.Name com ILike
-        //         (o EscapeLikePattern e o @"\", como no NutritionistQueries)
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var pattern = $"%{QueryableExtensions.EscapeLikePattern(request.Search.Trim())}%";

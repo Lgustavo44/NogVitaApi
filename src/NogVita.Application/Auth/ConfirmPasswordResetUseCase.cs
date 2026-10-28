@@ -41,8 +41,8 @@ public sealed class ConfirmPasswordResetUseCase(
         // O usuário vem do token salvo, nunca de um Id enviado pelo cliente.
         var user = await userRepository.GetByIdAsync(token.UserId, cancellationToken);
 
-        // Sem senha (convite pendente) ou desativado pelo admin: a redefinição não pode ativar a conta.
-        if (user is null || user.PasswordHash is null || (user.IsEmailConfirmed && !user.IsActive))
+        // Sem senha (convite pendente) ou bloqueado pelo admin (D163): a redefinição não pode ativar a conta.
+        if (user is null || user.PasswordHash is null || user.IsBlockedByAdmin)
         {
             return false;
         }

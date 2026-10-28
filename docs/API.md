@@ -742,6 +742,15 @@ Sem corpo. Importa o produto para a base e devolve o alimento criado.
 
 > **Limite compartilhado:** a prévia e a importação dividem o mesmo limite de **10 requisições por minuto por usuário** (`429` acima disso). O fluxo "prévia + importar" gasta 2 por produto. Em leitores de código de barras, evite disparar uma consulta a cada leitura repetida do mesmo código.
 
+#### `GET /api/v1/admin/foods?search=feijao&source=Taco` 🛡️
+
+A mesma busca de `GET /api/v1/foods`, com os mesmos parâmetros, regras e formato de resposta, mas **incluindo os alimentos inativos**. Só para `Admin`. Use o campo `isActive` para mostrar quais estão desativados e oferecer o botão "Reativar".
+
+- `200` → lista paginada
+- `400` → erros de validação (os mesmos da busca comum)
+
+> A busca comum (`GET /api/v1/foods`) nunca mostra os inativos, mesmo para o admin. Por isso existe esta rota separada: não há parâmetro que faça um nutricionista ver alimentos desativados.
+
 #### `POST /api/v1/admin/foods/{id}/activate` e `.../deactivate` 🛡️
 
 Sem corpo. Só para `Admin`.
@@ -1046,7 +1055,7 @@ Formato de cada item em `items`:
 
 #### `POST /api/v1/admin/users/{id}/deactivate`
 
-Desativa a conta e encerra todas as sessões dela.
+Desativa a conta e encerra todas as sessões dela. O bloqueio é explícito: confirmar o e-mail, redefinir a senha ou aceitar um convite **não** reativa a conta. Só o `activate` faz isso.
 
 Se a conta for de um **nutricionista**, a desativação também libera os pacientes dele:
 
@@ -1055,7 +1064,7 @@ Se a conta for de um **nutricionista**, a desativação também libera os pacien
 - as solicitações pendentes para ele passam a `Rejected`;
 - cada paciente recebe o e-mail de acompanhamento encerrado.
 
-Desativar um **paciente** não encerra o acompanhamento dele.
+Desativar um **paciente** não encerra o acompanhamento dele, mas, enquanto ele estiver desativado, o nutricionista deixa de vê-lo: ele some de `GET /nutritionists/me/patients`, e o detalhe, os planos e o peso dele respondem `404`. Reativar o paciente devolve o acesso.
 
 > Vale pedir confirmação na tela antes de desativar um nutricionista, avisando que os acompanhamentos dele serão encerrados.
 
@@ -1114,6 +1123,7 @@ Cancela um pré-cadastro cujo convite **nunca foi aceito**. Serve, por exemplo, 
 - Se a conta foi criada **só pelo pré-cadastro** (a pessoa nunca definiu senha), ela é apagada inteira. O CPF, o e-mail e o CRN ficam livres para um novo cadastro.
 - Se a pessoa **já era paciente**, a conta continua: saem só o perfil de nutricionista e o convite, e o CRN fica livre.
 - Os links de convite já enviados deixam de funcionar.
+- O cancelamento fica registrado numa trilha de auditoria (qual admin, quando, o Id e o CRN), sem o nome, o CPF ou o e-mail da pessoa.
 
 Sem corpo.
 

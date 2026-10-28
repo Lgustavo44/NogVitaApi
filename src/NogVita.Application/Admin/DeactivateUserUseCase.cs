@@ -33,7 +33,7 @@ public sealed class DeactivateUserUseCase(
 
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
-        user.Deactivate();
+        user.Deactivate(now);
         await refreshTokenRepository.RevokeAllForUserAsync(user.Id, now, cancellationToken);
 
         // Um nutricionista desativado não atende mais: os pacientes ficam livres para escolher outro.

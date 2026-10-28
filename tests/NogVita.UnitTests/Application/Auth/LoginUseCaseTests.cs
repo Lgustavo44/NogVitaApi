@@ -89,7 +89,7 @@ public class LoginUseCaseTests
         var user = TestData.CreateUser();
         user.SetPasswordHash(outdatedHash);
         user.ConfirmEmail(DateTime.UtcNow);
-        user.Deactivate();
+        user.Deactivate(DateTime.UtcNow);
         var useCase = CreateUseCase(user);
 
         var result = await useCase.ExecuteAsync(new LoginRequest(ValidEmail, ValidPassword), TestContext.Current.CancellationToken);
@@ -158,7 +158,7 @@ public class LoginUseCaseTests
     public async Task Should_Return_Invalid_Credentials_When_User_Is_Inactive()
     {
         var user = CreateActiveUser();
-        user.Deactivate();
+        user.Deactivate(DateTime.UtcNow);
         var useCase = CreateUseCase(user);
 
         var result = await useCase.ExecuteAsync(

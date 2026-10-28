@@ -10,7 +10,7 @@ public sealed class ResendEmailConfirmationUseCase(
     public async Task ExecuteAsync(ResendEmailConfirmationRequest request, CancellationToken cancellationToken = default)
     {
         var user = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
-        if (user == null || string.IsNullOrEmpty(user.PasswordHash) || user.IsEmailConfirmed)
+        if (user == null || string.IsNullOrEmpty(user.PasswordHash) || user.IsEmailConfirmed || user.IsBlockedByAdmin)
         {
             return;
         }

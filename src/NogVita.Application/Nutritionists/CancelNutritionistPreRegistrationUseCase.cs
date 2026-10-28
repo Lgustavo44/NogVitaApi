@@ -1,4 +1,5 @@
 using NogVita.Application.Abstractions;
+using NogVita.Domain.Audit;
 
 namespace NogVita.Application.Nutritionists;
 
@@ -13,10 +14,11 @@ public enum CancelPreRegistrationStatus
 public sealed class CancelNutritionistPreRegistrationUseCase(
     IUserRepository userRepository,
     IInvitationRepository invitationRepository,
+    IAdminAuditRepository auditRepository,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
 {
-    public async Task<CancelPreRegistrationStatus> ExecuteAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<CancelPreRegistrationStatus> ExecuteAsync(Guid adminId, Guid userId, CancellationToken cancellationToken = default)
     {
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
 
@@ -26,17 +28,27 @@ public sealed class CancelNutritionistPreRegistrationUseCase(
         if (user.NutritionistProfile.IsActive)
             return CancelPreRegistrationStatus.AlreadyAccepted;
 
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var crn = $"CRN-{user.NutritionistProfile.CrnRegion} {user.NutritionistProfile.CrnNumber}";
+        string details;
+
         if (user.IsOnlyPendingNutritionist)
         {
             // A conta só existe por causa do pré-cadastro: sai inteira, e o CPF e o e-mail ficam livres.
             await userRepository.RemoveAsync(user, cancellationToken);
+            details = $"{crn}. Conta apagada.";
         }
         else
         {
             // Já era paciente (ou já tem senha): a conta continua, só o perfil de nutricionista e o convite saem.
-            await invitationRepository.RevokePendingForUserAsync(user.Id, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+            await invitationRepository.RevokePendingForUserAsync(user.Id, now, cancellationToken);
             userRepository.RemoveNutritionistProfile(user.RemovePendingNutritionistProfile());
+            details = $"{crn}. Conta mantida, só o perfil de nutricionista foi removido.";
         }
+
+        // Sem o nome, o CPF ou o e-mail: o registro sobrevive à exclusão dos dados (D161).
+        auditRepository.Add(new AdminAuditEntry(
+            adminId, AdminAuditAction.NutritionistPreRegistrationCancelled, userId, details, now));
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -1,4 +1,5 @@
 using NogVita.Application.Nutritionists;
+using NogVita.Domain.Audit;
 using NogVita.Domain.Invitations;
 using NogVita.Domain.Users;
 using NogVita.UnitTests.Fakes;
@@ -9,10 +10,13 @@ public class CancelNutritionistPreRegistrationUseCaseTests
 {
     private readonly FakeUserRepository _userRepository = new();
     private readonly FakeInvitationRepository _invitationRepository = new();
+    private static readonly Guid AdminId = Guid.NewGuid();
+
     private readonly FakeUnitOfWork _unitOfWork = new();
+    private readonly FakeAdminAuditRepository _auditRepository = new();
 
     private CancelNutritionistPreRegistrationUseCase CreateUseCase() =>
-        new(_userRepository, _invitationRepository, _unitOfWork, TimeProvider.System);
+        new(_userRepository, _invitationRepository, _auditRepository, _unitOfWork, TimeProvider.System);
 
     private User AddPendingNutritionist()
     {
@@ -35,7 +39,7 @@ public class CancelNutritionistPreRegistrationUseCaseTests
     {
         var user = AddPendingNutritionist();
 
-        var status = await CreateUseCase().ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+        var status = await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(CancelPreRegistrationStatus.Cancelled, status);
         Assert.Empty(_userRepository.Users);
@@ -48,7 +52,7 @@ public class CancelNutritionistPreRegistrationUseCaseTests
         var user = AddPendingNutritionist();
         var ct = TestContext.Current.CancellationToken;
 
-        await CreateUseCase().ExecuteAsync(user.Id, ct);
+        await CreateUseCase().ExecuteAsync(AdminId, user.Id, ct);
 
         Assert.False(await _userRepository.ExistsByCpfAsync(Cpf.Create("123.456.789-09"), ct));
         Assert.False(await _userRepository.ExistsByEmailAsync("carla@nogvita.local", ct));
@@ -65,7 +69,7 @@ public class CancelNutritionistPreRegistrationUseCaseTests
         var profile = user.NutritionistProfile!;
         var invitation = AddInvitation(user);
 
-        var status = await CreateUseCase().ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+        var status = await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(CancelPreRegistrationStatus.Cancelled, status);
         Assert.Contains(user, _userRepository.Users);
@@ -82,7 +86,7 @@ public class CancelNutritionistPreRegistrationUseCaseTests
         var user = AddPendingNutritionist();
         user.NutritionistProfile!.Activate();
 
-        var status = await CreateUseCase().ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+        var status = await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(CancelPreRegistrationStatus.AlreadyAccepted, status);
         Assert.NotNull(user.NutritionistProfile);
@@ -95,7 +99,7 @@ public class CancelNutritionistPreRegistrationUseCaseTests
         var user = new User("João Souza", "joao@nogvita.local", Cpf.Create("529.982.247-25"));
         _userRepository.Add(user);
 
-        var status = await CreateUseCase().ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
+        var status = await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(CancelPreRegistrationStatus.NotFound, status);
         Assert.Single(_userRepository.Users);
@@ -105,9 +109,37 @@ public class CancelNutritionistPreRegistrationUseCaseTests
     [Fact]
     public async Task Should_Return_Not_Found_For_Unknown_User()
     {
-        var status = await CreateUseCase().ExecuteAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var status = await CreateUseCase().ExecuteAsync(AdminId, Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         Assert.Equal(CancelPreRegistrationStatus.NotFound, status);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Record_Audit_Entry_Without_Personal_Data()
+    {
+        var user = AddPendingNutritionist();
+
+        await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
+
+        var entry = Assert.Single(_auditRepository.Entries);
+        Assert.Equal(AdminId, entry.AdminUserId);
+        Assert.Equal(AdminAuditAction.NutritionistPreRegistrationCancelled, entry.Action);
+        Assert.Equal(user.Id, entry.TargetUserId);
+        Assert.Contains("CRN-3 12345", entry.Details);
+        Assert.Contains("Conta apagada", entry.Details);
+        Assert.DoesNotContain("carla", entry.Details, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("456", entry.Details);
+    }
+
+    [Fact]
+    public async Task Should_Not_Record_Audit_Entry_When_Nothing_Was_Cancelled()
+    {
+        var user = AddPendingNutritionist();
+        user.NutritionistProfile!.Activate();
+
+        await CreateUseCase().ExecuteAsync(AdminId, user.Id, TestContext.Current.CancellationToken);
+
+        Assert.Empty(_auditRepository.Entries);
     }
 }

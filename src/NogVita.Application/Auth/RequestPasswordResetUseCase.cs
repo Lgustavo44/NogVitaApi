@@ -36,8 +36,8 @@ public sealed class RequestPasswordResetUseCase(
         if (user.PasswordHash is null)
             return;
 
-        // Confirmado e inativo: desativado pelo admin. A redefinição não pode reativar a conta.
-        if (user.IsEmailConfirmed && !user.IsActive)
+        // Bloqueado pelo admin (D163), com ou sem e-mail confirmado: a redefinição não pode reativar a conta.
+        if (user.IsBlockedByAdmin)
             return;
 
         var now = timeProvider.GetUtcNow().UtcDateTime;

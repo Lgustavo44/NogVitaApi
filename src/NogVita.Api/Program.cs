@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using NogVita.Api.Filters;
@@ -71,7 +72,14 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+// Seguro por padrão (D162): toda rota exige login, a menos que declare [AllowAnonymous].
+// Um controller novo que esquecer o [Authorize] fica fechado, e não aberto.
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 builder.Services.AddInfrastructure(connectionString, jwtSettings, emailSettings, openFoodFactsSettings);
 var refreshTokenSettings = builder.Configuration.GetSection(RefreshTokenSettings.SectionName).Get<RefreshTokenSettings>()
@@ -175,7 +183,7 @@ app.Use(async (context, next) =>
 
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "NogVita v1");
@@ -192,6 +200,6 @@ app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();

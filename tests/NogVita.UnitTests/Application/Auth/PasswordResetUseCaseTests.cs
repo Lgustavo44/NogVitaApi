@@ -98,7 +98,7 @@ public class PasswordResetUseCaseTests
     public async Task Request_Should_Stay_Silent_For_Deactivated_User()
     {
         var user = AddUser();
-        user.Deactivate();
+        user.Deactivate(DateTime.UtcNow);
 
         await CreateRequestUseCase().ExecuteAsync(new RequestPasswordResetRequest("joao@email.com"), TestContext.Current.CancellationToken);
 
@@ -173,12 +173,41 @@ public class PasswordResetUseCaseTests
         var user = AddUser();
         var now = DateTime.UtcNow;
         AddToken(user, "token-valido", now.AddHours(1), now);
-        user.Deactivate();
+        user.Deactivate(DateTime.UtcNow);
 
         var changed = await CreateConfirmUseCase().ExecuteAsync(
             new ConfirmPasswordResetRequest("token-valido", NewPassword), TestContext.Current.CancellationToken);
 
         Assert.False(changed);
+        Assert.Equal("hash-antigo", user.PasswordHash);
+    }
+
+    // O furo da Fase 11B (D163): sem o bloqueio explícito, uma conta desativada antes de confirmar o e-mail
+    // parecia "só não confirmada", recebia o link, e a redefinição confirmava o e-mail e reativava a conta.
+    [Fact]
+    public async Task Request_Should_Stay_Silent_For_Blocked_User_With_Unconfirmed_Email()
+    {
+        var user = AddUser(confirmed: false);
+        user.Deactivate(DateTime.UtcNow);
+
+        await CreateRequestUseCase().ExecuteAsync(new RequestPasswordResetRequest("joao@email.com"), TestContext.Current.CancellationToken);
+
+        Assert.Empty(_emailSender.SentMessages);
+    }
+
+    [Fact]
+    public async Task Confirm_Should_Not_Reactivate_Blocked_User_With_Unconfirmed_Email()
+    {
+        var user = AddUser(confirmed: false);
+        var now = DateTime.UtcNow;
+        AddToken(user, "token-valido", now.AddHours(1), now);
+        user.Deactivate(now);
+
+        var changed = await CreateConfirmUseCase().ExecuteAsync(
+            new ConfirmPasswordResetRequest("token-valido", NewPassword), TestContext.Current.CancellationToken);
+
+        Assert.False(changed);
+        Assert.False(user.IsActive);
         Assert.Equal("hash-antigo", user.PasswordHash);
     }
 }

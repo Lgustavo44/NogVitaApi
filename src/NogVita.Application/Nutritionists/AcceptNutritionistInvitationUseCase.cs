@@ -28,7 +28,8 @@ public sealed class AcceptNutritionistInvitationUseCase(
 
         var user = await userRepository.GetByIdAsync(invitation.UserId, cancellationToken);
 
-        if (user?.NutritionistProfile is null)
+        // Conta bloqueada pelo admin (D163) não ganha o papel de nutricionista pelo convite.
+        if (user?.NutritionistProfile is null || user.IsBlockedByAdmin)
             return AcceptInvitationResult.InvalidInvitation;
 
         if (user.PasswordHash is null)

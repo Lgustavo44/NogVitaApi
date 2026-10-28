@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NogVita.Api.Extensions;
 using NogVita.Application.Admin;
 using NogVita.Application.Nutritionists;
 using NogVita.Domain.Users;
@@ -65,7 +66,7 @@ public sealed class AdminNutritionistsController(
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> CancelPreRegistration(Guid id, CancellationToken cancellationToken)
     {
-        var status = await cancelPreRegistrationUseCase.ExecuteAsync(id, cancellationToken);
+        var status = await cancelPreRegistrationUseCase.ExecuteAsync(User.GetUserId(), id, cancellationToken);
 
         return status switch
         {
