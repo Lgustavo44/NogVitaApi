@@ -442,6 +442,8 @@ O ambiente de testes está publicado em:
 
 > A API usa o plano gratuito da Render: depois de 15 minutos sem uso, ela "dorme", e a primeira requisição pode levar cerca de 1 minuto. Use **apenas dados de teste**.
 
+A tela do Swagger fica disponível em Development e Staging, não em Production. A API publica o documento OpenAPI em `/openapi/v1.json`; a política de versão (`/api/v1`, sem pacote adicional) está em [docs/dev/versionamento.md](docs/dev/versionamento.md).
+
 ### Para o frontend
 
 - **Origens liberadas no CORS:** `https://nogvita-green.vercel.app` (o front oficial do staging) e `http://localhost:5173` (o padrão do Vite, para desenvolver na própria máquina usando a API do staging). Acesse o ambiente local sempre por `localhost`, e não por `127.0.0.1`. Os endereços de *preview* da Vercel (um por branch) **não** estão liberados, de propósito.
@@ -457,7 +459,7 @@ O ambiente de testes está publicado em:
 - **Convite de nutricionista:** o e-mail leva para `/nutri/convite#token=...`. O Vue Router precisa usar `createWebHistory()` (e não o modo hash). A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/invitations/accept`.
 - **Termos de Uso e Política de Privacidade:** os textos ficam em [`docs/legal/`](docs/legal/) (veja [Termos de Uso e Privacidade](#termos-de-uso-e-privacidade)). No cadastro de paciente, além da frase de concordância, inclua um *checkbox* desmarcado de consentimento para os dados de saúde.
 
-O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.md).
+O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.md); o Swagger do staging é a referência interativa. A política está em [docs/dev/versionamento.md](docs/dev/versionamento.md).
 
 ## Stack
 

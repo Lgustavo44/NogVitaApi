@@ -37,7 +37,15 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddOpenApi(options =>
 {
+    options.AddDocumentTransformer<DocumentInfoTransformer>();
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
+
+// O gerador do OpenAPI lê estas opções (e não as do AddJsonOptions dos controllers):
+// sem elas, o documento mostraria os enums como números, e a API responde com texto.
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 var connectionString = builder.Configuration.GetConnectionString("NogVita")
@@ -206,7 +214,13 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "NogVita v1");
+        options.DocumentTitle = "NogVita API";
     });
+}
+else if (app.Environment.IsEnvironment("Testing"))
+{
+    // Nos testes de integração, só o documento (sem a tela): um teste confere que todo endpoint está documentado.
+    app.MapOpenApi().AllowAnonymous();
 }
 
 app.UseHttpsRedirection();
