@@ -8,6 +8,5 @@ public static class FoodSourceInfo
     {
         FoodSource.Taco => "TACO 4ª edição, NEPA/UNICAMP",
         FoodSource.OpenFoodFacts => "Open Food Facts, licença ODbL",
-        _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Fonte de alimento desconhecida.")
     };
 }

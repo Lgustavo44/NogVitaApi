@@ -7,6 +7,7 @@ public class OpenFoodFactsCsvReaderTests
 {
     // Passa cada linha do CSV pelo domínio de verdade: se o filtro do DuckDB esquecer alguma regra, o teste mostra qual produto.
     [Fact]
+    [Trait(TestCategories.Key, TestCategories.Slow)] // lê os 22.728 produtos do CSV
     public void Every_Row_Should_Be_Accepted_By_The_Domain()
     {
         var rows = OpenFoodFactsCsvReader.ReadRows().ToList();

@@ -40,19 +40,17 @@ public sealed class AdminUsersController(IAdminUserQueries adminUserQueries, Dea
             DeactivateUserResult.Success => NoContent(),
             DeactivateUserResult.NotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Usuário não encontrado."),
             DeactivateUserResult.CannotDeactivateSelf => Problem(statusCode: StatusCodes.Status409Conflict, title: "Você não pode desativar a sua própria conta."),
-            _ => throw new InvalidOperationException($"Resultado não tratado: {result}")
         };
     }
     [HttpPost("{id:guid}/activate")]
     public async Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken)
     {
-        var result = await activateUserUseCase.ExecuteAsync(id, cancellationToken);
+        var result = await activateUserUseCase.ExecuteAsync(User.GetUserId(), id, cancellationToken);
         return result switch
         {
             ActivateUserResult.Success => NoContent(),
             ActivateUserResult.NotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Usuário não encontrado."),
             ActivateUserResult.PasswordNotDefined => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Senha não definida."),
-            _ => throw new InvalidOperationException($"Resultado não tratado: {result}")
         };
     }
 }

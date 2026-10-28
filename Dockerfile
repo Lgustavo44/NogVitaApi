@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-COPY global.json nuget.config ./
+COPY global.json nuget.config Directory.Build.props ./
 COPY src/NogVita.Domain/NogVita.Domain.csproj src/NogVita.Domain/
 COPY src/NogVita.Application/NogVita.Application.csproj src/NogVita.Application/
 COPY src/NogVita.Infrastructure/NogVita.Infrastructure.csproj src/NogVita.Infrastructure/

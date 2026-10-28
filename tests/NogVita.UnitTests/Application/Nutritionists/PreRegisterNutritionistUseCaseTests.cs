@@ -1,3 +1,5 @@
+using NogVita.Domain.Audit;
+using NogVita.Application.Admin;
 using Microsoft.Extensions.Logging.Abstractions;
 using NogVita.Application.Common;
 using NogVita.Application.Nutritionists;
@@ -16,6 +18,9 @@ public class PreRegisterNutritionistUseCaseTests
     private readonly FakeSecureTokenService _secureTokenService = new();
     private readonly FakeEmailSender _emailSender = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
+    private static readonly Guid AdminId = Guid.NewGuid();
+    private readonly CapturingLogger<AdminAuditLog> _auditLogger = new();
+    private AdminAuditLog AuditLog => new(_auditLogger);
 
     private static PreRegisterNutritionistRequest CreateRequest(string cpf = AnaCpf, string email = AnaEmail, string crnNumber = "12345") =>
         new("Ana Lima", email, cpf, 3, crnNumber);
@@ -30,7 +35,7 @@ public class PreRegisterNutritionistUseCaseTests
             TimeProvider.System,
             NullLogger<NutritionistInvitationService>.Instance);
 
-        return new PreRegisterNutritionistUseCase(_userRepository, _unitOfWork, invitationService);
+        return new PreRegisterNutritionistUseCase(_userRepository, _unitOfWork, invitationService, AuditLog);
     }
 
     private static User CreateActivePatient(string cpf, string email)
@@ -47,7 +52,7 @@ public class PreRegisterNutritionistUseCaseTests
     {
         var useCase = CreateUseCase();
 
-        var result = await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+        var result = await useCase.ExecuteAsync(AdminId, CreateRequest(), TestContext.Current.CancellationToken);
 
         Assert.Equal(PreRegisterNutritionistStatus.Created, result.Status);
         var user = Assert.Single(_userRepository.Users);
@@ -66,7 +71,7 @@ public class PreRegisterNutritionistUseCaseTests
         _userRepository.Add(maria);
         var useCase = CreateUseCase();
 
-        var result = await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+        var result = await useCase.ExecuteAsync(AdminId, CreateRequest(), TestContext.Current.CancellationToken);
 
         Assert.Equal(PreRegisterNutritionistStatus.Created, result.Status);
         Assert.Single(_userRepository.Users);
@@ -83,7 +88,7 @@ public class PreRegisterNutritionistUseCaseTests
         _userRepository.Add(CreateActivePatient(AnaCpf, "outro@nogvita.local"));
         var useCase = CreateUseCase();
 
-        var result = await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+        var result = await useCase.ExecuteAsync(AdminId, CreateRequest(), TestContext.Current.CancellationToken);
 
         Assert.Equal(PreRegisterNutritionistStatus.Conflict, result.Status);
         Assert.Empty(_invitationRepository.Invitations);
@@ -96,7 +101,7 @@ public class PreRegisterNutritionistUseCaseTests
         _userRepository.Add(CreateActivePatient("529.982.247-25", AnaEmail));
         var useCase = CreateUseCase();
 
-        var result = await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+        var result = await useCase.ExecuteAsync(AdminId, CreateRequest(), TestContext.Current.CancellationToken);
 
         Assert.Equal(PreRegisterNutritionistStatus.Conflict, result.Status);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
@@ -110,7 +115,7 @@ public class PreRegisterNutritionistUseCaseTests
         _userRepository.Add(ana);
         var useCase = CreateUseCase();
 
-        var result = await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+        var result = await useCase.ExecuteAsync(AdminId, CreateRequest(), TestContext.Current.CancellationToken);
 
         Assert.Equal(PreRegisterNutritionistStatus.Conflict, result.Status);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
@@ -124,7 +129,7 @@ public class PreRegisterNutritionistUseCaseTests
         _userRepository.Add(other);
         var useCase = CreateUseCase();
 
-        var result = await useCase.ExecuteAsync(CreateRequest(crnNumber: " 12345 "), TestContext.Current.CancellationToken);
+        var result = await useCase.ExecuteAsync(AdminId, CreateRequest(crnNumber: " 12345 "), TestContext.Current.CancellationToken);
 
         Assert.Equal(PreRegisterNutritionistStatus.Conflict, result.Status);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
@@ -135,7 +140,7 @@ public class PreRegisterNutritionistUseCaseTests
     {
         var useCase = CreateUseCase();
 
-        await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+        await useCase.ExecuteAsync(AdminId, CreateRequest(), TestContext.Current.CancellationToken);
 
         var email = Assert.Single(_emailSender.SentMessages);
         Assert.Equal(AnaEmail, email.To);
@@ -151,12 +156,32 @@ public class PreRegisterNutritionistUseCaseTests
         _emailSender.ShouldFail = true;
         var useCase = CreateUseCase();
 
-        var result = await useCase.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+        var result = await useCase.ExecuteAsync(AdminId, CreateRequest(), TestContext.Current.CancellationToken);
 
         Assert.Equal(PreRegisterNutritionistStatus.Created, result.Status);
         Assert.False(result.InvitationEmailSent);
         Assert.Single(_userRepository.Users);
         Assert.Single(_invitationRepository.Invitations);
         Assert.Equal(1, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Audit_Pre_Registration()
+    {
+        var result = await CreateUseCase().ExecuteAsync(AdminId, CreateRequest(), TestContext.Current.CancellationToken);
+
+        AuditAssert.Recorded(_auditLogger, AdminId, AdminAuditAction.NutritionistPreRegistered, result.UserId!.Value);
+    }
+
+    [Fact]
+    public async Task Should_Not_Audit_Conflict()
+    {
+        var other = CreateActivePatient("529.982.247-25", "outra@nogvita.local");
+        other.CreateNutritionistProfile(3, "12345");
+        _userRepository.Add(other);
+
+        await CreateUseCase().ExecuteAsync(AdminId, CreateRequest(crnNumber: "12345"), TestContext.Current.CancellationToken);
+
+        AuditAssert.Nothing(_auditLogger);
     }
 }

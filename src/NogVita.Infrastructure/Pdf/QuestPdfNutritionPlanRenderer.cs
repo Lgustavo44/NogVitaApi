@@ -349,7 +349,6 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
         NutritionPlanStatus.Active => "Ativo",
         NutritionPlanStatus.Finished => "Finalizado",
         NutritionPlanStatus.Cancelled => "Cancelado",
-        _ => status.ToString()
     };
 
     private static string Format(decimal? value) =>

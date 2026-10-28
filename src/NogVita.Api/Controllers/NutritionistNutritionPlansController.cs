@@ -84,7 +84,7 @@ public sealed class NutritionistNutritionPlansController(
         ManageNutritionPlanResult.InvalidState => Problem(
             statusCode: StatusCodes.Status409Conflict,
             title: "Esta ação não é permitida no status atual do plano."),
-        _ => PlanNotFound()
+        ManageNutritionPlanResult.NotFound => PlanNotFound()
     };
 
     private ObjectResult PlanNotFound() =>

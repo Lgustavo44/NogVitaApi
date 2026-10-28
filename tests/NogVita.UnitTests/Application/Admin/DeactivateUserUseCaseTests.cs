@@ -1,3 +1,4 @@
+using NogVita.Domain.Audit;
 using Microsoft.Extensions.Logging.Abstractions;
 using NogVita.Application.Admin;
 using NogVita.Application.FollowUps;
@@ -11,7 +12,6 @@ namespace NogVita.UnitTests.Application.Admin;
 
 public class DeactivateUserUseCaseTests
 {
-    private static readonly Guid AdminId = Guid.NewGuid();
 
     private readonly FakeUserRepository _userRepository = new();
     private readonly FakeRefreshTokenRepository _refreshTokenRepository = new();
@@ -20,6 +20,9 @@ public class DeactivateUserUseCaseTests
     private readonly FakeNutritionPlanRepository _planRepository = new();
     private readonly FakeEmailSender _emailSender = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
+    private static readonly Guid AdminId = Guid.NewGuid();
+    private readonly CapturingLogger<AdminAuditLog> _auditLogger = new();
+    private AdminAuditLog AuditLog => new(_auditLogger);
 
     private static User CreateActiveUser()
     {
@@ -31,28 +34,21 @@ public class DeactivateUserUseCaseTests
 
     private User AddNutritionist()
     {
-        var nutritionist = new User("Nutri Teste", "nutri@email.com", Cpf.Create("12345678909"));
-        nutritionist.SetPasswordHash("hash");
-        nutritionist.ConfirmEmail(DateTime.UtcNow);
-        nutritionist.CreateNutritionistProfile(1, "123456");
-        nutritionist.NutritionistProfile!.Activate();
+        var nutritionist = TestUsers.Nutritionist();
         _userRepository.Add(nutritionist);
         return nutritionist;
     }
 
     private User AddPatient(string email, string cpf)
     {
-        var patient = new User("Paciente Teste", email, Cpf.Create(cpf));
-        patient.SetPasswordHash("hash");
-        patient.ConfirmEmail(DateTime.UtcNow);
-        patient.CreatePatientProfile(new DateOnly(1995, 3, 10), BiologicalSex.Female, 165, Goal.WeightLoss);
+        var patient = TestUsers.Patient(email: email, cpf: cpf);
         _userRepository.Add(patient);
         return patient;
     }
 
     private CareRelationship Follow(User patient, User nutritionist)
     {
-        var relationship = new NutritionistRequest(patient.Id, nutritionist.Id, null).Accept(DateTime.UtcNow);
+        var relationship = TestUsers.Follow(patient.Id, nutritionist.Id);
         _relationshipRepository.Add(relationship);
         return relationship;
     }
@@ -65,6 +61,7 @@ public class DeactivateUserUseCaseTests
             _requestRepository,
             _planRepository,
             new FollowUpNotificationService(_emailSender, NullLogger<FollowUpNotificationService>.Instance),
+            AuditLog,
             _unitOfWork,
             TimeProvider.System);
 
@@ -179,5 +176,28 @@ public class DeactivateUserUseCaseTests
 
         Assert.True(relationship.IsActive);
         Assert.Empty(_emailSender.SentMessages);
+    }
+
+    [Fact]
+    public async Task Should_Audit_Deactivation_With_Ended_Follow_Ups()
+    {
+        var nutritionist = AddNutritionist();
+        Follow(AddPatient("ana@email.com", "11144477735"), nutritionist);
+
+        await CreateUseCase().ExecuteAsync(AdminId, nutritionist.Id, TestContext.Current.CancellationToken);
+
+        var entry = AuditAssert.Recorded(_auditLogger, AdminId, AdminAuditAction.UserDeactivated, nutritionist.Id);
+        Assert.Equal("1 acompanhamento(s) encerrado(s).", entry.Values["AuditDetails"]);
+    }
+
+    [Fact]
+    public async Task Should_Not_Audit_Refused_Deactivation()
+    {
+        var admin = CreateActiveUser();
+        _userRepository.Add(admin);
+
+        await CreateUseCase().ExecuteAsync(admin.Id, admin.Id, TestContext.Current.CancellationToken);
+
+        AuditAssert.Nothing(_auditLogger);
     }
 }

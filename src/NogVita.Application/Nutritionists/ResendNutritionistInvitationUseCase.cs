@@ -1,4 +1,6 @@
 using NogVita.Application.Abstractions;
+using NogVita.Application.Admin;
+using NogVita.Domain.Audit;
 
 namespace NogVita.Application.Nutritionists;
 
@@ -15,9 +17,10 @@ public sealed class ResendNutritionistInvitationUseCase(
     IInvitationRepository invitationRepository,
     IUnitOfWork unitOfWork,
     NutritionistInvitationService invitationService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    AdminAuditLog auditLog)
 {
-    public async Task<ResendInvitationStatus> ExecuteAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<ResendInvitationStatus> ExecuteAsync(Guid adminId, Guid userId, CancellationToken cancellationToken = default)
     {
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
 
@@ -34,6 +37,7 @@ public sealed class ResendNutritionistInvitationUseCase(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var emailSent = await invitationService.TrySendAsync(user, token, cancellationToken);
+        auditLog.Record(adminId, AdminAuditAction.NutritionistInvitationResent, user.Id, emailSent ? null : "O e-mail do convite falhou.");
 
         return emailSent ? ResendInvitationStatus.Sent : ResendInvitationStatus.EmailFailed;
     }

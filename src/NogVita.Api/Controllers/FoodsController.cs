@@ -47,7 +47,7 @@ public sealed class FoodsController(
             LookupProductStatus.NotFound => Problem(
                 statusCode: StatusCodes.Status404NotFound,
                 title: "Produto não encontrado no Open Food Facts."),
-            _ => Problem(
+            LookupProductStatus.Unavailable => Problem(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "O catálogo de produtos está indisponível no momento. Tente novamente em alguns minutos.")
         };
@@ -72,7 +72,7 @@ public sealed class FoodsController(
             ImportProductStatus.InvalidData => Problem(
                 statusCode: StatusCodes.Status422UnprocessableEntity,
                 title: "Os dados nutricionais deste produto no Open Food Facts são inconsistentes e não podem ser importados."),
-            _ => Problem(
+            ImportProductStatus.Unavailable => Problem(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "O catálogo de produtos está indisponível no momento. Tente novamente em alguns minutos.")
         };

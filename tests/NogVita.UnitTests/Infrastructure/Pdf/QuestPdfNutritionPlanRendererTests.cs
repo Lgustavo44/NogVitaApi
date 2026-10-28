@@ -6,6 +6,7 @@ using NogVita.Infrastructure.Pdf;
 
 namespace NogVita.UnitTests.Infrastructure.Pdf;
 
+[Trait(TestCategories.Key, TestCategories.Slow)] // o QuestPDF carrega as fontes e gera um PDF de verdade
 public class QuestPdfNutritionPlanRendererTests
 {
     [Fact]

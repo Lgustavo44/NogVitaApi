@@ -1,6 +1,7 @@
 using NogVita.Application.Abstractions;
 using NogVita.Application.Common;
 using NogVita.Application.FollowUps;
+using NogVita.Domain.Audit;
 
 namespace NogVita.Application.Admin;
 
@@ -18,6 +19,7 @@ public sealed class DeactivateUserUseCase(
     INutritionistRequestRepository requestRepository,
     INutritionPlanRepository planRepository,
     FollowUpNotificationService notificationService,
+    AdminAuditLog auditLog,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
 {
@@ -42,6 +44,8 @@ public sealed class DeactivateUserUseCase(
             : await ReleasePatientsAsync(adminId, user.Id, now, cancellationToken);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        auditLog.Record(adminId, AdminAuditAction.UserDeactivated, user.Id,
+            endedPatientIds.Count > 0 ? $"{endedPatientIds.Count} acompanhamento(s) encerrado(s)." : null);
 
         foreach (var patientId in endedPatientIds)
         {

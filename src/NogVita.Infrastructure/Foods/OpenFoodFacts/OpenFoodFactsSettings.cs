@@ -8,6 +8,9 @@ public sealed class OpenFoodFactsSettings
     public string UserAgent { get; init; } = string.Empty;
     public int TimeoutSeconds { get; init; } = 10;
 
+    // A importação em massa do CSV na inicialização (D154). Ligada por padrão; os testes de integração desligam (D181).
+    public bool ImportOnStartup { get; init; } = true;
+
     public void Validate()
     {
         if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)

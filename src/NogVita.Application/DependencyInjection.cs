@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<UpdateMyNutritionistProfileUseCase>();
 
         // Administração de contas (Admin)
+        services.AddSingleton<AdminAuditLog>();
         services.AddScoped<ActivateUserUseCase>();
         services.AddScoped<DeactivateUserUseCase>();
 

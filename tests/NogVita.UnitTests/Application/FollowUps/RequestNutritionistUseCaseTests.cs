@@ -17,23 +17,17 @@ public class RequestNutritionistUseCaseTests
 
     private User AddPatient()
     {
-        var user = new User("Paciente Teste", "paciente@email.com", Cpf.Create("11144477735"));
-        user.SetPasswordHash("hash");
-        user.ConfirmEmail(DateTime.UtcNow);
-        user.CreatePatientProfile(new DateOnly(1995, 3, 10), BiologicalSex.Male, 178, Goal.MuscleGain);
+        var user = TestUsers.Patient(biologicalSex: BiologicalSex.Male, heightInCm: 178, goal: Goal.MuscleGain);
         _userRepository.Add(user);
         return user;
     }
 
     private User AddNutritionist(bool active = true)
     {
-        var user = new User("Nutri Teste", "nutri@email.com", Cpf.Create("12345678909"));
-        user.SetPasswordHash("hash");
-        user.ConfirmEmail(DateTime.UtcNow);
-        user.CreateNutritionistProfile(1, "123456");
-        if (active)
+        var user = TestUsers.Nutritionist();
+        if (!active)
         {
-            user.NutritionistProfile!.Activate();
+            user.NutritionistProfile!.Deactivate(); // o convite ainda não foi aceito
         }
         _userRepository.Add(user);
         return user;
@@ -120,7 +114,7 @@ public class RequestNutritionistUseCaseTests
     {
         var patient = AddPatient();
         var nutritionist = AddNutritionist();
-        _relationshipRepository.Add(new NutritionistRequest(patient.Id, nutritionist.Id, null).Accept(DateTime.UtcNow));
+        _relationshipRepository.Add(TestUsers.Follow(patient.Id, nutritionist.Id));
 
         var result = await CreateUseCase().ExecuteAsync(
             patient.Id,
@@ -128,6 +122,32 @@ public class RequestNutritionistUseCaseTests
             TestContext.Current.CancellationToken);
 
         Assert.Equal(RequestNutritionistStatus.AlreadyHasNutritionist, result.Status);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Should_Not_Request_For_Unknown_Patient()
+    {
+        var nutritionist = AddNutritionist();
+
+        var result = await CreateUseCase().ExecuteAsync(
+            Guid.NewGuid(), new RequestNutritionistRequest(nutritionist.Id, null), TestContext.Current.CancellationToken);
+
+        Assert.Equal(RequestNutritionistStatus.PatientNotFound, result.Status);
+        Assert.Empty(_requestRepository.Requests);
+    }
+
+    [Fact]
+    public async Task Should_Not_Request_For_Patient_Blocked_By_Admin()
+    {
+        var patient = AddPatient();
+        patient.Deactivate(DateTime.UtcNow);
+        var nutritionist = AddNutritionist();
+
+        var result = await CreateUseCase().ExecuteAsync(
+            patient.Id, new RequestNutritionistRequest(nutritionist.Id, null), TestContext.Current.CancellationToken);
+
+        Assert.Equal(RequestNutritionistStatus.PatientNotFound, result.Status);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
     }
 }

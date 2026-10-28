@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\src\NogVita.Domain\NogVita.Domain.csproj" />
     <ProjectReference Include="..\..\src\NogVita.Application\NogVita.Application.csproj" />
     <ProjectReference Include="..\..\src\NogVita.Infrastructure\NogVita.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\NogVita.Api\NogVita.Api.csproj" />
   </ItemGroup>
 
 </Project>

@@ -46,7 +46,7 @@ public sealed class NutritionistMealsController(ManageMealsUseCase manageMealsUs
         ManageMealResult.InvalidOrder => Problem(
             statusCode: StatusCodes.Status400BadRequest,
             title: "A nova ordem precisa conter todas as refeições do plano, uma vez cada."),
-        _ => Problem(
+        ManageMealResult.NotFound => Problem(
             statusCode: StatusCodes.Status404NotFound,
             title: "Plano ou refeição não encontrado.")
     };

@@ -40,7 +40,7 @@ public sealed class LookupProductByBarcodeUseCase(IFoodRepository foodRepository
             ProductLookupStatus.Found =>
                 new LookupProductResult(LookupProductStatus.Found, ProductPreviewResponse.FromExternal(result.Product!)),
             ProductLookupStatus.NotFound => new LookupProductResult(LookupProductStatus.NotFound),
-            _ => new LookupProductResult(LookupProductStatus.Unavailable)
+            ProductLookupStatus.Unavailable => new LookupProductResult(LookupProductStatus.Unavailable)
         };
     }
 }

@@ -481,3 +481,7 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 *.env
+
+# Cobertura dos testes (Fase 23): os resultados e o relatório HTML são gerados a cada medição
+TestResults/
+coverage-report/

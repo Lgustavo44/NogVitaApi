@@ -7,6 +7,8 @@
 
 # NogVita
 
+[![CI](https://github.com/Lgustavo44/NogVitaApi/actions/workflows/ci.yml/badge.svg)](https://github.com/Lgustavo44/NogVitaApi/actions/workflows/ci.yml)
+
 Plataforma de acompanhamento nutricional que conecta **pacientes**, **nutricionistas** e **administradores**.
 
 O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista monta planos alimentares com cálculo nutricional automático, baseado em uma fonte externa de dados nutricionais.
@@ -43,6 +45,10 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Exportação em PDF:** o plano completo, para baixar ou receber por e-mail, no visual da marca
 - **Registro de peso:** pelo paciente ou pelo nutricionista, um por dia, com o histórico e o IMC no detalhe do paciente
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
+
+### Planejado para a V2
+
+- **Edição simultânea de um plano (D172):** hoje, se duas abas (ou o nutricionista em dois aparelhos) editam o mesmo plano ao mesmo tempo, a última gravação vence, sem aviso. A proteção completa precisa de uma versão em cada plano, enviada pelo front em toda edição e conferida pela API (respondendo `409` quando o plano mudou). Fazer só a parte da API daria uma falsa proteção, então fica para a V2 como uma funcionalidade inteira, junto com o front.
 
 ## Endpoints
 
@@ -455,9 +461,9 @@ O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.
 
 ## Stack
 
-**Em uso:** C# · .NET 10 · ASP.NET Core Web API · Entity Framework Core · PostgreSQL · JWT · FluentValidation · xUnit · Docker (banco de dados) · OpenAPI / Swagger UI · TACO (tabela brasileira de composição de alimentos) · Open Food Facts (API pública de alimentos) · Brevo (e-mail em staging) · QuestPDF (PDF)
+**Em uso:** C# · .NET 10 · ASP.NET Core Web API · Entity Framework Core · PostgreSQL · JWT · FluentValidation · xUnit · Testcontainers · GitHub Actions · Docker (banco de dados) · OpenAPI / Swagger UI · TACO (tabela brasileira de composição de alimentos) · Open Food Facts (API pública de alimentos) · Brevo (e-mail em staging) · QuestPDF (PDF)
 
-**Planejado:** Docker Compose (API + banco) · testes de integração
+**Planejado:** Docker Compose (API + banco)
 
 ## Arquitetura
 
@@ -503,7 +509,10 @@ tests/
 - Sem o cabeçalho `Server: Kestrel`, que anunciaria a tecnologia do servidor
 - Seguro por padrão: a política de autorização padrão exige login em toda rota. Só as rotas marcadas com `[AllowAnonymous]` (login, cadastro, confirmação de e-mail, redefinição de senha, convite, `/health` e o OpenAPI) ficam abertas, e um controller novo que esqueça o `[Authorize]` nasce fechado
 - Bloqueio pelo admin explícito (`deactivated_at_utc`), separado do "e-mail ainda não confirmado": confirmar o e-mail, redefinir a senha ou aceitar um convite nunca reativa uma conta bloqueada
-- Trilha de auditoria (`tb_admin_audit_entry`) para ações do admin que apagam dados, começando pelo cancelamento de pré-cadastro. Guarda o admin, a ação, o Id afetado e um resumo, sem dados pessoais de quem foi apagado
+- Auditoria de todas as ações do admin (D173): ativar e desativar contas, pré-cadastrar, reenviar e cancelar convites, e ativar e desativar alimentos. Cada ação gera uma linha de log no mesmo formato, com o `EventId` próprio `9100 AdminAudit` (para filtrar só a auditoria) e apenas Ids, nunca nome, CPF ou e-mail. Ela só é gravada depois que a ação dá certo: uma recusa não aparece. O cancelamento de pré-cadastro, que apaga dados, também fica numa tabela (`tb_admin_audit_entry`), um registro durável que sobrevive à exclusão
+- Switch exaustivos (D170): o `Directory.Build.props` transforma o CS8509 em erro. Um status novo num caso de uso, esquecido num controller, não compila, em vez de cair num `_ =>` e virar um 500
+- Dados do Open Food Facts tolerantes (D171): um nutriente que chega como `""` vira "não informado", e o resto do produto continua valendo
+- Tratador global de exceções (`GlobalExceptionHandler`): toda exceção que escapa de um caso de uso vira ProblemDetails. Um índice único violado (o clique duplo) responde `409` com uma mensagem por índice, uma regra do domínio responde `422`, e o resto responde `500` com uma mensagem genérica e o `traceId`, sem nenhum detalhe interno; o detalhe vai para o log. A tradução dos índices fica na Infrastructure (`UniqueViolationTranslator`), a única camada que sabe que o banco é o Postgres
 - `AllowedHosts` restrito (`localhost` em desenvolvimento, `nogvitaapi.onrender.com` no staging): requisições com outro `Host` recebem `400`. Os links dos e-mails já usam o `Frontend:BaseUrl`, nunca o `Host` da requisição; a restrição é uma segunda camada
 
 ## Termos de Uso e Privacidade
@@ -584,3 +593,75 @@ Os arquivos ficam em [`docs/assets/`](docs/assets/): `logo.svg` (fundo claro), `
 5. Acesse o Swagger em `https://localhost:7194/swagger`
 
 6. (Opcional) Carregue os **dados de teste**: usuários de todos os papéis, acompanhamentos, planos e refeições prontos, com uma senha só. O script e as instruções estão em [docs/dev/dados-de-teste-local.md](docs/dev/dados-de-teste-local.md). Use **apenas no banco local**.
+
+## Testes
+
+São duas suítes (xUnit v3 com o Microsoft Testing Platform), e o GitHub Actions roda as duas a cada push na `main` e a cada pull request ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): o build (em que um `switch` incompleto é erro), os testes unitários, os de integração e o script dos resultados sem teste.
+
+### Testes unitários
+
+Cobrem o Domain e a Application, e as partes da Infrastructure e da API que não dependem de banco nem de HTTP. A suíte inteira roda em cerca de 2 segundos.
+
+```bash
+dotnet test --project tests/NogVita.UnitTests
+```
+
+### Testes de integração
+
+Conferem as peças juntas, de verdade: uma requisição HTTP passando por todo o pipeline (autenticação, política de fallback, cabeçalhos de segurança, tratador de erros, controller e caso de uso) e um **PostgreSQL real**, com as migrations, o `unaccent` e os índices únicos parciais. Precisam do **Docker** ligado.
+
+```bash
+dotnet test --project tests/NogVita.IntegrationTests
+```
+
+- **Um Postgres por execução (D178):** o [Testcontainers](https://dotnet.testcontainers.org) sobe um `postgres:17` descartável numa porta aleatória, as migrations rodam uma vez, e o container é apagado no fim. A API sobe inteira em memória, com a `WebApplicationFactory`. A suíte leva cerca de 11 segundos (a primeira execução baixa as imagens).
+- **Cada teste cria os próprios dados (D179):** os usuários nascem pelo caminho de verdade (cadastro → e-mail → confirmação → login; pré-cadastro → convite → aceite), sempre com e-mail e CPF únicos. Por isso os testes rodam em qualquer ordem, e em paralelo, no mesmo banco.
+- **Os e-mails são capturados (D180):** o `IEmailSender` é trocado por um dublê, e o teste lê o link do e-mail como uma pessoa faria.
+- **Rate limit e importação do Open Food Facts desligados (D181):** pelas chaves `RateLimiting:Enabled` e `OpenFoodFacts:ImportOnStartup`, que valem `true` fora dos testes.
+
+O que eles cobrem:
+
+| Grupo | O que confere |
+|---|---|
+| Infraestrutura | o `/health` contra o banco do container, o seed da TACO, os cabeçalhos de segurança num 401 e o ProblemDetails |
+| Fluxos de autenticação | cadastro e confirmação por e-mail, login antes de confirmar (403), cadastro repetido sem revelar a conta, renovação com detecção de reuso, logout, redefinição de senha de ponta a ponta, entrada do nutricionista pelo convite e bloqueio pelo admin |
+| Matriz de autorização | todas as 69 rotas, chamadas como anônimo, paciente, nutricionista e admin: quem não pode recebe 401 ou 403. Uma rota nova que não esteja na matriz faz o teste falhar |
+| Acesso pelo acompanhamento (RN12 e RN13) | o nutricionista só alcança os pacientes que acompanha e os próprios planos, um paciente não vê o plano de outro, e o fim do acompanhamento corta o acesso do nutricionista (mas não o do paciente). Fora disso, a resposta é 404 |
+| Consultas no Postgres | busca sem acento e por palavras, `%` e `_` tratados como texto (e não como curingas do LIKE), um plano completo com alimentos da TACO e os totais conferidos contra os valores do banco, alimento inativo só na busca do admin, clique duplo deixando um registro só (e nenhum 500), um acompanhamento ativo por paciente, paciente bloqueado fora da lista do nutricionista, e o filtro e a ordem do histórico de peso |
+
+**Os testes lentos.** Três grupos fazem trabalho pesado de verdade: a leitura dos 22.728 produtos do CSV do Open Food Facts, a geração de um PDF com o QuestPDF e o PBKDF2 real do hash de senha. Eles têm a marca `Category=Slow` e rodam por padrão. No ciclo do dia a dia, dá para pulá-los:
+
+```bash
+dotnet test --project tests/NogVita.UnitTests --filter-not-trait "Category=Slow"
+```
+
+**A cobertura.** Medida com o `Microsoft.Testing.Extensions.CodeCoverage`, e transformada numa página HTML pelo ReportGenerator (que vem no `dotnet tool restore`):
+
+```bash
+dotnet test --project tests/NogVita.UnitTests --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml --results-directory TestResults
+dotnet reportgenerator -reports:TestResults/coverage.cobertura.xml -targetdir:coverage-report -reporttypes:"Html;TextSummary" -classfilters:"-*.Migrations.*"
+```
+
+O relatório fica em `coverage-report/index.html` (fora do Git). As migrations ficam fora da conta, porque são código gerado pelo EF.
+
+| Camada | Meta | Hoje |
+|---|---|---|
+| Domain | 90% ou mais | 93,2% |
+| Application | 80% ou mais | 91,2% |
+| Infrastructure e API | sem meta: quem as testa de verdade são os testes de integração | 30,6% e 0,6% |
+
+A cobertura é um termômetro, e não um objetivo: cada linha sem teste é avaliada ("essa linha merece um teste?"). Os records de resposta, preenchidos pelas consultas da Infrastructure, e o registro de dependências ficam de fora de propósito.
+
+**Os construtores de teste (D176).** A montagem que estava copiada em dezenas de arquivos fica num lugar só, e cada teste diz só o que é diferente:
+
+- `TestCpf`: gera CPFs válidos (com os dígitos verificadores certos) e únicos, para dois usuários de um teste nunca colidirem;
+- `TestUsers`: um nutricionista ativo, um paciente, um pré-cadastro e o vínculo entre eles;
+- `CareScenario`: o cenário do acompanhamento pronto (os repositórios falsos, o nutricionista, o paciente e o vínculo), usado pelos testes de acompanhamento, plano e peso.
+
+Os testes do Domain montam à mão, porque é a própria montagem que eles testam.
+
+**Os resultados sem teste.** A cobertura de linhas não mostra se cada resultado de um caso de uso (`NotFound`, `InvalidState`...) tem um teste que o confira. O script abaixo lista os valores dos enums de resultado da Application que não aparecem em nenhum teste, e sai com código 1 quando encontra algum:
+
+```bash
+powershell -File scripts/find-untested-results.ps1
+```

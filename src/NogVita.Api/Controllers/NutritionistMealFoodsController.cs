@@ -51,7 +51,7 @@ public sealed class NutritionistMealFoodsController(ManageMealFoodsUseCase manag
         ManageMealFoodResult.LimitReached => Problem(
             statusCode: StatusCodes.Status409Conflict,
             title: $"Uma refeição pode ter no máximo {Meal.MaxFoods} alimentos."),
-        _ => Problem(
+        ManageMealFoodResult.NotFound => Problem(
             statusCode: StatusCodes.Status404NotFound,
             title: "Plano, refeição ou alimento da refeição não encontrado.")
     };

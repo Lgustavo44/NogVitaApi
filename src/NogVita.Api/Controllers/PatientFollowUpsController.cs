@@ -56,7 +56,7 @@ public sealed class PatientFollowUpsController(
             CancelNutritionistRequestResult.Cancelled => NoContent(),
             CancelNutritionistRequestResult.NotPending =>
                 Problem(statusCode: StatusCodes.Status409Conflict, title: "Esta solicitação não está mais pendente."),
-            _ => Problem(statusCode: StatusCodes.Status404NotFound, title: "Solicitação não encontrada.")
+            CancelNutritionistRequestResult.NotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Solicitação não encontrada.")
         };
     }
 

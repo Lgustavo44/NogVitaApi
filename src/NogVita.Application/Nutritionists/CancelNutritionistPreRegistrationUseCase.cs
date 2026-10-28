@@ -1,4 +1,5 @@
 using NogVita.Application.Abstractions;
+using NogVita.Application.Admin;
 using NogVita.Domain.Audit;
 
 namespace NogVita.Application.Nutritionists;
@@ -16,7 +17,8 @@ public sealed class CancelNutritionistPreRegistrationUseCase(
     IInvitationRepository invitationRepository,
     IAdminAuditRepository auditRepository,
     IUnitOfWork unitOfWork,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    AdminAuditLog auditLog)
 {
     public async Task<CancelPreRegistrationStatus> ExecuteAsync(Guid adminId, Guid userId, CancellationToken cancellationToken = default)
     {
@@ -46,11 +48,12 @@ public sealed class CancelNutritionistPreRegistrationUseCase(
             details = $"{crn}. Conta mantida, só o perfil de nutricionista foi removido.";
         }
 
-        // Sem o nome, o CPF ou o e-mail: o registro sobrevive à exclusão dos dados (D161).
+        // Esta ação apaga dados: além do log (D173), fica um registro durável na tabela, sem o nome, o CPF ou o e-mail (D161).
         auditRepository.Add(new AdminAuditEntry(
             adminId, AdminAuditAction.NutritionistPreRegistrationCancelled, userId, details, now));
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        auditLog.Record(adminId, AdminAuditAction.NutritionistPreRegistrationCancelled, userId, details);
 
         return CancelPreRegistrationStatus.Cancelled;
     }

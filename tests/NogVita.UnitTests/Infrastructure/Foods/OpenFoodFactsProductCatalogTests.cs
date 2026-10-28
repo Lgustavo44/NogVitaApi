@@ -149,4 +149,48 @@ public class OpenFoodFactsProductCatalogTests
 
         Assert.Equal(ProductLookupStatus.Unavailable, result.Status);
     }
+
+    // D171: um nutriente vazio é "não informado", e não derruba o produto inteiro.
+    [Fact]
+    public async Task Should_Treat_Empty_Nutrient_As_Not_Informed()
+    {
+        var (catalog, _) = CreateCatalog(_ => Json("""
+            {
+              "status": 1,
+              "product": {
+                "product_name": "Granola",
+                "nutriments": {
+                  "energy-kcal_100g": 410,
+                  "proteins_100g": "",
+                  "carbohydrates_100g": "  ",
+                  "fat_100g": "n/a",
+                  "fiber_100g": "7.5"
+                }
+              }
+            }
+            """));
+
+        var result = await catalog.GetByBarcodeAsync(Barcode, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ProductLookupStatus.Found, result.Status);
+        var product = result.Product!;
+        Assert.Equal(410m, product.EnergyKcalPer100g);
+        Assert.Null(product.ProteinPer100g);
+        Assert.Null(product.CarbohydratePer100g);
+        Assert.Null(product.FatPer100g);
+        Assert.Equal(7.5m, product.FiberPer100g);
+    }
+
+    [Fact]
+    public async Task Should_Treat_Null_Nutrient_As_Not_Informed()
+    {
+        var (catalog, _) = CreateCatalog(_ => Json("""
+            { "status": 1, "product": { "product_name": "Água", "nutriments": { "energy-kcal_100g": null } } }
+            """));
+
+        var result = await catalog.GetByBarcodeAsync(Barcode, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ProductLookupStatus.Found, result.Status);
+        Assert.Null(result.Product!.EnergyKcalPer100g);
+    }
 }

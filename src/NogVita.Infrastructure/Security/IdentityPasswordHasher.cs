@@ -33,7 +33,7 @@ public sealed class IdentityPasswordHasher : IPasswordHasher
         {
             PasswordVerificationResult.Success => PasswordCheck.Success,
             PasswordVerificationResult.SuccessRehashNeeded => PasswordCheck.SuccessRehashNeeded,
-            _ => PasswordCheck.Failed
+            PasswordVerificationResult.Failed => PasswordCheck.Failed
         };
     }
 }
