@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>3ec2362f-f934-4d59-916e-aaba411ec3b1</UserSecretsId>
+    <!-- D183: os comentários /// das actions viram a descrição dos endpoints no OpenAPI. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Só as actions e os controllers são documentados (CS1591), e o CancellationToken e o corpo não levam <param> (CS1573). -->
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

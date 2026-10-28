@@ -32,6 +32,8 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
 | Staging | `https://nogvita-green.vercel.app` | `https://nogvitaapi.onrender.com` | `https://nogvitaapi.onrender.com/swagger` |
 | Local | `http://localhost:5173` | `https://localhost:7194` | `https://localhost:7194/swagger` |
 
+O Swagger UI fica disponível em Development e Staging; não é publicado em Production. No staging, use apenas dados de teste.
+
 **Sobre o staging:**
 
 - Roda no plano gratuito da Render: depois de 15 minutos sem uso, o serviço "dorme", e a primeira requisição pode levar **cerca de 1 minuto**. Mostre um estado de carregamento e não use timeouts curtos.
@@ -61,7 +63,7 @@ Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.h
 
 ## Convenções gerais
 
-- **Prefixo:** todas as rotas de negócio ficam em `/api/v1`.
+- **Prefixo e versão:** todas as rotas de negócio ficam em `/api/v1`. Mudanças incompatíveis recebem uma nova versão principal no caminho, como `/api/v2`; veja a [política de versionamento](dev/versionamento.md).
 - **JSON:** os campos usam `camelCase` (`accessToken`, `birthDate`). Envie `Content-Type: application/json`.
 - **Enums:** trafegam como **texto**, e não como número.
 

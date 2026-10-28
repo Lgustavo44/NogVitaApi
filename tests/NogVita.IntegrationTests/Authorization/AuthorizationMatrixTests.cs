@@ -20,6 +20,7 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
     private static readonly (string Method, string Route, string Allowed)[] Matrix =
     [
         ("GET", "health", Anyone),
+        ("GET", "openapi/{documentName}.json", Anyone), // o documento do OpenAPI (no ambiente de testes, sem a tela do Swagger)
 
         // Autenticação: aberta, menos o "quem sou eu"
         ("POST", "api/v1/auth/login", Anyone),
