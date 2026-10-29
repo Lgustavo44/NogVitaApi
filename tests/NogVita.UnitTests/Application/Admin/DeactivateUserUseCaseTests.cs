@@ -1,7 +1,7 @@
-using NogVita.Domain.Audit;
 using Microsoft.Extensions.Logging.Abstractions;
 using NogVita.Application.Admin;
 using NogVita.Application.FollowUps;
+using NogVita.Domain.Audit;
 using NogVita.Domain.Auth;
 using NogVita.Domain.FollowUps;
 using NogVita.Domain.NutritionPlans;

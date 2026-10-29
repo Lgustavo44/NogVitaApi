@@ -12,10 +12,14 @@ public sealed class JwtSettings
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(Issuer) || string.IsNullOrWhiteSpace(Audience))
+        {
             throw new InvalidOperationException("Jwt: Issuer e Audience são obrigatórios.");
+        }
 
         if (ExpirationMinutes <= 0)
+        {
             throw new InvalidOperationException("Jwt: ExpirationMinutes precisa ser maior que zero.");
+        }
 
         byte[] keyBytes;
         try
@@ -28,6 +32,8 @@ public sealed class JwtSettings
         }
 
         if (keyBytes.Length < 32)
+        {
             throw new InvalidOperationException("Jwt: SecretKey precisa ter no mínimo 32 bytes.");
+        }
     }
 }

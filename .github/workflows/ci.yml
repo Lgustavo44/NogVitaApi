@@ -33,6 +33,11 @@ jobs:
       - name: Restaurar os pacotes
         run: dotnet restore
 
+      # Fase 28: o estilo do .editorconfig é conferido por uma máquina, e não pela revisão.
+      # Um arquivo fora do padrão reprova a execução; para corrigir, rode "dotnet format NogVita.slnx" e faça o commit.
+      - name: Conferir o estilo do código
+        run: dotnet format NogVita.slnx --verify-no-changes --no-restore
+
       # O Directory.Build.props transforma o CS8509 em erro (D170): um switch incompleto quebra o build aqui.
       - name: Compilar
         run: dotnet build --no-restore --configuration Release

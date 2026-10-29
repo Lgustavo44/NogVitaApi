@@ -1,171 +1,211 @@
-﻿using NogVita.Domain.Common;
+using NogVita.Domain.Common;
 
-namespace NogVita.Domain.Users
+namespace NogVita.Domain.Users;
+
+public class User : Entity
 {
-    public class User : Entity
+    public string Name { get; private set; } = null!;
+    public string Email { get; private set; } = null!;
+    public Cpf Cpf { get; private set; } = null!;
+    public string? PasswordHash { get; private set; }
+    public bool IsActive { get; private set; }
+    public bool IsAdmin { get; private set; }
+    public DateTime? EmailConfirmedAtUtc { get; private set; }
+    public bool IsEmailConfirmed => EmailConfirmedAtUtc is not null;
+
+    // Bloqueio explícito pelo admin (D163). Separado do IsActive, que também fica falso enquanto o e-mail não é confirmado.
+    public DateTime? DeactivatedAtUtc { get; private set; }
+    public bool IsBlockedByAdmin => DeactivatedAtUtc is not null;
+
+    public PatientProfile? PatientProfile { get; private set; }
+    public NutritionistProfile? NutritionistProfile { get; private set; }
+
+    private User() { } // usado pelo EF Core
+
+    public User(string name, string email, Cpf cpf)
     {
-        public string Name { get; private set; } = null!;
-        public string Email { get; private set; } = null!;
-        public Cpf Cpf { get; private set; } = null!;
-        public string? PasswordHash { get; private set; }
-        public bool IsActive { get; private set; }
-        public bool IsAdmin { get; private set; }
-        public DateTime? EmailConfirmedAtUtc { get; private set; }
-        public bool IsEmailConfirmed => EmailConfirmedAtUtc is not null;
-
-        // Bloqueio explícito pelo admin (D163). Separado do IsActive, que também fica falso enquanto o e-mail não é confirmado.
-        public DateTime? DeactivatedAtUtc { get; private set; }
-        public bool IsBlockedByAdmin => DeactivatedAtUtc is not null;
-
-        public PatientProfile? PatientProfile { get; private set; }
-        public NutritionistProfile? NutritionistProfile { get; private set; }
-
-        private User() { } // usado pelo EF Core
-
-        public User(string name, string email, Cpf cpf)
+        if (string.IsNullOrWhiteSpace(name))
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new DomainException("O nome é obrigatório.");
-            if (string.IsNullOrWhiteSpace(email))
-                throw new DomainException("O email é obrigatório.");
-            ArgumentNullException.ThrowIfNull(cpf);
-            Name = name.Trim();
-            Email = NormalizeEmail(email);
-            Cpf = cpf;
+            throw new DomainException("O nome é obrigatório.");
         }
 
-        public PatientProfile CreatePatientProfile(DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)
+        if (string.IsNullOrWhiteSpace(email))
         {
-            if (PatientProfile is not null)
-                throw new DomainException("O usuário já possui perfil de paciente.");
-
-            PatientProfile = new PatientProfile(Id, birthDate, biologicalSex, heightInCm, goal);
-            return PatientProfile;
+            throw new DomainException("O email é obrigatório.");
         }
 
-        public void UpdatePatientProfile(DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)
-        {
-            if (PatientProfile is null)
-                throw new DomainException("O usuário não possui perfil de paciente.");
+        ArgumentNullException.ThrowIfNull(cpf);
+        Name = name.Trim();
+        Email = NormalizeEmail(email);
+        Cpf = cpf;
+    }
 
-            PatientProfile.Update(birthDate, biologicalSex, heightInCm, goal);
+    public PatientProfile CreatePatientProfile(DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)
+    {
+        if (PatientProfile is not null)
+        {
+            throw new DomainException("O usuário já possui perfil de paciente.");
         }
 
-        public void UpdatePatientRoutine(TimeOnly? wakeUpTime, TimeOnly? bedTime, TimeOnly? trainingTime)
-        {
-            if (PatientProfile is null)
-                throw new DomainException("O usuário não possui perfil de paciente.");
+        PatientProfile = new PatientProfile(Id, birthDate, biologicalSex, heightInCm, goal);
+        return PatientProfile;
+    }
 
-            PatientProfile.UpdateRoutine(wakeUpTime, bedTime, trainingTime);
+    public void UpdatePatientProfile(DateOnly birthDate, BiologicalSex biologicalSex, int heightInCm, Goal goal)
+    {
+        if (PatientProfile is null)
+        {
+            throw new DomainException("O usuário não possui perfil de paciente.");
         }
 
-        public NutritionistProfile CreateNutritionistProfile(int crnRegion, string crnNumber)
+        PatientProfile.Update(birthDate, biologicalSex, heightInCm, goal);
+    }
+
+    public void UpdatePatientRoutine(TimeOnly? wakeUpTime, TimeOnly? bedTime, TimeOnly? trainingTime)
+    {
+        if (PatientProfile is null)
         {
-            if (NutritionistProfile is not null)
-                throw new DomainException("O usuário já possui perfil de nutricionista.");
-            NutritionistProfile = new NutritionistProfile(Id, crnRegion, crnNumber);
-            return NutritionistProfile;
+            throw new DomainException("O usuário não possui perfil de paciente.");
         }
 
-        public void SetPasswordHash(string passwordHash)
+        PatientProfile.UpdateRoutine(wakeUpTime, bedTime, trainingTime);
+    }
+
+    public NutritionistProfile CreateNutritionistProfile(int crnRegion, string crnNumber)
+    {
+        if (NutritionistProfile is not null)
         {
-            if (string.IsNullOrWhiteSpace(passwordHash))
-                throw new DomainException("A senha é obrigatória.");
-            PasswordHash = passwordHash;
+            throw new DomainException("O usuário já possui perfil de nutricionista.");
         }
 
-        // Ativação pelo admin: também desfaz o bloqueio.
-        public void Activate()
-        {
-            if (PasswordHash is null)
-                throw new DomainException("Não é possível ativar um usuário sem senha definida.");
+        NutritionistProfile = new NutritionistProfile(Id, crnRegion, crnNumber);
+        return NutritionistProfile;
+    }
 
-            IsActive = true;
-            DeactivatedAtUtc = null;
+    public void SetPasswordHash(string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            throw new DomainException("A senha é obrigatória.");
         }
 
-        public void Deactivate(DateTime nowUtc)
+        PasswordHash = passwordHash;
+    }
+
+    // Ativação pelo admin: também desfaz o bloqueio.
+    public void Activate()
+    {
+        if (PasswordHash is null)
         {
-            IsActive = false;
-            DeactivatedAtUtc = nowUtc;
+            throw new DomainException("Não é possível ativar um usuário sem senha definida.");
         }
 
-        public void GrantAdmin()
-        {
-            if (!IsActive)
-                throw new DomainException("Somente usuários ativos podem ser administradores.");
+        IsActive = true;
+        DeactivatedAtUtc = null;
+    }
 
-            IsAdmin = true;
+    public void Deactivate(DateTime nowUtc)
+    {
+        IsActive = false;
+        DeactivatedAtUtc = nowUtc;
+    }
+
+    public void GrantAdmin()
+    {
+        if (!IsActive)
+        {
+            throw new DomainException("Somente usuários ativos podem ser administradores.");
         }
 
-        public static string NormalizeEmail(string email)
+        IsAdmin = true;
+    }
+
+    public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
+
+    public IReadOnlyList<string> GetRoles()
+    {
+        var roles = new List<string>();
+
+        if (IsAdmin)
         {
-            return email.Trim().ToLowerInvariant();
+            roles.Add(Roles.Admin);
         }
 
-        public IReadOnlyList<string> GetRoles()
+        if (PatientProfile is not null)
         {
-            var roles = new List<string>();
-
-            if (IsAdmin)         
-                roles.Add(Roles.Admin);
-            if (PatientProfile is not null)
-                roles.Add(Roles.Patient);
-            if (NutritionistProfile is not null && NutritionistProfile.IsActive)
-                roles.Add(Roles.Nutritionist); 
-
-            return roles;
+            roles.Add(Roles.Patient);
         }
 
-        public void ConfirmEmail(DateTime nowUtc)
+        if (NutritionistProfile is not null && NutritionistProfile.IsActive)
         {
-            if (IsEmailConfirmed) return;
-            EmailConfirmedAtUtc = nowUtc;
-
-            // Confirmar o e-mail nunca desfaz um bloqueio do admin (o furo da Fase 11B).
-            if (IsBlockedByAdmin) return;
-
-            if (PasswordHash is null)
-                throw new DomainException("Não é possível ativar um usuário sem senha definida.");
-
-            IsActive = true;
+            roles.Add(Roles.Nutritionist);
         }
 
-        public void ResetPassword(string passwordHash, DateTime nowUtc)
-        {
-            SetPasswordHash(passwordHash);
+        return roles;
+    }
 
-            if (!IsEmailConfirmed)
-            {
-                ConfirmEmail(nowUtc);
-            }
+    public void ConfirmEmail(DateTime nowUtc)
+    {
+        if (IsEmailConfirmed)
+        {
+            return;
         }
 
-        // Cancela um pré-cadastro cujo convite nunca foi aceito, liberando o CRN.
-        public NutritionistProfile RemovePendingNutritionistProfile()
-        {
-            if (NutritionistProfile is null)
-                throw new DomainException("O usuário não possui perfil de nutricionista.");
-            if (NutritionistProfile.IsActive)
-                throw new DomainException("O nutricionista já aceitou o convite.");
+        EmailConfirmedAtUtc = nowUtc;
 
-            var profile = NutritionistProfile;
-            NutritionistProfile = null;
-            return profile;
+        // Confirmar o e-mail nunca desfaz um bloqueio do admin (o furo da Fase 11B).
+        if (IsBlockedByAdmin)
+        {
+            return;
         }
 
-        // Conta criada só pelo pré-cadastro: nunca definiu senha nem tem perfil de paciente.
-        public bool IsOnlyPendingNutritionist =>
-            PasswordHash is null && PatientProfile is null && NutritionistProfile is { IsActive: false };
-
-        public void UpdateNutritionistProfile(string? bio)
+        if (PasswordHash is null)
         {
-            if (NutritionistProfile is null)
-            {
-                throw new DomainException("O usuário não possui perfil de nutricionista.");
-            }
-
-            NutritionistProfile.UpdateBio(bio);
+            throw new DomainException("Não é possível ativar um usuário sem senha definida.");
         }
+
+        IsActive = true;
+    }
+
+    public void ResetPassword(string passwordHash, DateTime nowUtc)
+    {
+        SetPasswordHash(passwordHash);
+
+        if (!IsEmailConfirmed)
+        {
+            ConfirmEmail(nowUtc);
+        }
+    }
+
+    // Cancela um pré-cadastro cujo convite nunca foi aceito, liberando o CRN.
+    public NutritionistProfile RemovePendingNutritionistProfile()
+    {
+        if (NutritionistProfile is null)
+        {
+            throw new DomainException("O usuário não possui perfil de nutricionista.");
+        }
+
+        if (NutritionistProfile.IsActive)
+        {
+            throw new DomainException("O nutricionista já aceitou o convite.");
+        }
+
+        var profile = NutritionistProfile;
+        NutritionistProfile = null;
+        return profile;
+    }
+
+    // Conta criada só pelo pré-cadastro: nunca definiu senha nem tem perfil de paciente.
+    public bool IsOnlyPendingNutritionist =>
+        PasswordHash is null && PatientProfile is null && NutritionistProfile is { IsActive: false };
+
+    public void UpdateNutritionistProfile(string? bio)
+    {
+        if (NutritionistProfile is null)
+        {
+            throw new DomainException("O usuário não possui perfil de nutricionista.");
+        }
+
+        NutritionistProfile.UpdateBio(bio);
     }
 }

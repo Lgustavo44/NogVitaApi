@@ -69,7 +69,7 @@ public sealed class ManageMealsUseCase(NutritionistPlanAccess planAccess, IUnitO
         Guid nutritionistId, Guid planId, Guid mealId, MealRequest request, CancellationToken cancellationToken = default)
     {
         var plan = await planAccess.LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
-        
+
         if (plan is null)
         {
             return ManageMealResult.NotFound;

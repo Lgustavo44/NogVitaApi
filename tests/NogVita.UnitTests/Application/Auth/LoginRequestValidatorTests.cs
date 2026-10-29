@@ -34,7 +34,7 @@ public class LoginRequestValidatorTests
     {
         var result = _validator.TestValidate(new LoginRequest("maria@email.com", ""));
         result.ShouldHaveValidationErrorFor(x => x.Password);
-    } 
-    
+    }
+
 
 }

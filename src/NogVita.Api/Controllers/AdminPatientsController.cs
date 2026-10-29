@@ -38,7 +38,9 @@ public sealed class AdminPatientsController(IAdminUserQueries adminUserQueries) 
         var user = await adminUserQueries.GetUserAsync(id, cancellationToken);
 
         if (user?.Patient is null)
+        {
             return Problem(statusCode: StatusCodes.Status404NotFound, title: "Paciente não encontrado.");
+        }
 
         return Ok(user);
     }

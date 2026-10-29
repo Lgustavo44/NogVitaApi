@@ -14,10 +14,14 @@ public class RefreshToken : Entity
     public RefreshToken(Guid userId, string tokenHash, DateTime expiresAtUtc)
     {
         if (string.IsNullOrWhiteSpace(tokenHash))
+        {
             throw new DomainException("O hash do token é obrigatório.");
+        }
 
         if (expiresAtUtc <= DateTime.UtcNow)
+        {
             throw new DomainException("A data de expiração precisa estar no futuro.");
+        }
 
         UserId = userId;
         TokenHash = tokenHash;
@@ -33,7 +37,9 @@ public class RefreshToken : Entity
     public void Revoke(DateTime nowUtc)
     {
         if (IsRevoked)
+        {
             return;
+        }
 
         RevokedAtUtc = nowUtc;
     }

@@ -1,0 +1,29 @@
+# O estilo do código C# do NogVita (Fase 28). O editor e o `dotnet format` seguem estas regras.
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Um namespace por arquivo, sem chaves: namespace NogVita.Domain.Users;
+csharp_style_namespace_declarations = file_scoped:warning
+
+# Todo if, else, for e foreach com chaves, mesmo de uma linha só.
+csharp_prefer_braces = true:warning
+
+# A seta (=>) só quando o corpo é uma expressão que cabe numa linha; com mais de uma instrução, chaves.
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = when_on_single_line:suggestion
+csharp_style_expression_bodied_accessors = when_on_single_line:suggestion
+csharp_style_expression_bodied_constructors = false:suggestion
+
+# Os usings fora do namespace, com os do System primeiro.
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true
+
+# As migrations são geradas pelo EF (dotnet ef migrations add): ficam fora das regras de estilo.
+[**/Migrations/*.cs]
+generated_code = true

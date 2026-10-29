@@ -17,7 +17,9 @@ public sealed class RefreshTokenUseCase(
         var storedToken = await refreshTokenRepository.GetByHashAsync(tokenHash, cancellationToken);
 
         if (storedToken is null)
+        {
             return null;
+        }
 
         if (storedToken.IsRevoked)
         {
@@ -26,7 +28,9 @@ public sealed class RefreshTokenUseCase(
         }
 
         if (storedToken.IsExpired(now))
+        {
             return null;
+        }
 
         var user = await userRepository.GetByIdAsync(storedToken.UserId, cancellationToken);
 

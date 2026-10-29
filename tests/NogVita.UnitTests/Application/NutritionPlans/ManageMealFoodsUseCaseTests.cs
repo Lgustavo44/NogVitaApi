@@ -1,7 +1,7 @@
 using NogVita.Application.FollowUps;
 using NogVita.Application.NutritionPlans;
-using NogVita.Domain.Foods;
 using NogVita.Domain.FollowUps;
+using NogVita.Domain.Foods;
 using NogVita.Domain.NutritionPlans;
 using NogVita.Domain.Users;
 using NogVita.UnitTests.Fakes;

@@ -1,4 +1,4 @@
-﻿using NogVita.Domain.Common;
+using NogVita.Domain.Common;
 
 namespace NogVita.Domain.Users;
 
@@ -18,9 +18,15 @@ public class NutritionistProfile : Entity
     internal NutritionistProfile(Guid userId, int crnRegion, string crnNumber)
     {
         if (crnRegion < 1 || crnRegion > MaxCrnRegion)
+        {
             throw new DomainException("Região do CRN inválida.");
+        }
+
         if (string.IsNullOrWhiteSpace(crnNumber))
+        {
             throw new DomainException("O número do CRN é obrigatório.");
+        }
+
         CrnNumber = crnNumber.Trim();
         UserId = userId;
         CrnRegion = crnRegion;

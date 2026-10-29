@@ -3,7 +3,6 @@ using NogVita.Application.Common.Pagination;
 using NogVita.Application.NutritionPlans;
 using NogVita.Domain.NutritionPlans;
 using NogVita.Domain.Users;
-using NogVita.Infrastructure.Queries;
 
 namespace NogVita.Infrastructure.Persistence.Queries;
 

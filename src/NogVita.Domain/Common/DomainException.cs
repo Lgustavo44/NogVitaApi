@@ -1,4 +1,4 @@
-﻿namespace NogVita.Domain.Common;
+namespace NogVita.Domain.Common;
 
 public class DomainException : Exception
 {

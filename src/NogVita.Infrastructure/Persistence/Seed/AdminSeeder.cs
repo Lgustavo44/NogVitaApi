@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Common.Validation;
@@ -22,7 +22,9 @@ public sealed class AdminSeeder(
         }
 
         if (await context.Users.AnyAsync(u => u.IsAdmin, cancellationToken))
+        {
             return;
+        }
 
         if (settings.Password.Length < MinPasswordLength)
         {

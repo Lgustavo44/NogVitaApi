@@ -12,7 +12,9 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
         var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
 
         if (!authenticationSchemes.Any(scheme => scheme.Name == "Bearer"))
+        {
             return;
+        }
 
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>

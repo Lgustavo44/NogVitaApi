@@ -42,7 +42,9 @@ public sealed class MailKitEmailSender(EmailSettings settings) : IEmailSender
         await client.ConnectAsync(settings.Host, settings.Port, security, cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(settings.Username))
+        {
             await client.AuthenticateAsync(settings.Username, settings.Password!, cancellationToken);
+        }
 
         await client.SendAsync(mimeMessage, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);

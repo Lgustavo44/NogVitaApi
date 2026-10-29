@@ -1,7 +1,12 @@
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NogVita.Api;
 using NogVita.Api.Errors;
 using NogVita.Api.Filters;
 using NogVita.Api.OpenApi;
@@ -11,12 +16,14 @@ using NogVita.Application.Common;
 using NogVita.Infrastructure;
 using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Foods.OpenFoodFacts;
+using NogVita.Infrastructure.Persistence;
 using NogVita.Infrastructure.Persistence.Seed;
 using NogVita.Infrastructure.Security;
-using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Fase 26: em Production, a API não sobe com uma configuração insegura ou incompleta (docs/dev/producao.md).
+ProductionSettingsGuard.Validate(builder.Configuration, builder.Environment);
 
 // Sem o "Server: Kestrel" nas respostas: não há motivo para anunciar a tecnologia do servidor.
 builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
@@ -125,6 +132,27 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
+// Fase 26: o HTTPS fora da máquina de desenvolvimento. Atrás da Render, a API não tem um certificado próprio
+// nem sabe sozinha qual é a porta HTTPS: a porta é a 443 do balanceador, e o 308 preserva o método (um POST continua POST).
+var behindTlsProxy = !builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing");
+if (behindTlsProxy)
+{
+    builder.Services.AddHttpsRedirection(options =>
+    {
+        options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
+        options.HttpsPort = 443;
+    });
+
+    // O navegador passa a usar só HTTPS com a API. Começa com 30 dias e sem includeSubDomains/preload:
+    // o domínio do staging (onrender.com) é compartilhado, e um HSTS longo é difícil de desfazer.
+    builder.Services.AddHsts(options =>
+    {
+        options.MaxAge = TimeSpan.FromDays(30);
+        options.IncludeSubDomains = false;
+        options.Preload = false;
+    });
+}
+
 // D181: nos testes de integração, todas as requisições vêm do mesmo "IP" e o limite barraria a suíte.
 // Desligado por configuração (RateLimiting:Enabled = false), as políticas continuam existindo, só sem limite.
 var rateLimitingEnabled = builder.Configuration.GetValue("RateLimiting:Enabled", true);
@@ -168,6 +196,13 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    // Fase 26: no docker-compose, a API aplica as migrations ao subir, e o ambiente inteiro sobe com um comando.
+    // Desligado por padrão: no staging e na produção, a migration é um passo explícito do deploy, antes do código novo.
+    if (app.Configuration.GetValue("Database:MigrateOnStartup", false))
+    {
+        await scope.ServiceProvider.GetRequiredService<NogVitaDbContext>().Database.MigrateAsync();
+    }
+
     var seeder = scope.ServiceProvider.GetRequiredService<AdminSeeder>();
     var adminSeedSettings = app.Configuration
         .GetSection(AdminSeedSettings.SectionName)
@@ -223,7 +258,17 @@ else if (app.Environment.IsEnvironment("Testing"))
     app.MapOpenApi().AllowAnonymous();
 }
 
-app.UseHttpsRedirection();
+if (behindTlsProxy)
+{
+    // Só vai em respostas HTTPS (o UseForwardedHeaders já marcou a requisição como https, pelo X-Forwarded-Proto).
+    app.UseHsts();
+}
+
+// O /health fica fora do redirecionamento: a checagem da plataforma chega por HTTP, direto no container,
+// e um 308 faria a API parecer fora do ar.
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments("/health"),
+    branch => branch.UseHttpsRedirection());
 
 app.UseCors();
 
@@ -233,7 +278,17 @@ app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHealthChecks("/health").AllowAnonymous();
+// Fase 26: "viva" e "pronta" separadas.
+// /health/live: o processo responde. Não consulta o banco, para um banco fora do ar não fazer a plataforma
+// reiniciar um container que está bem (reiniciar não conserta o banco).
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
+
+// /health/ready: a API consegue atender, com o banco respondendo. É o que decide se ela recebe tráfego.
+var readiness = new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") };
+app.MapHealthChecks("/health/ready", readiness).AllowAnonymous();
+
+// /health: o mesmo que o /health/ready. Mantido porque a checagem da Render aponta para ele desde a Fase 26A.
+app.MapHealthChecks("/health", readiness).AllowAnonymous();
 
 app.Run();
 

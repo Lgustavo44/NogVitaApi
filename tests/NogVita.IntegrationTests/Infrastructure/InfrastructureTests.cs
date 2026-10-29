@@ -22,11 +22,15 @@ public class InfrastructureTests(NogVitaApiFixture fixture)
     {
         await using var context = fixture.CreateDbContext();
 
-        var taco = await context.Foods.CountAsync(f => f.Source == Domain.Foods.FoodSource.Taco, TestContext.Current.CancellationToken);
+        // Os da TACO oficial: o teste do alimento inativo cria um "Alimento de teste ..." com a fonte TACO, e ele não conta.
+        var taco = await context.Foods.CountAsync(
+            f => f.Source == Domain.Foods.FoodSource.Taco && !f.Name.StartsWith("Alimento de teste"), TestContext.Current.CancellationToken);
         var openFoodFacts = await context.Foods.CountAsync(f => f.Source == Domain.Foods.FoodSource.OpenFoodFacts, TestContext.Current.CancellationToken);
 
         Assert.Equal(597, taco);
-        Assert.Equal(0, openFoodFacts); // D181: a importação em massa fica desligada nos testes
+        // D181: a importação em massa (22.728 produtos) fica desligada nos testes. Um ou outro produto avulso,
+        // criado por um teste (como o da relevância da busca), não conta.
+        Assert.True(openFoodFacts < 100, $"Produtos do Open Food Facts: {openFoodFacts}");
     }
 
     [Fact]

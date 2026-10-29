@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using NogVita.Application.Abstractions;
 using NogVita.Domain.Users;
 

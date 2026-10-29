@@ -12,7 +12,9 @@ public sealed class UpdateMyPatientProfileUseCase(
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
 
         if (user is null || !user.IsActive || user.PatientProfile is null)
+        {
             return null;
+        }
 
         user.UpdatePatientProfile(request.BirthDate, request.BiologicalSex, request.HeightInCm, request.Goal);
         user.UpdatePatientRoutine(request.WakeUpTime, request.BedTime, request.TrainingTime);

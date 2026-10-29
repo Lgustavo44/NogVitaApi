@@ -10,7 +10,9 @@ public sealed class FakeUserRepository : IUserRepository
     public FakeUserRepository(User? user = null)
     {
         if (user is not null)
+        {
             Users.Add(user);
+        }
     }
 
     public Task<User?> GetByCpfAsync(Cpf cpf, CancellationToken cancellationToken = default)

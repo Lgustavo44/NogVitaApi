@@ -47,9 +47,21 @@ public sealed record NutrientsPer100g
 
     private static decimal? Validate(decimal? value, decimal max, string nutrient)
     {
-        if (value is null) return null;
-        if (value < 0) throw new DomainException($"O valor de {nutrient} não pode ser negativo.");
-        if (value > max) throw new DomainException($"O valor de {nutrient} está acima do limite possível para 100 g.");
+        if (value is null)
+        {
+            return null;
+        }
+
+        if (value < 0)
+        {
+            throw new DomainException($"O valor de {nutrient} não pode ser negativo.");
+        }
+
+        if (value > max)
+        {
+            throw new DomainException($"O valor de {nutrient} está acima do limite possível para 100 g.");
+        }
+
         return value;
     }
 }

@@ -93,8 +93,8 @@ public sealed class RecordWeightUseCase(
 
         var record = new WeightRecord(patientId, authorId, recordedOn, request.WeightKg, request.Notes, today);
 
-        recordRepository.Add(record);                         
-        await unitOfWork.SaveChangesAsync(cancellationToken); 
+        recordRepository.Add(record);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new RecordWeightResult(RecordWeightStatus.Created, record.Id);
 

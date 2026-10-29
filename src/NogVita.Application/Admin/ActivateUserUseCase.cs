@@ -17,9 +17,14 @@ public sealed class ActivateUserUseCase(IUserRepository userRepository, IUnitOfW
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
 
         if (user is null)
+        {
             return ActivateUserResult.NotFound;
+        }
+
         if (user.PasswordHash is null)
+        {
             return ActivateUserResult.PasswordNotDefined;
+        }
 
         user.Activate();
         await unitOfWork.SaveChangesAsync(cancellationToken);

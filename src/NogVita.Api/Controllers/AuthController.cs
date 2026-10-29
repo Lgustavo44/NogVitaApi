@@ -73,7 +73,9 @@ public sealed class AuthController(
         var response = await refreshTokenUseCase.ExecuteAsync(request, cancellationToken);
 
         if (response is null)
+        {
             return Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Sessão inválida ou expirada.");
+        }
 
         return Ok(response);
     }

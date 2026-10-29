@@ -21,3 +21,7 @@ Quando uma nova versão for criada, a anterior deve continuar disponível durant
 ## Documentação do contrato
 
 O documento OpenAPI e a tela Swagger são gerados pela API. Cada action deve ter um comentário XML em português e declarar com `[ProducesResponseType]` todas as respostas de sucesso e de erro específicas; respostas realmente comuns ficam no nível do controller. Os testes de integração conferem o documento gerado. O guia de consumo está em [`../API.md`](../API.md), e a tela interativa do ambiente de staging está em `https://nogvitaapi.onrender.com/swagger`.
+
+## Registro de mudanças
+
+Toda mudança que afete quem consome a API entra no [`CHANGELOG.md`](../../CHANGELOG.md), na seção **Não lançado**. Uma mudança incompatível não entra só como uma linha a mais: ela exige a próxima versão principal.

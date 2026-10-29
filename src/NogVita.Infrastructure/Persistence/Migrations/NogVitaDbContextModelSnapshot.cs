@@ -21,6 +21,7 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "unaccent");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
@@ -929,6 +930,29 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ux_weight_record_patient_day");
 
                     b.ToTable("tb_weight_record", (string)null);
+                });
+
+            modelBuilder.Entity("NogVita.Infrastructure.Persistence.Seed.SeedRun", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at_utc");
+
+                    b.Property<string>("ContentHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("content_hash");
+
+                    b.HasKey("Name")
+                        .HasName("pk_tb_seed_run");
+
+                    b.ToTable("tb_seed_run", (string)null);
                 });
 
             modelBuilder.Entity("NogVita.Domain.Audit.AdminAuditEntry", b =>

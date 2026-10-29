@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using NogVita.Application.Common.Pagination;
 using NogVita.Application.FollowUps;
 using NogVita.Domain.FollowUps;
-using NogVita.Infrastructure.Queries;
 
 namespace NogVita.Infrastructure.Persistence.Queries;
 

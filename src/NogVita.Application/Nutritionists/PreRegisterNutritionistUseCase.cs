@@ -30,7 +30,9 @@ public sealed class PreRegisterNutritionistUseCase(
         var cpf = Cpf.Create(request.Cpf);
 
         if (await userRepository.ExistsByCrnAsync(request.CrnRegion, request.CrnNumber, cancellationToken))
+        {
             return PreRegisterNutritionistResult.Conflict();
+        }
 
         var userByCpf = await userRepository.GetByCpfAsync(cpf, cancellationToken);
         var userByEmail = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
@@ -45,7 +47,9 @@ public sealed class PreRegisterNutritionistUseCase(
         else if (userByCpf is not null && userByCpf.Id == userByEmail?.Id)
         {
             if (userByCpf.NutritionistProfile is not null)
+            {
                 return PreRegisterNutritionistResult.Conflict();
+            }
 
             user = userByCpf;
         }

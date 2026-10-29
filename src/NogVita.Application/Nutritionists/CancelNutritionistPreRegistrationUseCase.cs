@@ -25,10 +25,14 @@ public sealed class CancelNutritionistPreRegistrationUseCase(
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
 
         if (user?.NutritionistProfile is null)
+        {
             return CancelPreRegistrationStatus.NotFound;
+        }
 
         if (user.NutritionistProfile.IsActive)
+        {
             return CancelPreRegistrationStatus.AlreadyAccepted;
+        }
 
         var now = timeProvider.GetUtcNow().UtcDateTime;
         var crn = $"CRN-{user.NutritionistProfile.CrnRegion} {user.NutritionistProfile.CrnNumber}";

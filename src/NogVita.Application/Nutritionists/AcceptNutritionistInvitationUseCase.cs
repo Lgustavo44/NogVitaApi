@@ -24,18 +24,24 @@ public sealed class AcceptNutritionistInvitationUseCase(
         var invitation = await invitationRepository.GetByTokenHashAsync(secureTokenService.Hash(request.Token), cancellationToken);
 
         if (invitation is null || !invitation.IsValid(now))
+        {
             return AcceptInvitationResult.InvalidInvitation;
+        }
 
         var user = await userRepository.GetByIdAsync(invitation.UserId, cancellationToken);
 
         // Conta bloqueada pelo admin (D163) não ganha o papel de nutricionista pelo convite.
         if (user?.NutritionistProfile is null || user.IsBlockedByAdmin)
+        {
             return AcceptInvitationResult.InvalidInvitation;
+        }
 
         if (user.PasswordHash is null)
         {
             if (string.IsNullOrWhiteSpace(request.Password))
+            {
                 return AcceptInvitationResult.PasswordRequired;
+            }
 
             user.SetPasswordHash(passwordHasher.Hash(request.Password));
             user.ConfirmEmail(now);

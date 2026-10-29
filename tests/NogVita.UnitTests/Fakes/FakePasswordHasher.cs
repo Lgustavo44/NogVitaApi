@@ -16,9 +16,14 @@ public sealed class FakePasswordHasher : IPasswordHasher
         VerifyCount++;
 
         if (passwordHash == Hash(password))
+        {
             return PasswordCheck.Success;
+        }
+
         if (passwordHash == $"{OutdatedPrefix}{password}")
+        {
             return PasswordCheck.SuccessRehashNeeded;
+        }
 
         return PasswordCheck.Failed;
     }

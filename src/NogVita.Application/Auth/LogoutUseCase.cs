@@ -14,7 +14,9 @@ public sealed class LogoutUseCase(
         var storedToken = await refreshTokenRepository.GetByHashAsync(tokenHash, cancellationToken);
 
         if (storedToken is null || storedToken.IsRevoked)
+        {
             return;
+        }
 
         storedToken.Revoke(timeProvider.GetUtcNow().UtcDateTime);
         await unitOfWork.SaveChangesAsync(cancellationToken);

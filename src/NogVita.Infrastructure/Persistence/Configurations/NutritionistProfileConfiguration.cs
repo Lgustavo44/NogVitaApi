@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NogVita.Domain.Users;
 
@@ -24,7 +24,7 @@ public class NutritionistProfileConfiguration : IEntityTypeConfiguration<Nutriti
             .HasMaxLength(NutritionistProfile.BioMaxLength)
             .IsRequired(false);
 
-        builder.HasIndex(p => 
+        builder.HasIndex(p =>
         new { p.CrnRegion, p.CrnNumber })
         .IsUnique();
     }

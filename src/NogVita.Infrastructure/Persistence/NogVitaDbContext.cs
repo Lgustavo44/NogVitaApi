@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using NogVita.Application.Abstractions;
 using NogVita.Domain.Audit;
 using NogVita.Domain.Auth;
@@ -9,6 +9,7 @@ using NogVita.Domain.Invitations;
 using NogVita.Domain.NutritionPlans;
 using NogVita.Domain.Users;
 using NogVita.Domain.WeightRecords;
+using NogVita.Infrastructure.Persistence.Seed;
 
 namespace NogVita.Infrastructure.Persistence;
 
@@ -27,10 +28,18 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<WeightRecord> WeightRecords => Set<WeightRecord>();
     public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
+    public DbSet<SeedRun> SeedRuns => Set<SeedRun>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("unaccent");
+
+        // D191: os trigramas, para o índice da busca de alimentos por "contém" (um índice comum só serve para "começa com").
+        modelBuilder.HasPostgresExtension("pg_trgm");
+        modelBuilder.HasDbFunction(typeof(NogVitaDbFunctions).GetMethod(nameof(NogVitaDbFunctions.Unaccent))!)
+            .HasName("f_unaccent")
+            .HasSchema("public");
+
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(NogVitaDbContext).Assembly);
     }
 
@@ -57,9 +66,13 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
         foreach (var entry in ChangeTracker.Entries<Entity>())
         {
             if (entry.State == EntityState.Added)
+            {
                 entry.Property(e => e.CreatedAt).CurrentValue = now;
+            }
             else if (entry.State == EntityState.Modified)
+            {
                 entry.Property(e => e.UpdatedAt).CurrentValue = now;
+            }
         }
 
         try

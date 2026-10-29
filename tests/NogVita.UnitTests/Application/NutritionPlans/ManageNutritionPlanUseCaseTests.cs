@@ -1,6 +1,6 @@
-using NogVita.Domain.Common;
 using NogVita.Application.FollowUps;
 using NogVita.Application.NutritionPlans;
+using NogVita.Domain.Common;
 using NogVita.Domain.FollowUps;
 using NogVita.Domain.NutritionPlans;
 using NogVita.Domain.Users;

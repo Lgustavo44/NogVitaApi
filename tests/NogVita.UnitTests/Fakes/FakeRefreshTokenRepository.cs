@@ -23,7 +23,9 @@ public sealed class FakeRefreshTokenRepository : IRefreshTokenRepository
         RevokedUserIds.Add(userId);
 
         foreach (var token in Tokens.Where(t => t.UserId == userId))
+        {
             token.Revoke(nowUtc);
+        }
 
         return Task.CompletedTask;
     }

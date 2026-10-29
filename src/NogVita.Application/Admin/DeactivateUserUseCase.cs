@@ -26,12 +26,16 @@ public sealed class DeactivateUserUseCase(
     public async Task<DeactivateUserResult> ExecuteAsync(Guid adminId, Guid userId, CancellationToken cancellationToken = default)
     {
         if (adminId == userId)
+        {
             return DeactivateUserResult.CannotDeactivateSelf;
+        }
 
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
 
         if (user is null)
+        {
             return DeactivateUserResult.NotFound;
+        }
 
         var now = timeProvider.GetUtcNow().UtcDateTime;
 

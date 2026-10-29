@@ -21,7 +21,7 @@ internal sealed class NutritionPlanRepository(NogVitaDbContext context) : INutri
         Guid patientId,
         CancellationToken cancellationToken = default) =>
         await context.NutritionPlans.Where(p => p.NutritionistId == nutritionistId && p.PatientId == patientId && (p.Status == NutritionPlanStatus.Draft || p.Status == NutritionPlanStatus.Active)).ToListAsync(cancellationToken);
-        
+
 
     public void Add(NutritionPlan plan) => context.NutritionPlans.Add(plan);
 

@@ -72,10 +72,14 @@ public class RegisterPatientRequestValidatorTests
         var result = validator.TestValidate(request);
 
         if (isValid)
+        {
             result.ShouldNotHaveValidationErrorFor(x => x.BirthDate);
+        }
         else
+        {
             result.ShouldHaveValidationErrorFor(x => x.BirthDate)
                 .WithErrorMessage("É preciso ter pelo menos 18 anos para usar o NogVita.");
+        }
     }
 
     [Fact]
