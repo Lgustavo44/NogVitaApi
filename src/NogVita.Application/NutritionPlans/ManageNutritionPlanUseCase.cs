@@ -16,8 +16,11 @@ public sealed class UpdateNutritionPlanRequestValidator : AbstractValidator<Upda
 {
     public UpdateNutritionPlanRequestValidator()
     {
-        RuleFor(r => r.Name).NotEmpty().MaximumLength(NutritionPlan.NameMaxLength);
-        RuleFor(r => r.Description).MaximumLength(NutritionPlan.DescriptionMaxLength);
+        RuleFor(r => r.Name)
+            .NotEmpty().WithMessage("O nome do plano é obrigatório.")
+            .MaximumLength(NutritionPlan.NameMaxLength).WithMessage($"O nome do plano pode ter no máximo {NutritionPlan.NameMaxLength} caracteres.");
+        RuleFor(r => r.Description)
+            .MaximumLength(NutritionPlan.DescriptionMaxLength).WithMessage($"A descrição pode ter no máximo {NutritionPlan.DescriptionMaxLength} caracteres.");
         RuleFor(r => r.EndDate)
             .GreaterThanOrEqualTo(r => r.StartDate)
             .When(r => r.EndDate is not null)
@@ -149,10 +152,15 @@ public sealed class ManageNutritionPlanUseCase(
     {
         public PlanTargetRequestValidator()
         {
-            RuleFor(r => r.EnergyKcal).GreaterThan(0).LessThanOrEqualTo(PlanTarget.MaxEnergyKcal);
-            RuleFor(r => r.ProteinGrams).InclusiveBetween(0, PlanTarget.MaxMacroGrams).When(r => r.ProteinGrams is not null);
-            RuleFor(r => r.CarbohydrateGrams).InclusiveBetween(0, PlanTarget.MaxMacroGrams).When(r => r.CarbohydrateGrams is not null);
-            RuleFor(r => r.FatGrams).InclusiveBetween(0, PlanTarget.MaxMacroGrams).When(r => r.FatGrams is not null);
+            RuleFor(r => r.EnergyKcal)
+                .GreaterThan(0).LessThanOrEqualTo(PlanTarget.MaxEnergyKcal)
+                .WithMessage($"A meta de calorias precisa estar entre 1 e {PlanTarget.MaxEnergyKcal:0} kcal.");
+            RuleFor(r => r.ProteinGrams).InclusiveBetween(0, PlanTarget.MaxMacroGrams).When(r => r.ProteinGrams is not null)
+                .WithMessage($"A meta de proteína precisa estar entre 0 e {PlanTarget.MaxMacroGrams:0} g.");
+            RuleFor(r => r.CarbohydrateGrams).InclusiveBetween(0, PlanTarget.MaxMacroGrams).When(r => r.CarbohydrateGrams is not null)
+                .WithMessage($"A meta de carboidrato precisa estar entre 0 e {PlanTarget.MaxMacroGrams:0} g.");
+            RuleFor(r => r.FatGrams).InclusiveBetween(0, PlanTarget.MaxMacroGrams).When(r => r.FatGrams is not null)
+                .WithMessage($"A meta de gordura precisa estar entre 0 e {PlanTarget.MaxMacroGrams:0} g.");
         }
     }
 

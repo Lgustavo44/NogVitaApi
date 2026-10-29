@@ -26,6 +26,10 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 - Toda resposta traz cabeçalhos de segurança (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, e nas rotas `/api` também `Content-Security-Policy` e `Cache-Control: no-store`), e não traz mais o `Server`.
 - `GET /api/v1/auth/me` passou a ter um tipo documentado (`MeResponse`). O JSON não mudou: `{ "userId": "...", "roles": [...] }`.
 - As respostas `{ "id": ... }`, `{ "message": ... }` e `{ "invitationEmailSent": ... }` passaram a ter tipos documentados. O JSON não mudou.
+- Staging: o front passou a ser `https://nogvita.vercel.app` (Angular). É a única origem liberada no CORS (sai o `nogvita-green.vercel.app` e o `localhost:5173`), e os links dos e-mails (confirmação, redefinição de senha e convite) apontam para ele.
+- O CORS aceita só os métodos `GET`, `POST`, `PUT` e `DELETE` e os cabeçalhos `Authorization` e `Content-Type`.
+- Um texto com o caractere nulo (`\u0000`), no corpo, na query ou na rota, responde `400` com o erro no campo ("O texto contém um caractere inválido."), e não mais `500`.
+- Os erros de validação da quantidade de um alimento na refeição, da meta diária e do `PUT` do plano vêm em português (antes, vinham com a mensagem padrão, em inglês).
 
 ### Segurança
 

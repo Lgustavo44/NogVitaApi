@@ -63,6 +63,18 @@ public class AuthFlowTests(NogVitaApiFixture fixture)
                      await unknownEmail.Content.ReadAsStringAsync(_ct) is var b ? Title(b) : null);
     }
 
+    // O PostgreSQL recusa o caractere nulo: sem o filtro, o login caía no banco e respondia 500.
+    [Fact]
+    public async Task Login_With_A_Null_Character_Should_Be_400_And_Not_500()
+    {
+        var login = await _accounts.Anonymous().PostAsJsonAsync(
+            "/api/v1/auth/login", new { email = "a\0b@exemplo.com", password = "senha errada mas bem longa" }, TestAccounts.Json, _ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, login.StatusCode);
+        var problem = await login.Content.ReadFromJsonAsync<JsonElement>(TestAccounts.Json, _ct);
+        Assert.Equal("O texto contém um caractere inválido.", problem.GetProperty("errors").GetProperty("Email")[0].GetString());
+    }
+
     [Fact]
     public async Task Refresh_Should_Rotate_And_Detect_Reuse()
     {

@@ -29,8 +29,8 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
 
 | Ambiente | Front | API | Swagger |
 |---|---|---|---|
-| Staging | `https://nogvita-green.vercel.app` | `https://nogvitaapi.onrender.com` | `https://nogvitaapi.onrender.com/swagger` |
-| Local | `http://localhost:5173` | `https://localhost:7194` | `https://localhost:7194/swagger` |
+| Staging | `https://nogvita.vercel.app` | `https://nogvitaapi.onrender.com` | `https://nogvitaapi.onrender.com/swagger` |
+| Local | `http://localhost:4200` (`ng serve`, com proxy) | `https://localhost:7194` | `https://localhost:7194/swagger` |
 
 O Swagger UI fica disponível em Development e Staging; não é publicado em Production. No staging, use apenas dados de teste.
 
@@ -40,14 +40,12 @@ O Swagger UI fica disponível em Development e Staging; não é publicado em Pro
 - Use **apenas dados de teste**. Para CPFs, use um gerador de CPF válido.
 - `GET /health` responde `Healthy` quando a API e o banco estão no ar. É útil para "acordar" o serviço.
 
-**CORS do staging:** duas origens estão liberadas:
+**CORS do staging:** só uma origem está liberada, `https://nogvita.vercel.app`, o front oficial (Angular). A política aceita os métodos `GET`, `POST`, `PUT` e `DELETE` e os cabeçalhos `Authorization` e `Content-Type`, sem credenciais (o token vai no cabeçalho, sem cookies). O cabeçalho de CORS sai também nas respostas de erro, então o front sempre consegue ler o ProblemDetails.
 
-- `https://nogvita-green.vercel.app`: o front oficial do staging.
-- `http://localhost:5173`: o padrão do Vite, para desenvolver na própria máquina usando a API do staging. Acesse sempre por `localhost`, e não por `127.0.0.1`, que o navegador trata como outra origem.
+- Os endereços de *preview* da Vercel (um por commit) **não** estão liberados, de propósito: qualquer pessoa pode publicar em `*.vercel.app`.
+- Em desenvolvimento, o `ng serve` usa um proxy: as chamadas saem da mesma origem do front e não passam pelo CORS. Por isso, o `localhost` não está na lista.
 
-Os endereços de *preview* da Vercel (um por branch) **não** estão liberados, de propósito: só o endereço oficial fala com a API. Para testar uma branch, rode o front localmente.
-
-**Links dos e-mails:** três e-mails trazem links que abrem no front da Vercel (`https://nogvita-green.vercel.app/...`), todos com o token no fragmento da URL (`#token=...`):
+**Links dos e-mails:** três e-mails trazem links que abrem no front da Vercel (`https://nogvita.vercel.app/...`), todos com o token no fragmento da URL (`#token=...`):
 
 | Rota do front | E-mail | Validade | Endpoint que recebe o token |
 |---|---|---|---|
@@ -55,11 +53,10 @@ Os endereços de *preview* da Vercel (um por branch) **não** estão liberados, 
 | `/redefinir-senha` | Redefinição de senha | 1 hora | `POST /api/v1/auth/password-reset/confirm` |
 | `/nutri/convite` | Convite de nutricionista | 72 horas | `POST /api/v1/auth/invitations/accept` |
 
-Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.html` para qualquer rota. Senão, abrir um link direto como `/confirmar-email#token=...` dá `404` da própria Vercel, antes de o Vue carregar. Para resolver, coloque um `vercel.json` na raiz do front:
-
-```json
-{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
-```
+- O token é Base64 *url-safe*: só tem letras, números, `-` e `_`, sem `+`, `/` nem `=`. Ele vai no link sem codificação extra.
+- A tela lê o token do fragmento, apaga o fragmento da barra de endereço (`history.replaceState`) e envia o token no corpo do `POST`.
+- O front publicado já devolve o `index.html` em qualquer rota (pelo `vercel.json` dele), então abrir um link direto funciona.
+- O endereço dos links vem da configuração `Frontend:BaseUrl` (no painel da Render, `Frontend__BaseUrl`).
 
 ## Convenções gerais
 
@@ -227,10 +224,10 @@ Cria a conta e o perfil de paciente em uma etapa. A conta nasce **inativa**, e a
 O link enviado no cadastro tem o formato:
 
 ```
-https://nogvita-green.vercel.app/confirmar-email#token=<token>
+https://nogvita.vercel.app/confirmar-email#token=<token>
 ```
 
-Como no convite, o token vai no **fragmento** (`#`). A tela `/confirmar-email` lê o token de `window.location.hash` (ou `route.hash`) e o envia ao `confirm`. O link vale por **24 horas** e só pode ser usado uma vez.
+Como no convite, o token vai no **fragmento** (`#`). A tela `/confirmar-email` lê o token de `window.location.hash`, apaga o fragmento da barra de endereço e envia o token ao `confirm`. O link vale por **24 horas** e só pode ser usado uma vez.
 
 #### `POST /api/v1/auth/email-confirmation/confirm` 🌐
 
@@ -287,10 +284,10 @@ Como no convite, o token vai no **fragmento** (`#`). A tela `/confirmar-email` l
 O usuário pede a redefinição pelo e-mail e recebe um link no formato:
 
 ```
-https://nogvita-green.vercel.app/redefinir-senha#token=<token>
+https://nogvita.vercel.app/redefinir-senha#token=<token>
 ```
 
-Como nos outros links, o token vai no **fragmento** (`#`). A tela `/redefinir-senha` lê o token de `window.location.hash` (ou `route.hash`), pede a nova senha e envia os dois ao `confirm`. O link vale por **1 hora** e só pode ser usado uma vez.
+Como nos outros links, o token vai no **fragmento** (`#`). A tela `/redefinir-senha` lê o token de `window.location.hash`, apaga o fragmento da barra de endereço, pede a nova senha e envia os dois ao `confirm`. O link vale por **1 hora** e só pode ser usado uma vez.
 
 #### `POST /api/v1/auth/password-reset/request` 🌐
 
@@ -812,17 +809,22 @@ O `409` sempre vem com o `title` "Esta ação não é permitida no status atual 
   "startDate": "2026-10-15",
   "endDate": null,
   "status": "Active",
-  "createdAt": "2026-10-14T18:00:00Z"
+  "createdAt": "2026-10-14T18:00:00Z",
+  "targetEnergyKcal": 2200,
+  "targetProteinGrams": 150,
+  "targetCarbohydrateGrams": null,
+  "targetFatGrams": null
 }
 ```
 
 - `description` e `endDate` podem vir `null`. Um plano sem `endDate` não tem data prevista de término.
+- Os campos `target*` são a [meta diária](#meta-diária-). Sem meta, os quatro vêm `null`. Com meta, `targetEnergyKcal` sempre tem valor, e os outros três são opcionais.
 - Ao finalizar, a `endDate` vira o dia da finalização, se ainda não tinha passado. Ela nunca fica antes da `startDate`.
 - As **listagens** devolvem um `NutritionPlanResponse` em cada item, **sem** as refeições.
 
 #### Formato do detalhe (`NutritionPlanDetailResponse`)
 
-As três rotas de detalhe (o detalhe do nutricionista, o detalhe do paciente e o plano atual) devolvem o plano **dentro de `plan`**, e as refeições em `meals`, já em ordem:
+As três rotas de detalhe (o detalhe do nutricionista, o detalhe do paciente e o plano atual) devolvem o plano **dentro de `plan`**, as refeições em `meals` (já em ordem, cada uma com os alimentos e os totais), os totais do dia em `dailyTotals` e a comparação com a meta em `target`:
 
 ```json
 {
@@ -830,17 +832,51 @@ As três rotas de detalhe (o detalhe do nutricionista, o detalhe do paciente e o
     "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "name": "Plano de hipertrofia",
     "status": "Active",
+    "targetEnergyKcal": 2200,
     "…": "os demais campos do NutritionPlanResponse"
   },
   "meals": [
-    { "id": "…", "name": "Café da manhã", "notes": "Em jejum, beber água antes.", "suggestedTime": "07:00:00", "order": 1, "outsideRoutine": false },
-    { "id": "…", "name": "Almoço", "notes": null, "suggestedTime": null, "order": 2, "outsideRoutine": null },
-    { "id": "…", "name": "Ceia", "notes": null, "suggestedTime": "23:30:00", "order": 3, "outsideRoutine": true }
-  ]
+    {
+      "id": "…",
+      "name": "Almoço",
+      "notes": null,
+      "order": 2,
+      "suggestedTime": "12:30:00",
+      "outsideRoutine": false,
+      "foods": [ { "…": "um MealFoodResponse por alimento (abaixo)" } ],
+      "totals": {
+        "energyKcal": { "value": 640.5, "isComplete": true },
+        "protein": { "value": 42.1, "isComplete": true },
+        "carbohydrate": { "value": 70.3, "isComplete": true },
+        "fat": { "value": 18.0, "isComplete": true },
+        "fiber": { "value": 9.2, "isComplete": false },
+        "sodiumMg": { "value": 820.0, "isComplete": true }
+      }
+    }
+  ],
+  "dailyTotals": { "…": "o mesmo formato de totals, somando todas as refeições" },
+  "target": {
+    "energyKcal": { "target": 2200, "planned": 1980.4, "difference": -219.6, "isComplete": true },
+    "protein": { "target": 150, "planned": 162.0, "difference": 12.0, "isComplete": true },
+    "carbohydrate": null,
+    "fat": null
+  }
 }
 ```
 
-> Leia os campos do plano em `plan` (por exemplo, `response.plan.name`), e não no primeiro nível. `meals` vem `[]` quando o plano ainda não tem refeições.
+> Leia os campos do plano em `plan` (por exemplo, `response.plan.name`), e não no primeiro nível. `meals` vem `[]` quando o plano ainda não tem refeições, e `foods` vem `[]` numa refeição sem alimentos.
+
+**Totais (`totals` e `dailyTotals`):**
+
+- Cada nutriente traz `value` (a soma, arredondada em 1 casa) e `isComplete`.
+- `isComplete: false` quer dizer que algum alimento da soma não tem esse nutriente informado (veio `null` na fonte). A soma considera só os que têm o valor, então o total real pode ser maior. Mostre um aviso, como "valor parcial".
+- Energia em kcal, sódio em miligramas e o resto em gramas.
+
+**Comparação com a meta (`target`):**
+
+- `target` vem `null` quando o plano não tem meta. Dentro dele, `energyKcal` sempre existe, e `protein`, `carbohydrate` e `fat` vêm `null` quando a meta não define aquele nutriente.
+- `difference` é **`planned − target`**: negativo quando o plano está **abaixo** da meta, positivo quando está **acima**. No exemplo, faltam 219,6 kcal e sobram 12 g de proteína.
+- `isComplete` tem o mesmo sentido dos totais: com `false`, o `planned` pode estar subestimado.
 
 #### Nutricionista 🥗
 
@@ -887,6 +923,16 @@ Mesmo corpo do `POST`, sem o `patientId`. Só em `Draft` ou `Active`.
 
 - `204` → atualizado
 - `400`, `404` ou `409` (veja a tabela de ações)
+- `422` → na prática, não acontece: o `400` já cobre as mesmas regras. É a proteção do domínio, caso a validação de entrada e a regra de negócio um dia divirjam. Se aparecer, mostre o `title`.
+
+##### `GET /api/v1/nutritionists/me/nutrition-plans/{id}/pdf`
+
+Baixa o plano em PDF, em qualquer status (inclusive rascunho, para conferir antes de ativar).
+
+- `200` → o arquivo (`application/pdf`), com o nome `nogvita-plano-<startDate>.pdf`
+- `404` → "Plano não encontrado."
+
+> A rota exige o token, então um `<a href>` simples não funciona. Baixe com `fetch`/`HttpClient` (`responseType: 'blob'`) e salve com um link temporário (`URL.createObjectURL`).
 
 ##### `POST /api/v1/nutritionists/me/nutrition-plans/{id}/activate`, `.../finish` e `.../cancel`
 
@@ -958,6 +1004,117 @@ Define a ordem nova. A lista precisa ter **todas** as refeições do plano, cada
 
 > Numa tela de arrastar e soltar, mande a lista inteira na ordem final quando o usuário soltar, e não uma requisição por movimento. Depois do `204`, recarregue o detalhe do plano para pegar a ordem salva.
 
+#### Alimentos da refeição 🥗
+
+Os alimentos entram na refeição com a quantidade em gramas, só enquanto o plano estiver em `Draft` ou `Active`. Uma refeição tem **no máximo 20 alimentos**, e o mesmo alimento entra **uma vez** por refeição (para mudar, altere a quantidade). Para buscar o alimento, use a [busca de alimentos](#get-apiv1foodssearcharrozsourcetaco).
+
+**Cópia dos valores:** ao entrar na refeição, o alimento é **copiado** (nome, marca, fonte e valores por 100 g, com a data da cópia em `snapshotTakenAtUtc`). Uma correção posterior na base de alimentos, ou a desativação do alimento, não muda o que já está no plano.
+
+##### Formato do item (`MealFoodResponse`)
+
+Vem em `meals[].foods` no detalhe do plano.
+
+```json
+{
+  "id": "…",
+  "foodId": "…",
+  "quantityInGrams": 150,
+  "name": "Arroz, tipo 1, cozido",
+  "brand": null,
+  "source": "Taco",
+  "sourceReference": "3",
+  "snapshotTakenAtUtc": "2026-10-20T14:00:00Z",
+  "energyKcalPer100g": 128.2585,
+  "proteinPer100g": 2.5208,
+  "carbohydratePer100g": 28.0598,
+  "fatPer100g": 0.227,
+  "fiberPer100g": 1.561,
+  "sodiumMgPer100g": 1.2007,
+  "attribution": "TACO 4ª edição, NEPA/UNICAMP",
+  "portion": {
+    "energyKcal": 192.4,
+    "protein": 3.8,
+    "carbohydrate": 42.1,
+    "fat": 0.3,
+    "fiber": 2.3,
+    "sodiumMg": 1.8
+  }
+}
+```
+
+- `id` é o Id do **item da refeição**, usado no `PUT` e no `DELETE`. `foodId` é o Id do alimento na base.
+- `portion` é o valor da quantidade servida (os valores por 100 g × `quantityInGrams` ÷ 100), arredondado em 1 casa. Um nutriente sem informação vem `null` também em `portion`.
+- Mostre o `attribution`, como nas outras telas de alimentos.
+
+##### `POST /api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods`
+
+```json
+{ "foodId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "quantityInGrams": 150 }
+```
+
+| Campo | Regras |
+|---|---|
+| `foodId` | Obrigatório. Um alimento ativo da base |
+| `quantityInGrams` | Maior que 0 e no máximo **2000**. Aceita decimais (por exemplo, `12.5`) |
+
+- `201` → `{ "id": "<id do item da refeição>" }`
+- `400` → erros de validação, com as mensagens "A quantidade precisa ser maior que zero." e "A quantidade pode ser no máximo 2000 g." no campo `QuantityInGrams`
+- `404` → "Alimento não encontrado ou indisponível." (não existe ou foi desativado)
+- `404` → "Plano, refeição ou alimento da refeição não encontrado."
+- `409` → "Este alimento já está na refeição. Altere a quantidade dele."
+- `409` → "Uma refeição pode ter no máximo 20 alimentos."
+- `409` → "Um plano finalizado ou cancelado não pode ser alterado."
+
+##### `PUT /api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}`
+
+Altera só a quantidade. A cópia dos valores não muda.
+
+```json
+{ "quantityInGrams": 200 }
+```
+
+- `204` → atualizada
+- `400` → as mesmas regras de `quantityInGrams` do `POST`
+- `404` → "Plano, refeição ou alimento da refeição não encontrado."
+- `409` → plano finalizado ou cancelado
+
+##### `DELETE /api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}`
+
+- `204` → removido
+- `404` ou `409` (plano finalizado ou cancelado)
+
+> Depois de qualquer alteração, recarregue o detalhe do plano: os totais da refeição, os do dia e a comparação com a meta são calculados pela API.
+
+#### Meta diária 🥗
+
+A meta é opcional e fica no plano: as calorias do dia e, se quiser, a proteína, o carboidrato e a gordura em gramas. Com meta, o detalhe do plano passa a trazer a comparação em `target`. Só enquanto o plano estiver em `Draft` ou `Active`.
+
+##### `PUT /api/v1/nutritionists/me/nutrition-plans/{id}/target`
+
+Define a meta, substituindo a anterior por inteiro (um campo enviado como `null` sai da meta).
+
+```json
+{ "energyKcal": 2200, "proteinGrams": 150, "carbohydrateGrams": null, "fatGrams": null }
+```
+
+| Campo | Regras |
+|---|---|
+| `energyKcal` | Obrigatório, maior que 0 e no máximo 10000 |
+| `proteinGrams`, `carbohydrateGrams`, `fatGrams` | Opcionais, de 0 a 1000 |
+
+- `204` → meta definida
+- `400` → erros de validação (por exemplo, "A meta de calorias precisa estar entre 1 e 10000 kcal.")
+- `404` → "Plano não encontrado."
+- `409` → "Esta ação não é permitida no status atual do plano."
+- `422` → na prática, não acontece: como no `PUT` do plano, é a proteção do domínio por trás do `400`.
+
+##### `DELETE /api/v1/nutritionists/me/nutrition-plans/{id}/target`
+
+Remove a meta. Sem corpo.
+
+- `204` → removida (os campos `target*` voltam a `null`, e o detalhe passa a trazer `target: null`)
+- `404` ou `409` (plano finalizado ou cancelado)
+
 #### Paciente 🧑
 
 O paciente vê só os planos **ativos e finalizados**, inclusive os de nutricionistas anteriores. Rascunhos e cancelados nunca aparecem.
@@ -976,20 +1133,38 @@ O plano ativo vem primeiro, e depois os finalizados, do mais recente para o mais
 - `200` → `NutritionPlanDetailResponse` (plano e refeições)
 - `404` → "Plano não encontrado." (também para rascunhos e cancelados)
 
+##### `GET /api/v1/patients/me/nutrition-plans/{id}/pdf`
+
+Baixa o plano em PDF. Vale para os mesmos planos do detalhe (ativos e finalizados).
+
+- `200` → o arquivo (`application/pdf`), com o nome `nogvita-plano-<startDate>.pdf`
+- `404` → "Plano não encontrado."
+
+Como no PDF do nutricionista, baixe com `fetch`/`HttpClient` como *blob*, porque a rota exige o token.
+
+##### `POST /api/v1/patients/me/nutrition-plans/{id}/pdf/email`
+
+Envia o PDF do plano para o **e-mail cadastrado** do paciente. Sem corpo.
+
+- `204` → e-mail enviado. Mostre "Enviamos o plano para o seu e-mail."
+- `404` → "Plano não encontrado."
+- `429` → limite atingido: **3 envios por hora, por paciente**. Vem **sem corpo**: trate pelo status ("Você já enviou o plano várias vezes. Tente de novo mais tarde.").
+- `503` → "Não foi possível enviar o e-mail agora. Tente novamente em alguns minutos, ou baixe o PDF." Ofereça o botão de baixar.
+
+> Só o paciente envia o plano por e-mail. O nutricionista baixa o PDF, mas não tem uma rota para enviá-lo ao paciente.
+
 ### Convite de nutricionista
 
 Nutricionistas não se cadastram sozinhos: o administrador faz o pré-cadastro, e a pessoa recebe um e-mail com um link no formato:
 
 ```
-https://nogvita-green.vercel.app/nutri/convite#token=<token>
+https://nogvita.vercel.app/nutri/convite#token=<token>
 ```
 
 O token vai no **fragmento** (`#`), que o navegador nunca envia a servidores. A tela do convite precisa:
 
-1. Ler o token de `window.location.hash` (ou `route.hash` no Vue Router).
+1. Ler o token de `window.location.hash` e apagá-lo da barra de endereço (`history.replaceState`).
 2. Enviar o token no corpo do `POST` abaixo.
-
-> O Vue Router precisa usar `createWebHistory()`, e não o modo hash (`createWebHashHistory()`). No modo hash, o `#token=...` conflitaria com as rotas.
 
 #### `POST /api/v1/auth/invitations/accept` 🌐
 
@@ -1262,9 +1437,7 @@ Convite que nunca foi aceito (isProfileActive: false):
 
 ## Checklist do frontend
 
-- [ ] Rodar em `http://localhost:5173` (e não em `127.0.0.1`) no desenvolvimento local
-- [ ] `vercel.json` com o *rewrite* para o `index.html` (senão os links dos e-mails dão 404 na Vercel)
-- [ ] Vue Router com `createWebHistory()`
+- [ ] Em desenvolvimento, chamar a API pelo proxy do `ng serve` (o `localhost` não está no CORS)
 - [ ] Rota `/nutri/convite` lendo o token do hash
 - [ ] Rota `/confirmar-email` lendo o token do hash e chamando o `confirm` uma única vez
 - [ ] Rota `/redefinir-senha` lendo o token do hash, pedindo a nova senha e mandando para o login depois do `204`
@@ -1281,5 +1454,7 @@ Convite que nunca foi aceito (isProfileActive: false):
 - [ ] Aviso (sem bloqueio) nas refeições com `outsideRoutine: true`, sem recalcular a regra no front
 - [ ] Campo `attribution` exibido nas telas que mostram dados de alimentos (TACO e Open Food Facts)
 - [ ] Busca de alimentos só a partir de 2 letras, com *debounce*
+- [ ] Plano: avisar "valor parcial" nos totais com `isComplete: false`, e ler `difference` como `planned − target`
+- [ ] PDF baixado como *blob* (a rota exige o token), e o `429` do envio por e-mail tratado pelo status
 - [ ] Admin: confirmação antes de desativar um nutricionista, avisando que os acompanhamentos dele serão encerrados
 - [ ] Admin: botões "Reenviar convite" e "Cancelar pré-cadastro" nos nutricionistas com `isProfileActive: false`
