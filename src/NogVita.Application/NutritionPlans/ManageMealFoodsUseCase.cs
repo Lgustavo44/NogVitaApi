@@ -10,11 +10,17 @@ public sealed class AddMealFoodRequestValidator : AbstractValidator<AddMealFoodR
 {
     public AddMealFoodRequestValidator()
     {
-        RuleFor(r => r.FoodId).NotEmpty();
-        RuleFor(r => r.QuantityInGrams)
-            .GreaterThan(0)
-            .LessThanOrEqualTo(MealFood.MaxQuantityInGrams);
+        RuleFor(r => r.FoodId).NotEmpty().WithMessage("O alimento é obrigatório.");
+        RuleFor(r => r.QuantityInGrams).ValidQuantityInGrams();
     }
+}
+
+internal static class MealFoodQuantityRules
+{
+    // As mesmas regras do MealFood, aqui para responder 400 com o erro no campo (o domínio lançaria exceção).
+    public static IRuleBuilderOptions<T, decimal> ValidQuantityInGrams<T>(this IRuleBuilder<T, decimal> rule) => rule
+        .GreaterThan(0).WithMessage("A quantidade precisa ser maior que zero.")
+        .LessThanOrEqualTo(MealFood.MaxQuantityInGrams).WithMessage($"A quantidade pode ser no máximo {MealFood.MaxQuantityInGrams:0} g.");
 }
 
 public sealed record UpdateMealFoodRequest(decimal QuantityInGrams);
@@ -23,9 +29,7 @@ public sealed class UpdateMealFoodRequestValidator : AbstractValidator<UpdateMea
 {
     public UpdateMealFoodRequestValidator()
     {
-        RuleFor(r => r.QuantityInGrams)
-            .GreaterThan(0)
-            .LessThanOrEqualTo(MealFood.MaxQuantityInGrams);
+        RuleFor(r => r.QuantityInGrams).ValidQuantityInGrams();
     }
 }
 

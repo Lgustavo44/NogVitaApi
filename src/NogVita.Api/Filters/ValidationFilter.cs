@@ -11,12 +11,14 @@ public sealed class ValidationFilter : IAsyncActionFilter
     {
         var services = context.HttpContext.RequestServices;
 
-        foreach (var argument in context.ActionArguments.Values)
+        foreach (var (name, argument) in context.ActionArguments)
         {
             if (argument is null)
             {
                 continue;
             }
+
+            AddNullCharacterErrors(context, name, argument);
 
             var validatorType = typeof(IValidator<>).MakeGenericType(argument.GetType());
 
@@ -44,5 +46,33 @@ public sealed class ValidationFilter : IAsyncActionFilter
         }
 
         await next();
+    }
+
+    private const string NullCharacterMessage = "O texto contém um caractere inválido.";
+
+    // O PostgreSQL não aceita o caractere nulo (\0) em textos: sem esta checagem, ele chegaria ao banco e viraria 500.
+    // Vale para os textos da query e da rota e para as propriedades de texto do corpo.
+    private static void AddNullCharacterErrors(ActionExecutingContext context, string name, object argument)
+    {
+        if (argument is string text)
+        {
+            if (text.Contains('\0'))
+            {
+                context.ModelState.AddModelError(name, NullCharacterMessage);
+            }
+
+            return;
+        }
+
+        foreach (var property in argument.GetType().GetProperties())
+        {
+            if (property.PropertyType == typeof(string)
+                && property.GetIndexParameters().Length == 0
+                && property.GetValue(argument) is string value
+                && value.Contains('\0'))
+            {
+                context.ModelState.AddModelError(property.Name, NullCharacterMessage);
+            }
+        }
     }
 }

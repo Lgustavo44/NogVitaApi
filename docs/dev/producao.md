@@ -10,7 +10,7 @@ O que muda entre o staging e a produção, e a lista de conferência antes de co
 | Swagger e `/openapi/v1.json` | ligados | desligados (um anônimo recebe `401`, como em qualquer endereço inexistente) |
 | Dados | só de teste | dados reais de saúde (LGPD) |
 | `AllowedHosts` | `nogvitaapi.onrender.com` | o domínio da API, obrigatório |
-| CORS | o front e o `localhost:5173` | só o front, só com `https://` |
+| CORS | só o front (`https://nogvita.vercel.app`) | só o front, só com `https://` |
 | Domínio | `*.onrender.com` (compartilhado) | um domínio próprio, para o HSTS poder crescer |
 | Plano da Render | gratuito (dorme depois de 15 minutos) | pago, sem dormir |
 

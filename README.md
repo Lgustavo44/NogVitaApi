@@ -439,7 +439,7 @@ Detalhes:
 
 O ambiente de testes está publicado em:
 
-- **Front:** `https://nogvita-green.vercel.app`
+- **Front:** `https://nogvita.vercel.app` (Angular)
 - **API:** `https://nogvitaapi.onrender.com`
 - **Swagger:** `https://nogvitaapi.onrender.com/swagger`
 
@@ -457,8 +457,8 @@ O Swagger basta para usar a API sem perguntar nada: cada endpoint tem a descriç
 
 ### Para o frontend
 
-- **Origens liberadas no CORS:** `https://nogvita-green.vercel.app` (o front oficial do staging) e `http://localhost:5173` (o padrão do Vite, para desenvolver na própria máquina usando a API do staging). Acesse o ambiente local sempre por `localhost`, e não por `127.0.0.1`. Os endereços de *preview* da Vercel (um por branch) **não** estão liberados, de propósito.
-- **Links dos e-mails:** a confirmação de e-mail, a redefinição de senha e o convite de nutricionista apontam para o front da Vercel. Como o Vue Router usa `createWebHistory()`, a Vercel precisa devolver o `index.html` para qualquer rota, senão abrir um link direto como `/confirmar-email` dá `404` da Vercel. Isso se resolve com um `vercel.json` na raiz do front: `{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }`.
+- **Origem liberada no CORS:** só `https://nogvita.vercel.app`, com os métodos `GET`, `POST`, `PUT` e `DELETE` e os cabeçalhos `Authorization` e `Content-Type`, sem credenciais. Os endereços de *preview* da Vercel **não** estão liberados, de propósito. Em desenvolvimento, o `ng serve` chama a API por um proxy, sem passar pelo CORS.
+- **Links dos e-mails:** a confirmação de e-mail, a redefinição de senha e o convite de nutricionista apontam para o front da Vercel, pela configuração `Frontend:BaseUrl` (`Frontend__BaseUrl` na Render). O token vai no fragmento da URL (`#token=...`).
 - **Autenticação:** envie o token de acesso no header `Authorization: Bearer <accessToken>`. O token de acesso dura 15 minutos; use o `POST /api/v1/auth/refresh` com o `refreshToken` para obter um par novo. Faça **uma renovação por vez**: duas renovações simultâneas com o mesmo refresh token encerram todas as sessões (detecção de reuso).
 - **Erros:** todas as respostas de erro seguem o formato `ProblemDetails` (`title`, `status` e, em erros de validação, `errors` por campo).
 - **Enums:** trafegam como texto (ex.: `"goal": "MuscleGain"`).
@@ -467,7 +467,7 @@ O Swagger basta para usar a API sem perguntar nada: cada endpoint tem a descriç
 - **Confirmação de e-mail:** o link abre `/confirmar-email#token=...` no front. A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/email-confirmation/confirm`.
 - **Login com e-mail não confirmado:** um `403` significa "e-mail não confirmado". Mostre a opção de reenviar o link (`POST /api/v1/auth/email-confirmation/resend`).
 - **Redefinição de senha:** o link abre `/redefinir-senha#token=...` no front. A tela lê o token do fragmento da URL, pede a nova senha e envia os dois no corpo do `POST /api/v1/auth/password-reset/confirm`. A tela de login precisa de um "Esqueci minha senha" que chame o `POST /api/v1/auth/password-reset/request`.
-- **Convite de nutricionista:** o e-mail leva para `/nutri/convite#token=...`. O Vue Router precisa usar `createWebHistory()` (e não o modo hash). A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/invitations/accept`.
+- **Convite de nutricionista:** o e-mail leva para `/nutri/convite#token=...`. A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/invitations/accept`.
 - **Termos de Uso e Política de Privacidade:** os textos ficam em [`docs/legal/`](docs/legal/) (veja [Termos de Uso e Privacidade](#termos-de-uso-e-privacidade)). No cadastro de paciente, além da frase de concordância, inclua um *checkbox* desmarcado de consentimento para os dados de saúde.
 
 O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.md); o Swagger do staging é a referência interativa. A política está em [docs/dev/versionamento.md](docs/dev/versionamento.md).

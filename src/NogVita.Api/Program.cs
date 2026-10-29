@@ -115,12 +115,13 @@ builder.Services.AddSingleton(frontendSettings);
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 
+// Só o que o front usa: o token vai no Authorization, sem cookies, e nenhum cabeçalho da resposta precisa ser lido.
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
         policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod());
+              .WithHeaders("Authorization", "Content-Type")
+              .WithMethods("GET", "POST", "PUT", "DELETE"));
 });
 
 // Atrás do proxy da Render, o TLS termina no proxy: sem isso, a API acha que a requisição é http e que todos os clientes têm o IP do proxy.
