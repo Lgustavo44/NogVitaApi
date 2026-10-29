@@ -45,7 +45,9 @@ public sealed class RegisterPatientUseCase(
 
             // Sem senha, o dono ainda não ativou a conta (nutricionista com convite pendente): "faça login" não faria sentido.
             if (existingCpf.PasswordHash is not null)
+            {
                 await emailConfirmationService.TrySendAlreadyRegisteredAsync(existingCpf, cancellationToken, matchedByCpf: true);
+            }
 
             return;
         }

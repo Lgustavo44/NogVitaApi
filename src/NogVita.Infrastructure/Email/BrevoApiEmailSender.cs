@@ -1,9 +1,9 @@
-using NogVita.Application.Abstractions;
-using NogVita.Application.Common;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using NogVita.Application.Abstractions;
+using NogVita.Application.Common;
 
 namespace NogVita.Infrastructure.Email;
 

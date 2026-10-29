@@ -13,10 +13,14 @@ public abstract class SingleUseToken : Entity
     protected SingleUseToken(Guid userId, string tokenHash, DateTime expiresAtUtc, DateTime nowUtc)
     {
         if (string.IsNullOrWhiteSpace(tokenHash))
+        {
             throw new DomainException("O hash do token é obrigatório.");
+        }
 
         if (expiresAtUtc <= nowUtc)
+        {
             throw new DomainException("A data de expiração precisa estar no futuro.");
+        }
 
         UserId = userId;
         TokenHash = tokenHash;
@@ -34,7 +38,9 @@ public abstract class SingleUseToken : Entity
     public void MarkAsUsed(DateTime nowUtc)
     {
         if (!IsValid(nowUtc))
+        {
             throw new DomainException("Token inválido ou expirado.");
+        }
 
         UsedAtUtc = nowUtc;
     }
@@ -42,7 +48,9 @@ public abstract class SingleUseToken : Entity
     public void Revoke(DateTime nowUtc)
     {
         if (IsUsed || IsRevoked)
+        {
             return;
+        }
 
         RevokedAtUtc = nowUtc;
     }

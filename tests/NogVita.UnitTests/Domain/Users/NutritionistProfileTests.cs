@@ -1,4 +1,4 @@
-﻿using NogVita.Domain.Common;
+using NogVita.Domain.Common;
 using NogVita.Domain.Users;
 
 namespace NogVita.UnitTests.Domain.Users;

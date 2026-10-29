@@ -41,6 +41,9 @@ public sealed class NogVitaApiFixture : IAsyncLifetime
         _ = _factory.Server;
     }
 
+    // Uma segunda API, num outro ambiente (por exemplo, "Staging"), com o mesmo banco e o mesmo dublê de e-mail.
+    public NogVitaApiFactory CreateFactory(string environment) => new(_postgres.GetConnectionString(), Emails, environment);
+
     public HttpClient CreateClient() => Factory.CreateClient();
 
     // Um DbContext direto no banco do container, para os testes conferirem o que foi gravado.

@@ -1,0 +1,60 @@
+# Fase 26: a API, o PostgreSQL e o Mailpit juntos, com um comando:
+#
+#   cp .env.example .env        (e preencha os valores)
+#   docker compose up --build
+#
+# Swagger:  http://localhost:8080/swagger
+# E-mails:  http://localhost:8025   (o Mailpit mostra tudo o que a API "enviou")
+#
+# Só para desenvolvimento local: as senhas vêm do .env, e as portas ficam presas ao 127.0.0.1.
+name: nogvita
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: nogvita
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env (veja o .env.example)}
+      POSTGRES_DB: nogvita
+    # 5433 por fora: a 5432 costuma estar ocupada pelo Postgres de desenvolvimento (README, "Como rodar").
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # A API só sobe depois que o banco aceita conexões (depends_on: service_healthy).
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nogvita -d nogvita"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.31.4
+    ports:
+      - "127.0.0.1:8025:8025"
+
+  api:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      # Development: com o Swagger e os logs detalhados. Os segredos vêm daqui, e não dos User Secrets.
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__NogVita: "Host=postgres;Port=5432;Database=nogvita;Username=nogvita;Password=${POSTGRES_PASSWORD}"
+      # As migrations rodam ao subir: o banco nasce pronto, sem um passo a mais.
+      Database__MigrateOnStartup: "true"
+      Jwt__SecretKey: ${JWT_SECRET_KEY:?Defina JWT_SECRET_KEY no .env (veja o .env.example)}
+      Email__Host: mailpit
+      Email__Port: "1025"
+      AdminSeed__Name: ${ADMIN_NAME:-Administrador}
+      AdminSeed__Email: ${ADMIN_EMAIL:?Defina ADMIN_EMAIL no .env (veja o .env.example)}
+      AdminSeed__Cpf: ${ADMIN_CPF:?Defina ADMIN_CPF no .env (veja o .env.example)}
+      AdminSeed__Password: ${ADMIN_PASSWORD:?Defina ADMIN_PASSWORD no .env (veja o .env.example)}
+    ports:
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  pgdata:

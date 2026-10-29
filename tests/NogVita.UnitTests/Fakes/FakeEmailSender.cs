@@ -10,7 +10,9 @@ public sealed class FakeEmailSender : IEmailSender
     public Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         if (ShouldFail)
+        {
             throw new InvalidOperationException("Falha simulada no envio de e-mail.");
+        }
 
         SentMessages.Add(message);
         return Task.CompletedTask;

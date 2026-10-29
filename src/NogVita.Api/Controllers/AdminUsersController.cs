@@ -39,7 +39,9 @@ public sealed class AdminUsersController(IAdminUserQueries adminUserQueries, Dea
         var user = await adminUserQueries.GetUserAsync(id, cancellationToken);
 
         if (user is null)
+        {
             return Problem(statusCode: StatusCodes.Status404NotFound, title: "Usuário não encontrado.");
+        }
 
         return Ok(user);
     }

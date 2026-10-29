@@ -45,7 +45,9 @@ public sealed class AdminNutritionistsController(
         var user = await adminUserQueries.GetUserAsync(id, cancellationToken);
 
         if (user?.Nutritionist is null)
+        {
             return Problem(statusCode: StatusCodes.Status404NotFound, title: "Nutricionista não encontrado.");
+        }
 
         return Ok(user);
     }
@@ -65,7 +67,9 @@ public sealed class AdminNutritionistsController(
         var result = await preRegisterNutritionistUseCase.ExecuteAsync(User.GetUserId(), request, cancellationToken);
 
         if (result.Status == PreRegisterNutritionistStatus.Conflict)
+        {
             return Problem(statusCode: StatusCodes.Status409Conflict, title: "Não foi possível pré-cadastrar o nutricionista com esses dados.");
+        }
 
         var response = new PreRegisterNutritionistResponse(result.UserId!.Value, result.InvitationEmailSent);
 

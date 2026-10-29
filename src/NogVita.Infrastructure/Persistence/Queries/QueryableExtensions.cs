@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NogVita.Application.Common.Pagination;
 
-namespace NogVita.Infrastructure.Queries;
+namespace NogVita.Infrastructure.Persistence.Queries;
 
 internal static class QueryableExtensions
 {

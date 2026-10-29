@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Admin;
 using NogVita.Application.Auth;
@@ -17,7 +17,6 @@ using NogVita.Infrastructure.Persistence;
 using NogVita.Infrastructure.Persistence.Queries;
 using NogVita.Infrastructure.Persistence.Repositories;
 using NogVita.Infrastructure.Persistence.Seed;
-using NogVita.Infrastructure.Queries;
 using NogVita.Infrastructure.Security;
 
 namespace NogVita.Infrastructure;
@@ -36,7 +35,8 @@ public static class DependencyInjection
                        (RelationalEventId.CommandError, LogLevel.Debug))));
 
         //models
-        services.AddHealthChecks().AddDbContextCheck<NogVitaDbContext>();
+        // Fase 26: a checagem do banco tem a marca "ready" (o /health/ready a usa; o /health/live, não).
+        services.AddHealthChecks().AddDbContextCheck<NogVitaDbContext>(tags: ["ready"]);
         services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
         services.AddScoped<AdminSeeder>();
         services.AddScoped<IUserRepository, UserRepository>();

@@ -9,8 +9,26 @@ public sealed class OpenFoodFactsBulkSeeder(NogVitaDbContext context, ILogger<Op
 {
     private const int BatchSize = 1000;
 
+    // D192: o nome da marca desta importação na tb_seed_run.
+    public const string SeedName = "open-food-facts-brasil";
+
+    // O hash do CSV embutido nesta versão da API (o mesmo que a marca guarda).
+    public static string CurrentFileHash() => OpenFoodFactsCsvReader.ComputeHash();
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
+        // D192: se este mesmo arquivo já foi importado até o fim, não há nada a fazer. Sem a marca, a cada vez que a API
+        // acordava, ela buscava os 22.728 códigos e relia o CSV inteiro só para descobrir isso: 5,2 s de CPU no plano
+        // gratuito da Render (0,1 CPU), logo depois de começar a atender.
+        var contentHash = CurrentFileHash();
+        var run = await context.SeedRuns.FindAsync([SeedName], cancellationToken);
+
+        if (run?.ContentHash == contentHash)
+        {
+            logger.LogInformation("Open Food Facts: este arquivo já foi importado. Nada a fazer.");
+            return;
+        }
+
         // D152: só entram os códigos que ainda não existem (inclusive os importados um a um, e os desativados).
         var existingCodes = (await context.Foods
                 .AsNoTracking()
@@ -57,6 +75,21 @@ public sealed class OpenFoodFactsBulkSeeder(NogVitaDbContext context, ILogger<Op
         {
             imported += await SaveBatchAsync(batch, imported, cancellationToken);
         }
+
+        // A marca só é gravada no fim: uma importação interrompida (um deploy, a Render dormindo) não deixa marca,
+        // e a próxima subida continua de onde parou, pela idempotência do código de barras (D152).
+        var completedAt = DateTime.UtcNow;
+        if (run is null)
+        {
+            context.SeedRuns.Add(new SeedRun(SeedName, contentHash, completedAt));
+        }
+        else
+        {
+            context.SeedRuns.Attach(run);
+            run.Complete(contentHash, completedAt);
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
             "Open Food Facts: importação concluída. {Imported} importados, {Rejected} recusados pelo domínio.",

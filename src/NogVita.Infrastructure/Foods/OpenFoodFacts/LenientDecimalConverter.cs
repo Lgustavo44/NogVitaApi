@@ -24,8 +24,12 @@ internal sealed class LenientDecimalConverter : JsonConverter<decimal?>
     public override void Write(Utf8JsonWriter writer, decimal? value, JsonSerializerOptions options)
     {
         if (value is null)
+        {
             writer.WriteNullValue();
+        }
         else
+        {
             writer.WriteNumberValue(value.Value);
+        }
     }
 }

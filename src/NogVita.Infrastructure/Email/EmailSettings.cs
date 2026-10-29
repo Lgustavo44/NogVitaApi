@@ -22,23 +22,33 @@ public sealed class EmailSettings
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(FromAddress))
+        {
             throw new InvalidOperationException("Email: FromAddress é obrigatório.");
+        }
 
         if (UsesBrevoApi)
         {
             if (string.IsNullOrWhiteSpace(ApiKey))
+            {
                 throw new InvalidOperationException("Email: ApiKey é obrigatória para o provedor BrevoApi.");
+            }
 
             if (!Uri.TryCreate(LogoUrl, UriKind.Absolute, out var logoUri) || logoUri.Scheme != Uri.UriSchemeHttps)
+            {
                 throw new InvalidOperationException("Email: LogoUrl precisa ser uma URL https absoluta para o provedor BrevoApi.");
+            }
 
             return;
         }
 
         if (string.IsNullOrWhiteSpace(Host) || Port <= 0)
+        {
             throw new InvalidOperationException("Email: Host e Port são obrigatórios para o provedor Smtp.");
+        }
 
         if (!string.IsNullOrWhiteSpace(Username) && string.IsNullOrWhiteSpace(Password))
+        {
             throw new InvalidOperationException("Email: Password é obrigatório quando Username é informado.");
+        }
     }
 }

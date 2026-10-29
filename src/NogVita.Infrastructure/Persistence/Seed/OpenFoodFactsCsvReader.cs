@@ -20,11 +20,17 @@ internal static class OpenFoodFactsCsvReader
 {
     internal const string ResourceName = "NogVita.Infrastructure.Seed.off_brasil.csv";
 
+    // D192: o SHA-256 do arquivo embutido, em hexadecimal. Muda só quando o CSV muda (uma nova versão da base).
+    public static string ComputeHash()
+    {
+        using var stream = OpenResource();
+        return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stream));
+    }
+
     // D151: devolve uma linha por vez (yield), sem carregar o arquivo inteiro na memória.
     public static IEnumerable<OpenFoodFactsCsvRow> ReadRows()
     {
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName)
-            ?? throw new InvalidOperationException($"O recurso embutido '{ResourceName}' não foi encontrado.");
+        using var stream = OpenResource();
 
         using var parser = new TextFieldParser(stream, Encoding.UTF8)
         {
@@ -73,4 +79,8 @@ internal static class OpenFoodFactsCsvReader
 
     private static decimal? ParseDecimal(string raw) =>
         string.IsNullOrWhiteSpace(raw) ? null : decimal.Parse(raw, NumberStyles.Float, CultureInfo.InvariantCulture);
+
+    private static Stream OpenResource() =>
+        Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName)
+            ?? throw new InvalidOperationException($"O recurso embutido '{ResourceName}' não foi encontrado.");
 }

@@ -4,7 +4,7 @@ using NogVita.Application.Common.Pagination;
 using NogVita.Domain.Users;
 using NogVita.Infrastructure.Persistence;
 
-namespace NogVita.Infrastructure.Queries;
+namespace NogVita.Infrastructure.Persistence.Queries;
 
 public sealed class AdminUserQueries(NogVitaDbContext context) : IAdminUserQueries
 {
@@ -63,7 +63,9 @@ public sealed class AdminUserQueries(NogVitaDbContext context) : IAdminUserQueri
         }
 
         if (request.IsActive is not null)
+        {
             query = query.Where(u => u.IsActive == request.IsActive);
+        }
 
         return query
             .OrderByDescending(u => u.CreatedAt)

@@ -74,9 +74,14 @@ public sealed class UserRepository(NogVitaDbContext context) : IUserRepository
             await context.RefreshTokens.Where(t => t.UserId == user.Id).ToListAsync(cancellationToken));
 
         if (user.NutritionistProfile is not null)
+        {
             context.NutritionistProfiles.Remove(user.NutritionistProfile);
+        }
+
         if (user.PatientProfile is not null)
+        {
             context.PatientProfiles.Remove(user.PatientProfile);
+        }
 
         context.Users.Remove(user);
     }

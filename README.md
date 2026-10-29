@@ -261,8 +261,11 @@ Os valores são guardados por 100 g. Valores fisicamente impossíveis são recus
 - **Em segundo plano:** a importação roda num `BackgroundService` depois que a API já está atendendo, para a Render não cancelar o deploy por demora na inicialização. Enquanto ela roda, o resto da API funciona normalmente.
 - **Em lotes de mil:** cada lote é salvo e "esquecido" pelo EF (`ChangeTracker.Clear()`), para a memória não crescer com dezenas de milhares de objetos (o plano gratuito da Render tem 512 MB). No banco local, a importação inteira leva cerca de 8 segundos.
 - **Idempotente pelo código de barras:** só entram os códigos que ainda não existem. Se a importação for interrompida (num deploy, ou quando a Render "dorme" a API), a próxima inicialização continua de onde parou, e um produto importado antes, ou desativado pelo administrador, não é duplicado nem reativado.
+- **Sem repetir trabalho (D192):** ao terminar, a importação grava na `tb_seed_run` o hash SHA-256 do CSV. Na próxima subida, o mesmo hash quer dizer "nada a fazer", e ela não busca os 22.728 códigos nem relê o arquivo. Com a CPU do plano gratuito da Render, isso baixou o trabalho logo depois de acordar de 5,2 s para 1,3 s. Um CSV novo (outro hash), ou uma importação interrompida (que não chega a gravar a marca), roda de novo normalmente.
 - **Uma linha com problema não derruba as outras:** se o domínio recusar um produto, ele é pulado e registrado no log com o motivo, e a importação continua. Diferente da TACO, que é tudo ou nada, porque um erro num produto da comunidade não diz nada sobre os outros.
-- **Busca por palavras:** cada palavra digitada precisa aparecer no nome, em qualquer ordem e posição. Assim, "coca zero" encontra "Coca-Cola Zero Açúcar", e "arroz tipo 1 cozido" encontra o "Arroz, tipo 1, cozido" da TACO. Hífen e pontuação também separam as palavras, porque a base escreve "Coca-Cola" e "Coca Cola" dos dois jeitos. A busca usa no máximo 8 palavras, e com os 23 mil alimentos responde em cerca de 50 ms no banco local.
+- **Busca por palavras:** cada palavra digitada precisa aparecer no nome, em qualquer ordem e posição. Assim, "coca zero" encontra "Coca-Cola Zero Açúcar", e "arroz tipo 1 cozido" encontra o "Arroz, tipo 1, cozido" da TACO. Hífen e pontuação também separam as palavras, porque a base escreve "Coca-Cola" e "Coca Cola" dos dois jeitos. A busca usa no máximo 8 palavras.
+- **Por relevância (Fase 27):** primeiro os nomes que começam com a primeira palavra buscada, depois os da TACO, depois os de nome mais curto (os mais genéricos), e só então a ordem alfabética. Antes, a ordem era só alfabética, e o arroz da TACO aparecia na posição 75 de 502.
+- **Com um índice de trigramas (D191):** o "contém" (`ILIKE '%arroz%'`) não usa um índice comum, e cada busca lia a tabela inteira (23 ms por consulta, duas por busca). O índice GIN de trigramas sobre `f_unaccent(name)`, uma versão imutável do `unaccent` (o Postgres só indexa funções imutáveis), baixou cada consulta para cerca de 1,5 ms. A busca chama exatamente a mesma expressão do índice, senão ele não é usado. As medições estão em [docs/dev/performance.md](docs/dev/performance.md).
 - **Espaço no banco:** a tabela de alimentos ocupa cerca de 7,5 MB com os índices, em torno de 1,5% dos 500 MB do plano gratuito do Supabase.
 - **Origem, filtro completo e licença:** o SQL para reproduzir o arquivo, os números de cada etapa do filtro e as limitações conhecidas estão em [`SOURCE-OFF.md`](src/NogVita.Infrastructure/Persistence/Seed/Data/SOURCE-OFF.md).
 
@@ -442,7 +445,15 @@ O ambiente de testes está publicado em:
 
 > A API usa o plano gratuito da Render: depois de 15 minutos sem uso, ela "dorme", e a primeira requisição pode levar cerca de 1 minuto. Use **apenas dados de teste**.
 
-A tela do Swagger fica disponível em Development e Staging, não em Production. A API publica o documento OpenAPI em `/openapi/v1.json`; a política de versão (`/api/v1`, sem pacote adicional) está em [docs/dev/versionamento.md](docs/dev/versionamento.md).
+A tela do Swagger fica disponível em Development e Staging, não em Production. A API publica o documento OpenAPI em `/openapi/v1.json`; a política de versão (`/api/v1`, sem pacote adicional) está em [docs/dev/versionamento.md](docs/dev/versionamento.md), e as mudanças que afetam quem consome a API ficam no [CHANGELOG.md](CHANGELOG.md).
+
+O Swagger basta para usar a API sem perguntar nada: cada endpoint tem a descrição em português (dos comentários `///` do código, D183) e todas as respostas possíveis, com os tipos (`[ProducesResponseType]`, D184). Um teste de integração lê o documento gerado e falha se algum endpoint ficar sem descrição, sem a resposta de sucesso ou sem os erros comuns.
+
+**Saúde da API.** `GET /health/live` diz se o processo responde (sem consultar o banco: um banco fora do ar não deve fazer a plataforma reiniciar um container que está bem). `GET /health/ready` diz se a API consegue atender, com o banco incluído; é o endereço que a checagem de saúde da plataforma deve olhar. O `GET /health` continua respondendo, igual ao `ready`.
+
+**HTTPS atrás do balanceador.** A Render termina o TLS e avisa a API pelo `X-Forwarded-Proto`. Fora do Development, a API manda o HSTS (30 dias, sem `includeSubDomains`, porque o `onrender.com` é compartilhado) e redireciona o HTTP puro com `308`, que mantém o método. O `/health` fica fora do redirecionamento, porque a checagem da plataforma chega por HTTP, direto no container.
+
+**Produção.** O que muda em relação ao staging, as variáveis de ambiente e a lista de conferência (infraestrutura, deploy, configuração, LGPD e licenças) estão em [docs/dev/producao.md](docs/dev/producao.md). Em `Production`, a API se recusa a subir com uma configuração insegura ou incompleta (`AllowedHosts` aberto, CORS com `http://`, e-mail no SMTP local), e diz o que falta.
 
 ### Para o frontend
 
@@ -560,6 +571,23 @@ Os arquivos ficam em [`docs/assets/`](docs/assets/): `logo.svg` (fundo claro), `
 
 ## Como rodar (desenvolvimento)
 
+### Com um comando (docker-compose)
+
+Para só usar a API (por exemplo, para desenvolver o front), basta o Docker. O [`docker-compose.yml`](docker-compose.yml) sobe a API (com a mesma imagem da Render), o PostgreSQL e o Mailpit:
+
+```bash
+cp .env.example .env    # e preencha os valores (o arquivo explica como gerar a chave do JWT)
+docker compose up --build
+```
+
+- **Swagger:** `http://localhost:8080/swagger`
+- **E-mails:** `http://localhost:8025` (o Mailpit mostra tudo o que a API enviou: confirmação, convite, redefinição de senha)
+- **Banco:** `localhost:5433` (a 5432 fica livre para o Postgres do desenvolvimento abaixo)
+
+A API aplica as migrations ao subir (`Database:MigrateOnStartup`, ligado só no compose: no staging e na produção, a migration é um passo explícito do deploy) e cria o administrador inicial com os dados do `.env`. O `.env` fica fora do Git. Para apagar tudo, inclusive o banco: `docker compose down -v`.
+
+### Para desenvolver a API
+
 **Pré-requisitos:** .NET SDK 10 e Docker.
 
 1. Suba o PostgreSQL:
@@ -598,7 +626,7 @@ Os arquivos ficam em [`docs/assets/`](docs/assets/): `logo.svg` (fundo claro), `
 
 ## Testes
 
-São duas suítes (xUnit v3 com o Microsoft Testing Platform), e o GitHub Actions roda as duas a cada push na `main` e a cada pull request ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): o build (em que um `switch` incompleto é erro), os testes unitários, os de integração e o script dos resultados sem teste.
+São duas suítes (xUnit v3 com o Microsoft Testing Platform), e o GitHub Actions roda as duas a cada push na `main` e a cada pull request ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): o estilo do código (as regras do [`.editorconfig`](.editorconfig), conferidas pelo `dotnet format --verify-no-changes`; para corrigir, rode `dotnet format NogVita.slnx`), o build (em que um `switch` incompleto é erro), os testes unitários, os de integração e o script dos resultados sem teste.
 
 ### Testes unitários
 

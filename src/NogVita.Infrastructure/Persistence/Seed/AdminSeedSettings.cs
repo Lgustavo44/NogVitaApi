@@ -1,4 +1,4 @@
-﻿namespace NogVita.Infrastructure.Persistence.Seed;
+namespace NogVita.Infrastructure.Persistence.Seed;
 
 public sealed class AdminSeedSettings
 {

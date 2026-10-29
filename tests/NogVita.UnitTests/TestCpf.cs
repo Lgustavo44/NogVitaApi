@@ -18,7 +18,9 @@ public static class TestCpf
     public static string WithCheckDigits(string nineDigits)
     {
         if (nineDigits.Length != 9 || !nineDigits.All(char.IsAsciiDigit))
+        {
             throw new ArgumentException("A base do CPF precisa ter 9 dígitos.", nameof(nineDigits));
+        }
 
         var first = CheckDigit(nineDigits);
         var second = CheckDigit(nineDigits + first);

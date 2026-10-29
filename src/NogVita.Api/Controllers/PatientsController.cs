@@ -27,7 +27,9 @@ public sealed class PatientsController(
         var response = await getMyPatientProfileUseCase.ExecuteAsync(User.GetUserId(), cancellationToken);
 
         if (response is null)
+        {
             return Problem(statusCode: StatusCodes.Status404NotFound, title: "Perfil de paciente não encontrado.");
+        }
 
         return Ok(response);
     }
@@ -46,7 +48,9 @@ public sealed class PatientsController(
         var response = await updateMyPatientProfileUseCase.ExecuteAsync(User.GetUserId(), request, cancellationToken);
 
         if (response is null)
+        {
             return Problem(statusCode: StatusCodes.Status404NotFound, title: "Perfil de paciente não encontrado.");
+        }
 
         return Ok(response);
     }

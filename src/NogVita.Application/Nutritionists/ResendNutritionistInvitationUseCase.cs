@@ -25,10 +25,14 @@ public sealed class ResendNutritionistInvitationUseCase(
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
 
         if (user?.NutritionistProfile is null)
+        {
             return ResendInvitationStatus.NotFound;
+        }
 
         if (user.NutritionistProfile.IsActive)
+        {
             return ResendInvitationStatus.AlreadyActive;
+        }
 
         var now = timeProvider.GetUtcNow().UtcDateTime;
         await invitationRepository.RevokePendingForUserAsync(user.Id, now, cancellationToken);

@@ -22,7 +22,7 @@ public sealed record Cpf
 
     public static bool IsValid(string input) => IsValidDigits(Normalize(input));
 
-    public string Formatted =>  $"{Value[..3]}.{Value[3..6]}.{Value[6..9]}-{Value[9..11]}";
+    public string Formatted => $"{Value[..3]}.{Value[3..6]}.{Value[6..9]}-{Value[9..11]}";
 
     public override string ToString() => Value;
 

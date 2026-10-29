@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NogVita.Domain.Users;
 
@@ -35,7 +35,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email)
             .IsUnique();
         builder.HasIndex(u => u.Cpf)
-            .IsUnique();    
+            .IsUnique();
 
         builder.HasOne(u => u.PatientProfile)
             .WithOne()

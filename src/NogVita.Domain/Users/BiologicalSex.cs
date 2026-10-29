@@ -1,8 +1,7 @@
-﻿namespace NogVita.Domain.Users
+namespace NogVita.Domain.Users;
+
+public enum BiologicalSex
 {
-    public enum BiologicalSex
-    {
-        Male = 1,
-        Female = 2
-    }
+    Male = 1,
+    Female = 2
 }

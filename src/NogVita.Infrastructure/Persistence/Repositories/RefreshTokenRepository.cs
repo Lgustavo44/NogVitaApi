@@ -23,6 +23,8 @@ public sealed class RefreshTokenRepository(NogVitaDbContext context) : IRefreshT
             .ToListAsync(cancellationToken);
 
         foreach (var token in activeTokens)
+        {
             token.Revoke(nowUtc);
+        }
     }
 }

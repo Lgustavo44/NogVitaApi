@@ -30,15 +30,21 @@ public sealed class RequestPasswordResetUseCase(
 
         // Em todos os casos sem envio, a resposta é a mesma: não revela se o e-mail tem conta (D130).
         if (user is null)
+        {
             return;
+        }
 
         // Sem senha: nutricionista pré-cadastrado, que entra pelo convite (RN10).
         if (user.PasswordHash is null)
+        {
             return;
+        }
 
         // Bloqueado pelo admin (D163), com ou sem e-mail confirmado: a redefinição não pode reativar a conta.
         if (user.IsBlockedByAdmin)
+        {
             return;
+        }
 
         var now = timeProvider.GetUtcNow().UtcDateTime;
 

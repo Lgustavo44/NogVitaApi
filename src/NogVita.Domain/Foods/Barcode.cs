@@ -7,13 +7,19 @@ public static class Barcode
     public static bool IsValid(string? value)
     {
         if (string.IsNullOrEmpty(value))
+        {
             return false;
+        }
 
         if (!value.All(char.IsAsciiDigit))
+        {
             return false;
+        }
 
         if (!ValidLengths.Contains(value.Length))
+        {
             return false;
+        }
 
         return true;
     }
