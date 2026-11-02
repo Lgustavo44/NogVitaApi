@@ -14,9 +14,10 @@ public sealed record PatientProfileResponse(
     Goal Goal,
     TimeOnly? WakeUpTime,
     TimeOnly? BedTime,
-    TimeOnly? TrainingTime)
+    TimeOnly? TrainingTime,
+    string? PhotoUrl)
 {
-    public static PatientProfileResponse From(User user, PatientProfile profile, DateOnly today) =>
+    public static PatientProfileResponse From(User user, PatientProfile profile, DateOnly today, string? photoUrl) =>
         new(
             user.Id,
             user.Name,
@@ -29,5 +30,6 @@ public sealed record PatientProfileResponse(
             profile.Goal,
             profile.WakeUpTime,
             profile.BedTime,
-            profile.TrainingTime);
+            profile.TrainingTime,
+            photoUrl);
 }

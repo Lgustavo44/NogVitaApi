@@ -1,6 +1,7 @@
 using NogVita.Application.Abstractions;
 using NogVita.Application.Common;
 using NogVita.Application.NutritionPlans;
+using NogVita.Application.Photos;
 using NogVita.Application.WeightRecords;
 using NogVita.Domain.Users;
 
@@ -17,7 +18,8 @@ public sealed record FollowedPatientResponse(
     TimeOnly? WakeUpTime,
     TimeOnly? BedTime,
     TimeOnly? TrainingTime,
-    LatestWeightResponse? LatestWeight)
+    LatestWeightResponse? LatestWeight,
+    string? PhotoUrl)
 {
     // Derivado, nunca guardado: peso mais recente ÷ altura². Muda sozinho quando o paciente registra um peso novo.
     public decimal? BodyMassIndex => LatestWeight is { } weight && HeightInCm > 0
@@ -29,6 +31,7 @@ public sealed class GetFollowedPatientUseCase(
     CareAccessService careAccessService,
     IUserRepository userRepository,
     IWeightRecordQueries weightQueries,
+    IFileStorage fileStorage,
     TimeProvider timeProvider)
 {
     public async Task<FollowedPatientResponse?> ExecuteAsync(
@@ -58,6 +61,7 @@ public sealed class GetFollowedPatientUseCase(
             profile.WakeUpTime,
             profile.BedTime,
             profile.TrainingTime,
-            await weightQueries.GetLatestAsync(patient.Id, cancellationToken));
+            await weightQueries.GetLatestAsync(patient.Id, cancellationToken),
+            await fileStorage.PatientPhotoUrlAsync(profile.PhotoPath, cancellationToken));
     }
 }

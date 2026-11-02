@@ -1,5 +1,6 @@
 using NogVita.Application.FollowUps;
 using NogVita.Domain.Users;
+using NogVita.Infrastructure.Storage;
 using NogVita.UnitTests.Fakes;
 
 namespace NogVita.UnitTests.Application.FollowUps;
@@ -18,7 +19,7 @@ public class GetMyCareRelationshipUseCaseTests
         _nutritionist.UpdateNutritionistProfile("Nutrição esportiva.");
     }
 
-    private GetMyCareRelationshipUseCase CreateUseCase() => new(_relationshipRepository, _userRepository);
+    private GetMyCareRelationshipUseCase CreateUseCase() => new(_relationshipRepository, _userRepository, new InMemoryFileStorage());
 
     [Fact]
     public async Task Should_Return_Active_Relationship_With_Nutritionist_Data()

@@ -3,6 +3,7 @@ using NogVita.Application.FollowUps;
 using NogVita.Application.WeightRecords;
 using NogVita.Domain.FollowUps;
 using NogVita.Domain.Users;
+using NogVita.Infrastructure.Storage;
 using NogVita.UnitTests.Fakes;
 
 namespace NogVita.UnitTests.Application.FollowUps;
@@ -29,7 +30,7 @@ public class GetFollowedPatientUseCaseTests
     }
 
     private GetFollowedPatientUseCase CreateUseCase() =>
-        new(new CareAccessService(_userRepository, _relationshipRepository), _userRepository, _weightQueries, _timeProvider);
+        new(new CareAccessService(_userRepository, _relationshipRepository), _userRepository, _weightQueries, new InMemoryFileStorage(), _timeProvider);
 
     private CareRelationship Follow()
     {

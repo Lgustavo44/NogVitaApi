@@ -7,4 +7,8 @@ public sealed record PagedResponse<T>(
     int TotalItems)
 {
     public int TotalPages => TotalItems == 0 ? 0 : (int)Math.Ceiling(TotalItems / (double)PageSize);
+
+    // Troca os itens sem refazer a paginação (por exemplo, para acrescentar as URLs das fotos).
+    public PagedResponse<TOut> Map<TOut>(Func<T, TOut> map) =>
+        new(Items.Select(map).ToList(), Page, PageSize, TotalItems);
 }

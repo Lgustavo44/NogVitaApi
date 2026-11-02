@@ -1,5 +1,6 @@
 using NogVita.Application.Patients;
 using NogVita.Domain.Users;
+using NogVita.Infrastructure.Storage;
 using NogVita.UnitTests.Fakes;
 
 namespace NogVita.UnitTests.Application.Patients;
@@ -22,7 +23,7 @@ public class GetMyPatientProfileUseCaseTests
     {
         var user = CreatePatient();
         user.Deactivate(DateTime.UtcNow);
-        var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), _timeProvider);
+        var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), new InMemoryFileStorage(), _timeProvider);
 
         var response = await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -33,7 +34,7 @@ public class GetMyPatientProfileUseCaseTests
     public async Task Should_Return_Profile_With_Age_And_Formatted_Cpf()
     {
         var user = CreatePatient();
-        var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), _timeProvider);
+        var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), new InMemoryFileStorage(), _timeProvider);
 
         var response = await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -46,7 +47,7 @@ public class GetMyPatientProfileUseCaseTests
     public async Task Should_Return_Null_When_User_Has_No_Patient_Profile()
     {
         var user = new User("Admin", "admin@email.com", Cpf.Create("52998224725"));
-        var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), _timeProvider);
+        var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), new InMemoryFileStorage(), _timeProvider);
 
         var response = await useCase.ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -57,7 +58,7 @@ public class GetMyPatientProfileUseCaseTests
     public async Task Should_Return_Null_For_Another_User_Id()
     {
         var user = CreatePatient();
-        var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), _timeProvider);
+        var useCase = new GetMyPatientProfileUseCase(new FakeUserRepository(user), new InMemoryFileStorage(), _timeProvider);
 
         var response = await useCase.ExecuteAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 

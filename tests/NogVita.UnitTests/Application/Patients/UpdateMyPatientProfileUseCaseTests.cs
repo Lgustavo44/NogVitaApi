@@ -1,5 +1,6 @@
 using NogVita.Application.Patients;
 using NogVita.Domain.Users;
+using NogVita.Infrastructure.Storage;
 using NogVita.UnitTests.Fakes;
 
 namespace NogVita.UnitTests.Application.Patients;
@@ -22,7 +23,7 @@ public class UpdateMyPatientProfileUseCaseTests
     }
 
     private UpdateMyPatientProfileUseCase CreateUseCase(User? user) =>
-        new(new FakeUserRepository(user), _unitOfWork, _timeProvider);
+        new(new FakeUserRepository(user), _unitOfWork, new InMemoryFileStorage(), _timeProvider);
 
     [Fact]
     public async Task Should_Update_Profile_And_Save()

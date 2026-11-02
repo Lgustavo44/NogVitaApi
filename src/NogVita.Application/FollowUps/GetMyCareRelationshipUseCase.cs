@@ -1,4 +1,5 @@
 using NogVita.Application.Abstractions;
+using NogVita.Application.Photos;
 
 namespace NogVita.Application.FollowUps;
 
@@ -9,11 +10,13 @@ public sealed record MyCareRelationshipResponse(
     int CrnRegion,
     string CrnNumber,
     string? Bio,
-    DateTime StartedAtUtc);
+    DateTime StartedAtUtc,
+    string? NutritionistPhotoUrl);
 
 public sealed class GetMyCareRelationshipUseCase(
     ICareRelationshipRepository relationshipRepository,
-    IUserRepository userRepository)
+    IUserRepository userRepository,
+    IFileStorage fileStorage)
 {
     public async Task<MyCareRelationshipResponse?> ExecuteAsync(Guid patientId, CancellationToken cancellationToken = default)
     {
@@ -38,6 +41,7 @@ public sealed class GetMyCareRelationshipUseCase(
             nutritionist.NutritionistProfile.CrnRegion,
             nutritionist.NutritionistProfile.CrnNumber,
             nutritionist.NutritionistProfile.Bio,
-            relationship.StartedAtUtc);
+            relationship.StartedAtUtc,
+            fileStorage.NutritionistPhotoUrl(nutritionist.NutritionistProfile.PhotoPath));
     }
 }
