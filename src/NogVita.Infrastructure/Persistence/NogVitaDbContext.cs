@@ -7,6 +7,7 @@ using NogVita.Domain.FollowUps;
 using NogVita.Domain.Foods;
 using NogVita.Domain.Invitations;
 using NogVita.Domain.NutritionPlans;
+using NogVita.Domain.ProgressPhotos;
 using NogVita.Domain.Users;
 using NogVita.Domain.WeightRecords;
 using NogVita.Infrastructure.Persistence.Seed;
@@ -29,6 +30,7 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<WeightRecord> WeightRecords => Set<WeightRecord>();
     public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
     public DbSet<SeedRun> SeedRuns => Set<SeedRun>();
+    public DbSet<ProgressPhoto> ProgressPhotos => Set<ProgressPhoto>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

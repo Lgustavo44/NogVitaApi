@@ -28,6 +28,42 @@ public class PatientProfileTests
         Assert.Equal(expectedAge, age);
     }
 
+    // Os métodos do perfil são internal: os testes passam pelo User, como o código de verdade.
+    [Fact]
+    public void Consent_is_valid_only_for_the_accepted_version()
+    {
+        var user = CreatePatient();
+        var profile = user.PatientProfile!;
+        Assert.False(profile.HasProgressPhotosConsent("1"));
+
+        user.GrantProgressPhotosConsent("1", DateTime.UtcNow);
+
+        Assert.True(profile.HasProgressPhotosConsent("1"));
+        Assert.False(profile.HasProgressPhotosConsent("2"));
+    }
+
+    [Fact]
+    public void Revoking_consent_clears_it()
+    {
+        var user = CreatePatient();
+        user.GrantProgressPhotosConsent("1", DateTime.UtcNow);
+
+        user.RevokeProgressPhotosConsent();
+
+        Assert.False(user.PatientProfile!.HasProgressPhotosConsent("1"));
+        Assert.Null(user.PatientProfile.ProgressPhotosConsentAtUtc);
+    }
+
+    [Fact]
+    public void ChangePhoto_returns_previous_path_and_null_removes()
+    {
+        var user = CreatePatient();
+
+        Assert.Null(user.ChangePatientPhoto("u/profile/1.webp"));
+        Assert.Equal("u/profile/1.webp", user.ChangePatientPhoto(null));
+        Assert.Null(user.PatientProfile!.PhotoPath);
+    }
+
     [Fact]
     public void Should_Not_Update_With_Future_BirthDate()
     {

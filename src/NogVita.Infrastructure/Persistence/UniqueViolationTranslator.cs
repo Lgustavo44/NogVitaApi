@@ -20,6 +20,7 @@ internal static class UniqueViolationTranslator
         ["ux_nutrition_plan_patient_active"] = "O paciente já tem um plano ativo.",
         ["ux_meal_food_meal_food"] = "Este alimento já está na refeição. Altere a quantidade dele.",
         ["ux_weight_record_patient_day"] = "Já existe um peso registrado neste dia.",
+        ["ux_progress_photo_patient_day_angle"] = "Já existe uma foto desse ângulo nessa data. Tente de novo.",
         ["ux_food_barcode"] = "Este alimento já está cadastrado.",
         ["ux_food_source_reference"] = "Este alimento já está cadastrado.",
         ["ix_tb_nutritionist_profile_crn_region_crn_number"] = "Não foi possível pré-cadastrar o nutricionista com esses dados.",
