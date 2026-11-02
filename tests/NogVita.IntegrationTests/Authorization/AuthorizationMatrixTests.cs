@@ -52,11 +52,15 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("POST", "api/v1/patients/me/weight-records", Patient),
         ("GET", "api/v1/patients/me/weight-records", Patient),
         ("DELETE", "api/v1/patients/me/weight-records/{id:guid}", Patient),
+        ("PUT", "api/v1/patients/me/photo", Patient),
+        ("DELETE", "api/v1/patients/me/photo", Patient),
 
         // Lista de nutricionistas: qualquer usuário conectado; o próprio perfil, só o nutricionista
         ("GET", "api/v1/nutritionists", AnyUser),
         ("GET", "api/v1/nutritionists/me", Nutritionist),
         ("PUT", "api/v1/nutritionists/me", Nutritionist),
+        ("PUT", "api/v1/nutritionists/me/photo", Nutritionist),
+        ("DELETE", "api/v1/nutritionists/me/photo", Nutritionist),
 
         // Nutricionista: acompanhamento, planos, refeições e peso
         ("GET", "api/v1/nutritionists/me/requests", Nutritionist),
@@ -177,7 +181,13 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
             m => m.Groups[2].Success ? Guid.NewGuid().ToString() : "codigo-invalido");
 
         using var request = new HttpRequestMessage(new HttpMethod(method), url);
-        if (method is "POST" or "PUT")
+        // As rotas de foto só existem para multipart/form-data: com JSON, o roteamento responde 415 antes da autorização.
+        // Um formulário vazio chega até ela, como um envio de verdade.
+        if (method is "PUT" && route.EndsWith("/photo", StringComparison.Ordinal))
+        {
+            request.Content = new MultipartFormDataContent();
+        }
+        else if (method is "POST" or "PUT")
         {
             request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
         }

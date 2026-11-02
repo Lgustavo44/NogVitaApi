@@ -131,9 +131,10 @@ Tamanhos: **P** (até uma semana para um dev), **M** (1 a 2 semanas), **G** (mai
 
 **A proposta:**
 - **A foto do nutricionista:** pública, aparece na busca de nutricionistas.
-- **As fotos de evolução do paciente:** opcionais, privadas, com data, vistas só pelo paciente e pelo nutricionista com vínculo ativo.
+- **A foto de perfil do paciente:** opcional e privada. Sem foto, o front mostra o avatar padrão. Quem é paciente e nutricionista tem duas fotos separadas.
+- **As fotos de evolução do paciente:** opcionais, privadas, até 3 por data (frente, lado, costas), enviadas só pelo paciente e vistas só por ele e pelo nutricionista com vínculo ativo.
 
-**Onde guardar:** o **Supabase Storage** (D-V2-03), com um bucket público para os perfis e um **privado** para a evolução.
+**Onde guardar:** o **Supabase Storage** (D-V2-03): o bucket público `nutritionist-photos` e o privado `patient-photos`, organizado por paciente (`{patientId}/profile/` e `{patientId}/progress/`).
 
 **⚠️ As fotos de evolução são dado sensível de saúde (LGPD).** O mínimo obrigatório:
 1. **Bucket privado.** A API gera uma **URL assinada de curta duração** (alguns minutos) só para quem pode ver, conferido pelo `CareAccessService`.
@@ -228,7 +229,16 @@ Sprints de 2 semanas. **Um épico por vez**, e dentro dele as duas pessoas pegam
 |---|---|
 | D-V2-01 | O vídeo **dentro do app (Daily)**, se o cadastro não pedir cartão; senão, **a agenda + um link externo** (Jitsi ou Meet). Os dois atrás da interface `IVideoRoomProvider` |
 | D-V2-02 | As metas (a água, o gasto): **o sistema sugere, marcado como estimativa; o nutricionista confirma** |
-| D-V2-03 | As fotos no **Supabase Storage**: um bucket público (o perfil) e um privado com URL assinada (a evolução) |
+| D-V2-03 | As fotos no **Supabase Storage**: um bucket público (o perfil do nutricionista) e um privado com URL assinada (as fotos do paciente) |
+| D-V2-04 | Só o paciente envia e apaga as fotos de evolução; o nutricionista só vê |
+| D-V2-05 | Até 3 fotos de evolução por data, uma por ângulo (frente, lado, costas); reenviar o mesmo ângulo substitui |
+| D-V2-06 | Sem vínculo ativo, o nutricionista perde o acesso às fotos; elas ficam com o paciente |
+| D-V2-07 | Toda imagem é recodificada em WebP (qualidade 80; 1600 px na evolução, 512 px no perfil), sem metadados; upload de até 5 MB e 40 megapixels |
+| D-V2-08 | O processamento usa o SkiaSharp (MIT) com o pacote nativo NoDependencies |
+| D-V2-09 | O Supabase Storage é acessado por um HttpClient próprio, sem SDK |
+| D-V2-10 | O caminho do arquivo é gerado pela API; o nome enviado pelo usuário nunca é usado |
+| D-V2-11 | A foto de perfil do paciente é opcional e privada: só a veem ele, os nutricionistas com pedido pendente dele e quem o acompanha |
+| D-V2-12 | Um bucket privado `patient-photos`, organizado por paciente, para apagar a conta inteira de uma vez (LGPD) |
 
 ### Em aberto (decidir no começo de cada épico)
 

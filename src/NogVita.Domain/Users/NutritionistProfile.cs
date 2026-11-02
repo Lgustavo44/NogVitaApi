@@ -10,6 +10,8 @@ public class NutritionistProfile : Entity
     public int CrnRegion { get; private set; }
     public string CrnNumber { get; private set; } = null!;
     public bool IsActive { get; private set; }
+    public const int PhotoPathMaxLength = 200;
+    public string? PhotoPath { get; private set; }
     public const int BioMaxLength = 500;
     public string? Bio { get; private set; }
 
@@ -43,6 +45,20 @@ public class NutritionistProfile : Entity
         }
 
         Bio = normalizedBio;
+    }
+
+    // Devolve o caminho anterior: o arquivo antigo só é apagado depois que o banco confirma a troca.
+    internal string? ChangePhoto(string? photoPath)
+    {
+        // O caminho é gerado pela API (D-V2-10): um caminho inválido aqui é bug, e não erro do usuário.
+        if (photoPath is not null && (string.IsNullOrWhiteSpace(photoPath) || photoPath.Length > PhotoPathMaxLength))
+        {
+            throw new ArgumentException("Caminho da foto inválido.", nameof(photoPath));
+        }
+
+        var previousPath = PhotoPath;
+        PhotoPath = photoPath;
+        return previousPath;
     }
 
     public void Activate()

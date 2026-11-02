@@ -12,6 +12,8 @@ public class PatientProfile : Entity
     public BiologicalSex BiologicalSex { get; private set; }
     public int HeightInCm { get; private set; }
     public Goal Goal { get; private set; }
+    public const int PhotoPathMaxLength = 200;
+    public string? PhotoPath { get; private set; }
 
     // Rotina, opcional e no horário local do paciente. Sem regra de "janela": quem trabalha à noite acorda depois de dormir.
     public TimeOnly? WakeUpTime { get; private set; }
@@ -90,5 +92,19 @@ public class PatientProfile : Entity
             age--;
         }
         return age;
+    }
+
+    // Devolve o caminho anterior: o arquivo antigo só é apagado depois que o banco confirma a troca.
+    internal string? ChangePhoto(string? photoPath)
+    {
+        // O caminho é gerado pela API (D-V2-10): um caminho inválido aqui é bug, e não erro do usuário.
+        if (photoPath is not null && (string.IsNullOrWhiteSpace(photoPath) || photoPath.Length > PhotoPathMaxLength))
+        {
+            throw new ArgumentException("Caminho da foto inválido.", nameof(photoPath));
+        }
+
+        var previousPath = PhotoPath;
+        PhotoPath = photoPath;
+        return previousPath;
     }
 }

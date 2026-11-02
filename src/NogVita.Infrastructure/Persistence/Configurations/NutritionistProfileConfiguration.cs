@@ -20,6 +20,9 @@ public class NutritionistProfileConfiguration : IEntityTypeConfiguration<Nutriti
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(n => n.PhotoPath)
+            .HasMaxLength(NutritionistProfile.PhotoPathMaxLength);
+
         builder.Property(n => n.Bio)
             .HasMaxLength(NutritionistProfile.BioMaxLength)
             .IsRequired(false);

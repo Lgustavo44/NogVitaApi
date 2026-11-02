@@ -186,6 +186,15 @@ builder.Services.AddRateLimiter(options =>
             Window = TimeSpan.FromHours(1)
         }));
 
+    options.AddPolicy("photo-upload", httpContext =>
+    !rateLimitingEnabled ? RateLimitPartition.GetNoLimiter("desligado") : RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.User.FindFirst("sub")?.Value ?? "anonymous",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromHours(1)
+        }));
+
     options.AddPolicy("food-lookup", httpContext =>
     !rateLimitingEnabled ? RateLimitPartition.GetNoLimiter("desligado") : RateLimitPartition.GetFixedWindowLimiter(
         partitionKey: httpContext.User.FindFirst("sub")?.Value

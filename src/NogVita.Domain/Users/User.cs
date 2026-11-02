@@ -208,4 +208,24 @@ public class User : Entity
 
         NutritionistProfile.UpdateBio(bio);
     }
+
+    public string? ChangeNutritionistPhoto(string? photoPath)
+    {
+        if (NutritionistProfile is null)
+        {
+            throw new DomainException("O usuário não possui perfil de nutricionista.");
+        }
+
+        return NutritionistProfile.ChangePhoto(photoPath);
+    }
+
+    public string? ChangePatientPhoto(string? photoPath)
+    {
+        if (PatientProfile is null)
+        {
+            throw new DomainException("O usuário não possui perfil de paciente.");
+        }
+
+        return PatientProfile.ChangePhoto(photoPath);
+    }
 }

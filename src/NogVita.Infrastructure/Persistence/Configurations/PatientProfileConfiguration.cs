@@ -18,6 +18,9 @@ public class PatientProfileConfiguration : IEntityTypeConfiguration<PatientProfi
 
         builder.Property(u => u.HeightInCm);
 
+        builder.Property(n => n.PhotoPath)
+            .HasMaxLength(PatientProfile.PhotoPathMaxLength);
+
         builder.Property(p => p.BiologicalSex)
             .HasConversion<string>()
             .HasMaxLength(20)

@@ -735,6 +735,11 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
 
+                    b.Property<string>("PhotoPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("photo_path");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -790,6 +795,11 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.Property<int>("HeightInCm")
                         .HasColumnType("integer")
                         .HasColumnName("height_in_cm");
+
+                    b.Property<string>("PhotoPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("photo_path");
 
                     b.Property<TimeOnly?>("TrainingTime")
                         .HasColumnType("time without time zone")
