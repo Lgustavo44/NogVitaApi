@@ -23,4 +23,5 @@ public sealed record NutritionistListItem(
     string Name,
     int CrnRegion,
     string CrnNumber,
-    string? Bio);
+    string? Bio,
+    string? PhotoUrl = null);

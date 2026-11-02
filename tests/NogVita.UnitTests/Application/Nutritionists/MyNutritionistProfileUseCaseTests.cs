@@ -1,5 +1,6 @@
 using NogVita.Application.Nutritionists;
 using NogVita.Domain.Users;
+using NogVita.Infrastructure.Storage;
 using NogVita.UnitTests.Fakes;
 
 namespace NogVita.UnitTests.Application.Nutritionists;
@@ -25,7 +26,7 @@ public class MyNutritionistProfileUseCaseTests
     {
         var user = AddActiveNutritionist();
 
-        var response = await new GetMyNutritionistProfileUseCase(_userRepository)
+        var response = await new GetMyNutritionistProfileUseCase(_userRepository, new InMemoryFileStorage())
             .ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
 
         Assert.NotNull(response);
@@ -39,7 +40,7 @@ public class MyNutritionistProfileUseCaseTests
         var user = new User("Só Paciente", "paciente@email.com", Cpf.Create("11144477735"));
         _userRepository.Add(user);
 
-        var response = await new GetMyNutritionistProfileUseCase(_userRepository)
+        var response = await new GetMyNutritionistProfileUseCase(_userRepository, new InMemoryFileStorage())
             .ExecuteAsync(user.Id, TestContext.Current.CancellationToken);
 
         Assert.Null(response);
@@ -49,7 +50,7 @@ public class MyNutritionistProfileUseCaseTests
     public async Task Should_Update_Bio()
     {
         var user = AddActiveNutritionist();
-        var useCase = new UpdateMyNutritionistProfileUseCase(_userRepository, _unitOfWork);
+        var useCase = new UpdateMyNutritionistProfileUseCase(_userRepository, _unitOfWork, new InMemoryFileStorage());
 
         var response = await useCase.ExecuteAsync(
             user.Id,
@@ -64,7 +65,7 @@ public class MyNutritionistProfileUseCaseTests
     [Fact]
     public async Task Should_Not_Update_When_User_Does_Not_Exist()
     {
-        var useCase = new UpdateMyNutritionistProfileUseCase(_userRepository, _unitOfWork);
+        var useCase = new UpdateMyNutritionistProfileUseCase(_userRepository, _unitOfWork, new InMemoryFileStorage());
 
         var response = await useCase.ExecuteAsync(
             Guid.NewGuid(),

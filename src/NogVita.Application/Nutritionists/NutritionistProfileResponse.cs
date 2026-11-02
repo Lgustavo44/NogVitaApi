@@ -8,9 +8,10 @@ public sealed record NutritionistProfileResponse(
     string Email,
     int CrnRegion,
     string CrnNumber,
-    string? Bio)
+    string? Bio,
+    string? PhotoUrl)
 {
-    public static NutritionistProfileResponse From(User user)
+    public static NutritionistProfileResponse From(User user, string? photoUrl)
     {
         var profile = user.NutritionistProfile!;
 
@@ -20,6 +21,7 @@ public sealed record NutritionistProfileResponse(
             user.Email,
             profile.CrnRegion,
             profile.CrnNumber,
-            profile.Bio);
+            profile.Bio,
+            photoUrl);
     }
 }

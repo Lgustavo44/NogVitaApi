@@ -121,8 +121,8 @@ public sealed class ProfilePhotoUseCase(
 
     private async Task<string?> UrlOfAsync(StorageBucket bucket, string path, CancellationToken cancellationToken) => bucket switch
     {
-        StorageBucket.NutritionistPhotos => fileStorage.GetPublicUrl(bucket, path),
-        StorageBucket.PatientPhotos => (await fileStorage.CreateSignedUrlsAsync(bucket, [path], cancellationToken)).GetValueOrDefault(path)
+        StorageBucket.NutritionistPhotos => fileStorage.NutritionistPhotoUrl(path),
+        StorageBucket.PatientPhotos => await fileStorage.PatientPhotoUrlAsync(path, cancellationToken)
     };
 
     private async Task TryDeleteAsync(StorageBucket bucket, string path)

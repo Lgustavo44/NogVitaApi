@@ -1,8 +1,9 @@
 using NogVita.Application.Abstractions;
+using NogVita.Application.Photos;
 
 namespace NogVita.Application.Nutritionists;
 
-public sealed class UpdateMyNutritionistProfileUseCase(IUserRepository userRepository, IUnitOfWork unitOfWork)
+public sealed class UpdateMyNutritionistProfileUseCase(IUserRepository userRepository, IUnitOfWork unitOfWork, IFileStorage fileStorage)
 {
     public async Task<NutritionistProfileResponse?> ExecuteAsync(
         Guid userId,
@@ -17,6 +18,6 @@ public sealed class UpdateMyNutritionistProfileUseCase(IUserRepository userRepos
 
         user.UpdateNutritionistProfile(request.Bio);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return NutritionistProfileResponse.From(user);
+        return NutritionistProfileResponse.From(user, fileStorage.NutritionistPhotoUrl(user.NutritionistProfile.PhotoPath));
     }
 }

@@ -1,10 +1,12 @@
 using NogVita.Application.Abstractions;
+using NogVita.Application.Photos;
 
 namespace NogVita.Application.Patients;
 
 public sealed class UpdateMyPatientProfileUseCase(
     IUserRepository userRepository,
     IUnitOfWork unitOfWork,
+    IFileStorage fileStorage,
     TimeProvider timeProvider)
 {
     public async Task<PatientProfileResponse?> ExecuteAsync(Guid userId, UpdatePatientProfileRequest request, CancellationToken cancellationToken = default)
@@ -21,6 +23,7 @@ public sealed class UpdateMyPatientProfileUseCase(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
-        return PatientProfileResponse.From(user, user.PatientProfile, today);
+        var photoUrl = await fileStorage.PatientPhotoUrlAsync(user.PatientProfile.PhotoPath, cancellationToken);
+        return PatientProfileResponse.From(user, user.PatientProfile, today, photoUrl);
     }
 }

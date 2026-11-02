@@ -40,7 +40,8 @@ public sealed record PatientRequestItem(
     NutritionistRequestStatus Status,
     string? Message,
     DateTime CreatedAt,
-    DateTime? RespondedAtUtc);
+    DateTime? RespondedAtUtc,
+    string? NutritionistPhotoUrl = null);
 
 public sealed record NutritionistRequestItem(
     Guid Id,
@@ -49,13 +50,15 @@ public sealed record NutritionistRequestItem(
     NutritionistRequestStatus Status,
     string? Message,
     DateTime CreatedAt,
-    DateTime? RespondedAtUtc);
+    DateTime? RespondedAtUtc,
+    string? PatientPhotoUrl = null); // D-V2-11: só nos pedidos pendentes
 
 public sealed record MyPatientItem(
     Guid PatientId,
     string Name,
     Goal Goal,
-    DateTime StartedAtUtc);
+    DateTime StartedAtUtc,
+    string? PhotoUrl = null);
 
 public enum RespondNutritionistRequestResult
 {
