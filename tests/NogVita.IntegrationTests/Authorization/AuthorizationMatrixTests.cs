@@ -157,6 +157,13 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
                 {
                     failures.Add($"{method} {route} como {role}: esperado {expected}, veio {(int)status}");
                 }
+
+                // Os dados aqui são inválidos de propósito (corpo vazio, Ids que não existem): a resposta certa é um 4xx.
+                // Um 500 quer dizer que a rota quebrou com uma entrada errada, como o login do staging com o banco desatualizado.
+                if ((int)status >= 500)
+                {
+                    failures.Add($"{method} {route} como {role}: erro {(int)status} com dados inválidos");
+                }
             }
         }
 

@@ -36,7 +36,10 @@ public static class DependencyInjection
 
         //models
         // Fase 26: a checagem do banco tem a marca "ready" (o /health/ready a usa; o /health/live, não).
-        services.AddHealthChecks().AddDbContextCheck<NogVitaDbContext>(tags: ["ready"]);
+        // E a checagem das migrations: com alguma pendente, a API não está pronta (o banco não tem o que o código usa).
+        services.AddHealthChecks()
+            .AddDbContextCheck<NogVitaDbContext>(tags: ["ready"])
+            .AddCheck<PendingMigrationsHealthCheck>("migrations", tags: ["ready"]);
         services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
         services.AddScoped<AdminSeeder>();
         services.AddScoped<IUserRepository, UserRepository>();
