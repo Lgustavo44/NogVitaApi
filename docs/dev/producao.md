@@ -30,6 +30,7 @@ O `appsettings.Production.json` traz só o que não é segredo nem depende do do
 | `Cors__AllowedOrigins__0` | o endereço do front, com `https://` |
 | `Frontend__BaseUrl` | o endereço do front, com `https://` (os links dos e-mails) |
 | `Email__ApiKey` e `Email__FromAddress` | a chave da Brevo e o remetente, de um domínio verificado |
+| `Storage__Provider`, `__Url`, `__SecretKey` | `Supabase`, a Project URL e a chave secreta (`sb_secret_...`) do projeto de produção |
 | `AdminSeed__Name`, `__Email`, `__Cpf`, `__Password` | o administrador inicial (troque a senha depois do primeiro acesso) |
 
 Não defina `Database__MigrateOnStartup`: ele fica `false`, e a migration é um passo do deploy (abaixo). Também não defina `RateLimiting__Enabled` nem `OpenFoodFacts__ImportOnStartup`: os dois ficam ligados, como devem.
