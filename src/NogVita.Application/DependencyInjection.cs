@@ -8,6 +8,7 @@ using NogVita.Application.Nutritionists;
 using NogVita.Application.NutritionPlans;
 using NogVita.Application.Patients;
 using NogVita.Application.Photos;
+using NogVita.Application.ProgressPhotos;
 using NogVita.Application.WeightRecords;
 
 namespace NogVita.Application;
@@ -31,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<RequestPasswordResetUseCase>();
         services.AddScoped<ConfirmPasswordResetUseCase>();
         services.AddScoped<ProfilePhotoUseCase>();
+        services.AddScoped<ProgressPhotoUseCase>();
 
         // Pacientes e confirmação de e-mail (Patients)
         services.AddScoped<EmailConfirmationService>();
