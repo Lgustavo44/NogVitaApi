@@ -25,8 +25,13 @@ internal sealed class SkiaImageProcessor(int maxPixels = SkiaImageProcessor.Defa
             return new ImageProcessingResult(ImageProcessingStatus.TooLarge);
         }
 
-        using var decoded = SKBitmap.Decode(codec);
-        if (decoded is null)
+        // Decodifica já reduzido quando o formato permite (o JPEG decodifica direto em 1/8, 2/8, ... 8/8):
+        // uma foto de 48 MP decodificada inteira ocuparia ~190 MB, e a Render gratuita tem 512 MB.
+        var scaledSize = DecodeSize(codec, maxSide);
+        var decodeInfo = new SKImageInfo(scaledSize.Width, scaledSize.Height, SKImageInfo.PlatformColorType, SKAlphaType.Premul);
+
+        using var decoded = new SKBitmap(decodeInfo);
+        if (codec.GetPixels(decodeInfo, decoded.GetPixels()) != SKCodecResult.Success)
         {
             return new ImageProcessingResult(ImageProcessingStatus.InvalidImage);
         }
@@ -41,6 +46,23 @@ internal sealed class SkiaImageProcessor(int maxPixels = SkiaImageProcessor.Defa
         return new ImageProcessingResult(
             ImageProcessingStatus.Processed,
             new ProcessedImage(data.ToArray(), resized.Width, resized.Height));
+    }
+
+    // A menor escala n/8 que ainda cobre o maxSide. O GetScaledDimensions do JPEG arredonda para baixo
+    // (1600 de 6000 vira 2/8, 1500 px), e a foto sairia menor do que o pedido; o ResizeToFit acerta o resto.
+    // O PNG não decodifica reduzido: devolve o tamanho inteiro em qualquer escala.
+    private static SKSizeI DecodeSize(SKCodec codec, int maxSide)
+    {
+        for (var eighths = 1; eighths < 8; eighths++)
+        {
+            var size = codec.GetScaledDimensions(eighths / 8f);
+            if (Math.Max(size.Width, size.Height) >= maxSide)
+            {
+                return size;
+            }
+        }
+
+        return codec.Info.Size;
     }
 
     // O celular grava a foto "deitada" e anota no EXIF como girar. Como o EXIF vai embora na recodificação,
