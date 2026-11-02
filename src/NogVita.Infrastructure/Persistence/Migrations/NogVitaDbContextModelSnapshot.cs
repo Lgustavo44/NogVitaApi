@@ -706,6 +706,50 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.ToTable("tb_nutrition_plan", (string)null);
                 });
 
+            modelBuilder.Entity("NogVita.Domain.ProgressPhotos.ProgressPhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Angle")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("angle");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("storage_path");
+
+                    b.Property<DateOnly>("TakenOn")
+                        .HasColumnType("date")
+                        .HasColumnName("taken_on");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_progress_photo");
+
+                    b.HasIndex("PatientId", "TakenOn", "Angle")
+                        .IsUnique()
+                        .HasDatabaseName("ux_progress_photo_patient_day_angle");
+
+                    b.ToTable("tb_progress_photo", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.Users.NutritionistProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -800,6 +844,15 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("photo_path");
+
+                    b.Property<DateTime?>("ProgressPhotosConsentAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("progress_photos_consent_at_utc");
+
+                    b.Property<string>("ProgressPhotosConsentVersion")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("progress_photos_consent_version");
 
                     b.Property<TimeOnly?>("TrainingTime")
                         .HasColumnType("time without time zone")
@@ -1091,6 +1144,16 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tb_nutrition_plan_users_patient_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.ProgressPhotos.ProgressPhoto", b =>
+                {
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_progress_photo_users_patient_id");
                 });
 
             modelBuilder.Entity("NogVita.Domain.Users.NutritionistProfile", b =>

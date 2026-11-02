@@ -228,4 +228,24 @@ public class User : Entity
 
         return PatientProfile.ChangePhoto(photoPath);
     }
+
+    public void GrantProgressPhotosConsent(string version, DateTime nowUtc)
+    {
+        if (PatientProfile is null)
+        {
+            throw new DomainException("O usuário não possui perfil de paciente.");
+        }
+
+        PatientProfile.GrantProgressPhotosConsent(version, nowUtc);
+    }
+
+    public void RevokeProgressPhotosConsent()
+    {
+        if (PatientProfile is null)
+        {
+            throw new DomainException("O usuário não possui perfil de paciente.");
+        }
+
+        PatientProfile.RevokeProgressPhotosConsent();
+    }
 }

@@ -14,6 +14,9 @@ public class PatientProfile : Entity
     public Goal Goal { get; private set; }
     public const int PhotoPathMaxLength = 200;
     public string? PhotoPath { get; private set; }
+    public const int ConsentVersionMaxLength = 20;
+    public DateTime? ProgressPhotosConsentAtUtc { get; private set; }
+    public string? ProgressPhotosConsentVersion { get; private set; }
 
     // Rotina, opcional e no horário local do paciente. Sem regra de "janela": quem trabalha à noite acorda depois de dormir.
     public TimeOnly? WakeUpTime { get; private set; }
@@ -106,5 +109,27 @@ public class PatientProfile : Entity
         var previousPath = PhotoPath;
         PhotoPath = photoPath;
         return previousPath;
+    }
+
+    // D-V2-16: só vale o aceite da versão atual do termo. Um método, e não uma propriedade:
+    // ele depende da versão atual, e nunca entra numa consulta do EF.
+    public bool HasProgressPhotosConsent(string currentVersion) =>
+        ProgressPhotosConsentAtUtc is not null && ProgressPhotosConsentVersion == currentVersion;
+
+    internal void GrantProgressPhotosConsent(string version, DateTime nowUtc)
+    {
+        if (string.IsNullOrWhiteSpace(version) || version.Length > ConsentVersionMaxLength)
+        {
+            throw new ArgumentException("Versão do termo inválida.", nameof(version));
+        }
+
+        ProgressPhotosConsentAtUtc = nowUtc;
+        ProgressPhotosConsentVersion = version;
+    }
+
+    internal void RevokeProgressPhotosConsent()
+    {
+        ProgressPhotosConsentAtUtc = null;
+        ProgressPhotosConsentVersion = null;
     }
 }
