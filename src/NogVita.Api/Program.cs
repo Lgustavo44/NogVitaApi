@@ -198,7 +198,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     // Fase 26: no docker-compose, a API aplica as migrations ao subir, e o ambiente inteiro sobe com um comando.
-    // Desligado por padrão: no staging e na produção, a migration é um passo explícito do deploy, antes do código novo.
+    // Ligado também no staging (appsettings.Staging.json). Desligado por padrão: na produção, a migration é um passo
+    // explícito do deploy, antes do código novo, e o /health/ready falha enquanto houver migration pendente.
     if (app.Configuration.GetValue("Database:MigrateOnStartup", false))
     {
         await scope.ServiceProvider.GetRequiredService<NogVitaDbContext>().Database.MigrateAsync();

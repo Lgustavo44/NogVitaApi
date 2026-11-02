@@ -6,6 +6,10 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 
 ## [Não lançado]
 
+### Corrigido
+
+- No staging, o login e a redefinição de senha respondiam `500` para qualquer e-mail: o código novo subiu sem as migrations no banco (a coluna `deactivated_at_utc` da Fase 21). O staging agora aplica as migrations ao subir, e o `/health/ready` falha enquanto houver migration pendente.
+
 ### Adicionado
 
 - `GET /health/live` (o processo responde, sem o banco) e `GET /health/ready` (a API consegue atender, com o banco). O `GET /health` continua, igual ao `ready`.

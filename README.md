@@ -584,7 +584,7 @@ docker compose up --build
 - **E-mails:** `http://localhost:8025` (o Mailpit mostra tudo o que a API enviou: confirmação, convite, redefinição de senha)
 - **Banco:** `localhost:5433` (a 5432 fica livre para o Postgres do desenvolvimento abaixo)
 
-A API aplica as migrations ao subir (`Database:MigrateOnStartup`, ligado só no compose: no staging e na produção, a migration é um passo explícito do deploy) e cria o administrador inicial com os dados do `.env`. O `.env` fica fora do Git. Para apagar tudo, inclusive o banco: `docker compose down -v`.
+A API aplica as migrations ao subir (`Database:MigrateOnStartup`, ligado no compose e no staging: na produção, a migration é um passo explícito do deploy) e cria o administrador inicial com os dados do `.env`. O `.env` fica fora do Git. Para apagar tudo, inclusive o banco: `docker compose down -v`.
 
 ### Para desenvolver a API
 
