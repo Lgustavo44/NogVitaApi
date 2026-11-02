@@ -44,6 +44,7 @@ O paciente encontra um nutricionista e solicita acompanhamento. O nutricionista 
 - **Cálculo nutricional:** porção de cada alimento, totais por refeição e do dia, e comparação com a meta diária de calorias e macronutrientes
 - **Exportação em PDF:** o plano completo, para baixar ou receber por e-mail, no visual da marca
 - **Registro de peso:** pelo paciente ou pelo nutricionista, um por dia, com o histórico e o IMC no detalhe do paciente
+- **Fotos de perfil e de evolução:** privadas e sem metadados
 - **E-mails transacionais** com layout próprio (convite, confirmação, aviso de conta existente e encerramento de acompanhamento), enviados por SMTP em desenvolvimento e pela API HTTP da Brevo em staging
 
 ### Planejado para a V2

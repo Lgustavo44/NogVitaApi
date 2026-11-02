@@ -12,6 +12,10 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 
 ### Adicionado
 
+- Fotos de perfil do nutricionista (pública) e do paciente (privada, opcional), com o `photoUrl` nas respostas.
+- Fotos de evolução do paciente (frente, lado, costas por data), com termo de consentimento versionado,
+  revogação que apaga todas as fotos, e acesso do nutricionista que acompanha o paciente.
+- As imagens são recodificadas em WebP, sem metadados (sem localização GPS).
 - `GET /health/live` (o processo responde, sem o banco) e `GET /health/ready` (a API consegue atender, com o banco). O `GET /health` continua, igual ao `ready`.
 - `GET /api/v1/admin/foods`: a busca de alimentos do administrador, incluindo os desativados (`isActive: false`).
 - `DELETE /api/v1/admin/nutritionists/{id}`: cancela um pré-cadastro cujo convite nunca foi aceito, liberando o CPF, o e-mail e o CRN.
