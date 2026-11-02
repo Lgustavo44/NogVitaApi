@@ -18,6 +18,7 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
   - [Nutricionista](#nutricionista)
   - [Acompanhamento nutricional](#acompanhamento-nutricional)
   - [Peso e evolução](#peso-e-evolução)
+  - [Fotos](#fotos)
   - [Alimentos](#alimentos)
   - [Plano alimentar](#plano-alimentar)
   - [Convite de nutricionista](#convite-de-nutricionista)
@@ -648,6 +649,65 @@ A rota recebe o ID do registro, sem `patientId`.
 
 - `204` → registro excluído (sem corpo)
 - `404` → registro não encontrado, criado por outra pessoa ou paciente sem acompanhamento ativo com este nutricionista
+
+### Fotos
+
+As imagens são recodificadas pela API em WebP, sem metadados (a localização GPS da câmera é removida).
+Envie JPEG, PNG ou WebP, com até 5 MB e até 40 megapixels.
+
+> No `<input type="file">`, use `accept="image/jpeg,image/png,image/webp"`. No iPhone, o navegador converte
+> a foto HEIC para JPEG quando o HEIC não está na lista.
+
+#### O campo `photoUrl`
+
+| Situação | Valor |
+|---|---|
+| Sem foto | `null`: mostre o avatar padrão |
+| Foto do nutricionista | Uma URL pública e fixa |
+| Foto do paciente | Uma URL **temporária, válida por 5 minutos** |
+
+Se uma imagem falhar ao carregar (a URL expirou com a tela aberta), troque pelo avatar padrão:
+`(error)="photoUrl = null"`. Recarregar a tela gera URLs novas.
+
+Onde aparece: `GET`/`PUT /patients/me` e `/nutritionists/me`, a busca de nutricionistas, as solicitações
+e o "meu nutricionista" do paciente (`nutritionistPhotoUrl`), e as solicitações **pendentes**, a lista e o
+detalhe dos pacientes do nutricionista (`patientPhotoUrl` ou `photoUrl`).
+
+#### Foto de perfil 🧑 🥗
+
+| Método | Rota | Resposta |
+|---|---|---|
+| `PUT` | `/api/v1/patients/me/photo` ou `/api/v1/nutritionists/me/photo` | `200` → `{ "photoUrl": "..." }` |
+| `DELETE` | a mesma rota | `204` |
+
+O corpo do `PUT` é `multipart/form-data`, com o campo `file`. No máximo 10 envios por hora (`429`).
+
+#### Fotos de evolução 🧑
+
+O paciente precisa **aceitar o termo** antes do primeiro envio. Fluxo sugerido:
+
+1. `GET /api/v1/patients/me/progress-photos/consent` → `{ version, text, accepted, acceptedAtUtc }`
+2. Se `accepted` for `false`, mostre o `text` e um botão "Aceito".
+3. `POST /api/v1/patients/me/progress-photos/consent` com `{ "version": "<a versão recebida>" }` → `204`.
+   Se o termo mudou nesse meio-tempo, a resposta é `422`: busque o termo de novo.
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `POST` | `/api/v1/patients/me/progress-photos` | Envia uma foto (multipart: `file`, `takenOn` = `YYYY-MM-DD`, `angle` = `Front`, `Side` ou `Back`) |
+| `GET` | `/api/v1/patients/me/progress-photos` | `[{ takenOn, photos: [{ id, takenOn, angle, url }] }]`, da data mais recente para a mais antiga |
+| `DELETE` | `/api/v1/patients/me/progress-photos/{id}` | Apaga uma foto |
+| `DELETE` | `/api/v1/patients/me/progress-photos/consent` | ⚠️ **Retira a autorização e apaga TODAS as fotos de evolução.** Peça uma confirmação na tela |
+| `GET` 🥗 | `/api/v1/nutritionists/me/patients/{patientId}/progress-photos` | As fotos do paciente que o nutricionista acompanha (`404` sem vínculo ativo) |
+
+Regras: uma foto por ângulo por data (enviar de novo **substitui** a anterior); a data vai de 365 dias atrás
+até hoje; no máximo 90 fotos por paciente.
+
+| Status | Quando |
+|---|---|
+| `400` | O arquivo não é uma imagem, ou tem mais de 40 megapixels |
+| `409` | Duas abas enviaram o mesmo ângulo e data ao mesmo tempo: tente de novo |
+| `413` | O arquivo tem mais de 5 MB |
+| `422` | Sem o termo aceito, o limite de 90 fotos, ou uma data inválida |
 
 ### Alimentos
 

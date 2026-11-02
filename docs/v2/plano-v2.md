@@ -17,7 +17,7 @@ A V2 deixa o NogVita **mais próximo da rotina real** de um acompanhamento nutri
 | E1 | **Porções** | "2 ovos" e "1 pão francês", e não 100 g e 50 g |
 | E2 | **Substituições no plano** | "100 g de frango **ou** 100 g de patinho" |
 | E3 | **Atividade física e água** | "30 min de musculação + 30 min de esteira" vira um gasto estimado, e a água ganha uma meta e um registro diário |
-| E4 | **Imagens** | A foto do nutricionista e as fotos de evolução do paciente (opcionais) |
+| E4 | **Imagens** ✅ concluído | A foto do nutricionista e as fotos de evolução do paciente (opcionais) |
 | E5 | **Agenda e teleconsulta** | Marcar a consulta e fazer a videochamada pelo NogVita |
 | E6 | **Os essenciais que faltam** | O que os épicos acima pedem para fazerem sentido (o diário alimentar, as medidas corporais, as notas da consulta...) |
 
