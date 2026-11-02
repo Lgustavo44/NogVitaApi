@@ -59,6 +59,20 @@ public class ProfilePhotoUseCaseTests
     }
 
     [Fact]
+    public async Task Photo_above_pixel_limit_stores_nothing()
+    {
+        // O processador de verdade, com um limite abaixo dos 1200 x 900 da imagem de teste (1,08 milhão de pixels).
+        var useCase = new ProfilePhotoUseCase(_users, _unitOfWork, new SkiaImageProcessor(maxPixels: 100_000), _storage, NullLogger<ProfilePhotoUseCase>.Instance);
+        var patient = TestUsers.Patient().AddTo(_users);
+
+        var outcome = await useCase.UploadAsync(patient.Id, ProfilePhotoOwner.Patient, CreateImage(), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ProfilePhotoResult.ImageTooLarge, outcome.Result);
+        Assert.Null(patient.PatientProfile!.PhotoPath);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
     public async Task Patient_cannot_upload_as_nutritionist()
     {
         var patient = TestUsers.Patient().AddTo(_users);

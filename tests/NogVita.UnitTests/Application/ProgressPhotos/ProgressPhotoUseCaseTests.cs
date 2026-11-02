@@ -137,6 +137,40 @@ public class ProgressPhotoUseCaseTests
         Assert.All(day.Photos, p => Assert.StartsWith("data:image/webp", p.Url));
     }
 
+    [Fact]
+    public async Task Unknown_patient_is_profile_not_found()
+    {
+        var outcome = await _useCase.GetConsentAsync(Guid.NewGuid(), _ct);
+
+        Assert.Equal(ProgressPhotoResult.ProfileNotFound, outcome.Result);
+    }
+
+    [Fact]
+    public async Task File_that_is_not_an_image_stores_nothing()
+    {
+        var patient = ConsentingPatient();
+
+        var outcome = await _useCase.UploadAsync(patient.Id, Today, ProgressPhotoAngle.Front, new MemoryStream("não é imagem"u8.ToArray()), _ct);
+
+        Assert.Equal(ProgressPhotoResult.InvalidImage, outcome.Result);
+        Assert.Empty(_photos.Photos);
+    }
+
+    [Fact]
+    public async Task Photo_above_pixel_limit_stores_nothing()
+    {
+        // O processador de verdade, com um limite abaixo dos 800 x 600 da imagem de teste (480 mil pixels).
+        var useCase = new ProgressPhotoUseCase(
+            _users, _photos, new FakeUnitOfWork(), new SkiaImageProcessor(maxPixels: 100_000), _storage,
+            new CareAccessService(_users, _relationships), new FixedTimeProvider(Now), NullLogger<ProgressPhotoUseCase>.Instance);
+        var patient = ConsentingPatient();
+
+        var outcome = await useCase.UploadAsync(patient.Id, Today, ProgressPhotoAngle.Front, CreateImage(), _ct);
+
+        Assert.Equal(ProgressPhotoResult.ImageTooLarge, outcome.Result);
+        Assert.Empty(_photos.Photos);
+    }
+
     private User ConsentingPatient()
     {
         var patient = TestUsers.Patient().AddTo(_users);
