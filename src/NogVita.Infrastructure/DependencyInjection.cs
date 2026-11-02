@@ -12,6 +12,7 @@ using NogVita.Application.NutritionPlans;
 using NogVita.Application.WeightRecords;
 using NogVita.Infrastructure.Email;
 using NogVita.Infrastructure.Foods.OpenFoodFacts;
+using NogVita.Infrastructure.Images;
 using NogVita.Infrastructure.Pdf;
 using NogVita.Infrastructure.Persistence;
 using NogVita.Infrastructure.Persistence.Queries;
@@ -66,6 +67,7 @@ public static class DependencyInjection
         services.AddScoped<IWeightRecordRepository, WeightRecordRepository>();
         services.AddScoped<IAdminAuditRepository, AdminAuditRepository>();
         services.AddScoped<IWeightRecordQueries, WeightRecordQueries>();
+        services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(emailSettings);
 
