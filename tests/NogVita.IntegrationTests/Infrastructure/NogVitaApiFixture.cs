@@ -47,11 +47,18 @@ public sealed class NogVitaApiFixture : IAsyncLifetime
     public HttpClient CreateClient() => Factory.CreateClient();
 
     // Um DbContext direto no banco do container, para os testes conferirem o que foi gravado.
-    public NogVitaDbContext CreateDbContext() =>
-        new(new DbContextOptionsBuilder<NogVitaDbContext>()
-            .UseNpgsql(_postgres.GetConnectionString())
+    // Com database, um outro banco do mesmo container (por exemplo, um vazio, sem as migrations).
+    public NogVitaDbContext CreateDbContext(string? database = null)
+    {
+        var connectionString = database is null
+            ? _postgres.GetConnectionString()
+            : new Npgsql.NpgsqlConnectionStringBuilder(_postgres.GetConnectionString()) { Database = database }.ConnectionString;
+
+        return new(new DbContextOptionsBuilder<NogVitaDbContext>()
+            .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention()
             .Options);
+    }
 
     public async ValueTask DisposeAsync()
     {

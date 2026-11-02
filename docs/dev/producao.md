@@ -13,6 +13,7 @@ O que muda entre o staging e a produção, e a lista de conferência antes de co
 | CORS | só o front (`https://nogvita.vercel.app`) | só o front, só com `https://` |
 | Domínio | `*.onrender.com` (compartilhado) | um domínio próprio, para o HSTS poder crescer |
 | Plano da Render | gratuito (dorme depois de 15 minutos) | pago, sem dormir |
+| Migrations | aplicadas pela própria API ao subir (`Database:MigrateOnStartup`) | um passo explícito do deploy, antes do código novo |
 
 Em `Production`, a API **se recusa a subir** se a configuração estiver insegura ou incompleta (`ProductionSettingsGuard`), e a mensagem diz o que falta: `AllowedHosts` aberto, CORS vazio ou com `http://`, `Frontend:BaseUrl` sem `https://`, ou o e-mail ainda no SMTP local. Um teste de integração confere essa recusa.
 
@@ -38,7 +39,7 @@ Não defina `Database__MigrateOnStartup`: ele fica `false`, e a migration é um 
 ### Infraestrutura
 
 - [ ] O plano da hospedagem não dorme, e tem memória para a importação do Open Food Facts na primeira subida.
-- [ ] A checagem de saúde da plataforma aponta para **`/health/ready`** (o banco incluído). O `/health/live` serve para um "o processo está vivo?" que não deve reiniciar o container quando só o banco caiu.
+- [ ] A checagem de saúde da plataforma aponta para **`/health/ready`** (o banco incluído, e nenhuma migration pendente: uma versão com o banco atrás do código não recebe tráfego). O `/health/live` serve para um "o processo está vivo?" que não deve reiniciar o container quando só o banco caiu.
 - [ ] O domínio próprio tem o certificado TLS emitido pela plataforma, e o HTTP redireciona para o HTTPS (a API responde `308`, e manda o HSTS de 30 dias).
 - [ ] O banco tem **backup automático** e o restauro foi testado pelo menos uma vez.
 - [ ] O banco e a API ficam na mesma região, e o banco não aceita conexões públicas sem TLS.
