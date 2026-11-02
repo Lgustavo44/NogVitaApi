@@ -18,15 +18,23 @@ public class ProductionSettingsTests(NogVitaApiFixture fixture)
         Assert.Contains("Cors:AllowedOrigins", message);
         Assert.Contains("Frontend:BaseUrl", message);
         Assert.Contains("Email:Provider", message);
+        Assert.Contains("Storage:Provider", message);
     }
+
+    // O mínimo que a produção exige: o domínio, o front em https e as fotos no Supabase (a chave falsa vem da fábrica).
+    private static (string Key, string Value)[] ValidProductionSettings =>
+    [
+        ("AllowedHosts", "api.nogvita.com.br"),
+        ("Cors:AllowedOrigins:0", "https://nogvita.com.br"),
+        ("Frontend:BaseUrl", "https://nogvita.com.br"),
+        ("Storage:Provider", "Supabase"),
+        ("Storage:Url", "https://exemplo.supabase.co")
+    ];
 
     [Fact]
     public async Task Production_Should_Start_When_Everything_Is_Configured()
     {
-        await using var factory = fixture.CreateFactory("Production").WithSettings(
-            ("AllowedHosts", "api.nogvita.com.br"),
-            ("Cors:AllowedOrigins:0", "https://nogvita.com.br"),
-            ("Frontend:BaseUrl", "https://nogvita.com.br"));
+        await using var factory = fixture.CreateFactory("Production").WithSettings(ValidProductionSettings);
 
         var client = factory.CreateClient(new() { BaseAddress = new Uri("https://api.nogvita.com.br") });
         var response = await client.GetAsync("/health/live", TestContext.Current.CancellationToken);
@@ -40,10 +48,7 @@ public class ProductionSettingsTests(NogVitaApiFixture fixture)
     [InlineData("/openapi/v1.json")]
     public async Task Production_Should_Not_Expose_The_Swagger(string path)
     {
-        await using var factory = fixture.CreateFactory("Production").WithSettings(
-            ("AllowedHosts", "api.nogvita.com.br"),
-            ("Cors:AllowedOrigins:0", "https://nogvita.com.br"),
-            ("Frontend:BaseUrl", "https://nogvita.com.br"));
+        await using var factory = fixture.CreateFactory("Production").WithSettings(ValidProductionSettings);
 
         var client = factory.CreateClient(new() { BaseAddress = new Uri("https://api.nogvita.com.br") });
         var response = await client.GetAsync(path, TestContext.Current.CancellationToken);

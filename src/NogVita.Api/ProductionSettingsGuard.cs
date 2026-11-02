@@ -36,6 +36,11 @@ internal static class ProductionSettingsGuard
             problems.Add("Email:Provider precisa ser BrevoApi (o SMTP local é só para desenvolvimento).");
         }
 
+        if (!string.Equals(configuration["Storage:Provider"], "Supabase", StringComparison.OrdinalIgnoreCase))
+        {
+            problems.Add("Storage:Provider precisa ser Supabase (o InMemory perde as fotos a cada reinício).");
+        }
+
         if (problems.Count > 0)
         {
             throw new InvalidOperationException(

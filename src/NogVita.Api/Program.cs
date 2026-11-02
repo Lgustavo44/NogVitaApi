@@ -19,6 +19,7 @@ using NogVita.Infrastructure.Foods.OpenFoodFacts;
 using NogVita.Infrastructure.Persistence;
 using NogVita.Infrastructure.Persistence.Seed;
 using NogVita.Infrastructure.Security;
+using NogVita.Infrastructure.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +73,10 @@ var openFoodFactsSettings = builder.Configuration
     .Get<OpenFoodFactsSettings>() ?? new OpenFoodFactsSettings();
 openFoodFactsSettings.Validate();
 
+var storageSettings = builder.Configuration.GetSection(StorageSettings.SectionName).Get<StorageSettings>()
+    ?? new StorageSettings();
+storageSettings.Validate();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -101,7 +106,7 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
-builder.Services.AddInfrastructure(connectionString, jwtSettings, emailSettings, openFoodFactsSettings);
+builder.Services.AddInfrastructure(connectionString, jwtSettings, emailSettings, openFoodFactsSettings, storageSettings);
 var refreshTokenSettings = builder.Configuration.GetSection(RefreshTokenSettings.SectionName).Get<RefreshTokenSettings>()
     ?? throw new InvalidOperationException("Seção 'RefreshToken' não configurada.");
 refreshTokenSettings.Validate();
