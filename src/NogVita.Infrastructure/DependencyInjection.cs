@@ -69,6 +69,7 @@ public static class DependencyInjection
         services.AddScoped<IWeightRecordRepository, WeightRecordRepository>();
         services.AddScoped<IAdminAuditRepository, AdminAuditRepository>();
         services.AddScoped<IWeightRecordQueries, WeightRecordQueries>();
+        services.AddScoped<IProgressPhotoRepository, ProgressPhotoRepository>();
         services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(storageSettings);
