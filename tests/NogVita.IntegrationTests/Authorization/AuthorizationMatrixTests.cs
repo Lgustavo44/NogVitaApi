@@ -54,6 +54,12 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("DELETE", "api/v1/patients/me/weight-records/{id:guid}", Patient),
         ("PUT", "api/v1/patients/me/photo", Patient),
         ("DELETE", "api/v1/patients/me/photo", Patient),
+        ("GET", "api/v1/patients/me/progress-photos/consent", Patient),
+        ("POST", "api/v1/patients/me/progress-photos/consent", Patient),
+        ("DELETE", "api/v1/patients/me/progress-photos/consent", Patient),
+        ("POST", "api/v1/patients/me/progress-photos", Patient),
+        ("GET", "api/v1/patients/me/progress-photos", Patient),
+        ("DELETE", "api/v1/patients/me/progress-photos/{id:guid}", Patient),
 
         // Lista de nutricionistas: qualquer usuário conectado; o próprio perfil, só o nutricionista
         ("GET", "api/v1/nutritionists", AnyUser),
@@ -89,6 +95,7 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("POST", "api/v1/nutritionists/me/patients/{patientId:guid}/weight-records", Nutritionist),
         ("GET", "api/v1/nutritionists/me/patients/{patientId:guid}/weight-records", Nutritionist),
         ("DELETE", "api/v1/nutritionists/me/weight-records/{id:guid}", Nutritionist),
+        ("GET", "api/v1/nutritionists/me/patients/{patientId:guid}/progress-photos", Nutritionist),
 
         // Alimentos: quem monta planos e quem cuida da base
         ("GET", "api/v1/foods", NutritionistOrAdmin),
@@ -181,9 +188,10 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
             m => m.Groups[2].Success ? Guid.NewGuid().ToString() : "codigo-invalido");
 
         using var request = new HttpRequestMessage(new HttpMethod(method), url);
-        // As rotas de foto só existem para multipart/form-data: com JSON, o roteamento responde 415 antes da autorização.
+        // Os envios de foto só existem para multipart/form-data: com JSON, o roteamento responde 415 antes da autorização.
         // Um formulário vazio chega até ela, como um envio de verdade.
-        if (method is "PUT" && route.EndsWith("/photo", StringComparison.Ordinal))
+        if ((method is "PUT" && route.EndsWith("/photo", StringComparison.Ordinal))
+            || (method is "POST" && route.EndsWith("/progress-photos", StringComparison.Ordinal)))
         {
             request.Content = new MultipartFormDataContent();
         }
