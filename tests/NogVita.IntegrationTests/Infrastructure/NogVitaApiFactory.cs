@@ -35,6 +35,9 @@ public sealed class NogVitaApiFactory(string connectionString, CapturedEmailSend
         // No staging, o e-mail vai pela API da Brevo, que exige uma chave. O envio é trocado pelo dublê de qualquer jeito.
         builder.UseSetting("Email:ApiKey", "chave-falsa-dos-testes");
 
+        // No staging, as fotos vão para o Supabase Storage, que também exige uma chave. Nenhum desses testes envia foto.
+        builder.UseSetting("Storage:SecretKey", "sb_secret_falsa_dos_testes");
+
         // O UseSetting entra antes de o Program.cs ler a configuração (as seções são lidas no começo dele).
         builder.UseSetting("ConnectionStrings:NogVita", connectionString);
         builder.UseSetting("Jwt:SecretKey", Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));

@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,12 +20,13 @@ using NogVita.Infrastructure.Persistence.Queries;
 using NogVita.Infrastructure.Persistence.Repositories;
 using NogVita.Infrastructure.Persistence.Seed;
 using NogVita.Infrastructure.Security;
+using NogVita.Infrastructure.Storage;
 
 namespace NogVita.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, JwtSettings jwtSettings, EmailSettings emailSettings, OpenFoodFactsSettings openFoodFactsSettings)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, JwtSettings jwtSettings, EmailSettings emailSettings, OpenFoodFactsSettings openFoodFactsSettings, StorageSettings storageSettings)
     {
         services.AddDbContext<NogVitaDbContext>(options =>
             options.UseNpgsql(connectionString)
@@ -69,7 +71,29 @@ public static class DependencyInjection
         services.AddScoped<IWeightRecordQueries, WeightRecordQueries>();
         services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
         services.AddSingleton(emailSettings);
-        services.AddSingleton(emailSettings);
+        services.AddSingleton(storageSettings);
+
+        if (storageSettings.UsesSupabase)
+        {
+            services.AddHttpClient<IFileStorage, SupabaseFileStorage>(client =>
+            {
+                client.BaseAddress = new Uri(storageSettings.Url!.TrimEnd('/') + "/");
+                client.DefaultRequestHeaders.Add("apikey", storageSettings.SecretKey);
+
+                // As chaves novas (sb_secret_...) não são JWT: vão só no apikey.
+                // A chave antiga (service_role) é um JWT, e vai também no Authorization.
+                if (!storageSettings.SecretKey!.StartsWith("sb_secret_", StringComparison.Ordinal))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", storageSettings.SecretKey);
+                }
+
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
+        }
+        else
+        {
+            services.AddSingleton<IFileStorage, InMemoryFileStorage>();
+        }
 
         if (emailSettings.UsesBrevoApi)
         {
