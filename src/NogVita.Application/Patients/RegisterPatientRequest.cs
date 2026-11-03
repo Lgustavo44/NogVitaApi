@@ -10,4 +10,7 @@ public sealed record RegisterPatientRequest(
     DateOnly BirthDate,
     BiologicalSex BiologicalSex,
     int HeightInCm,
-    Goal Goal);
+    Goal Goal,
+    string HealthDataConsentVersion,
+    bool AcceptHealthData,
+    bool AcceptInternationalTransfer);

@@ -67,6 +67,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
         services.AddSingleton<INutritionPlanPdfRenderer, QuestPdfNutritionPlanRenderer>();
         services.AddScoped<IWeightRecordRepository, WeightRecordRepository>();
+        services.AddScoped<IPlanDocumentRepository, PlanDocumentRepository>();
         services.AddScoped<IAdminAuditRepository, AdminAuditRepository>();
         services.AddScoped<IWeightRecordQueries, WeightRecordQueries>();
         services.AddScoped<IProgressPhotoRepository, ProgressPhotoRepository>();

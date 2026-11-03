@@ -37,6 +37,7 @@ public static class DependencyInjection
         // Pacientes e confirmação de e-mail (Patients)
         services.AddScoped<EmailConfirmationService>();
         services.AddScoped<RegisterPatientUseCase>();
+        services.AddScoped<HealthDataConsentUseCase>();
         services.AddScoped<ConfirmEmailUseCase>();
         services.AddScoped<ResendEmailConfirmationUseCase>();
         services.AddScoped<GetMyPatientProfileUseCase>();

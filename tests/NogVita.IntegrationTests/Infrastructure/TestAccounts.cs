@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using NogVita.Application.Patients;
 
 namespace NogVita.IntegrationTests.Infrastructure;
 
@@ -65,7 +66,10 @@ public sealed partial class TestAccounts(NogVitaApiFixture fixture)
         birthDate = "1995-03-10",
         biologicalSex = "Female",
         heightInCm = 165,
-        goal = "WeightLoss"
+        goal = "WeightLoss",
+        healthDataConsentVersion = HealthDataConsent.CurrentVersion,
+        acceptHealthData = true,
+        acceptInternationalTransfer = true
     };
 
     // O link que chegou por e-mail, como a pessoa o veria (o token vai no fragmento da URL).

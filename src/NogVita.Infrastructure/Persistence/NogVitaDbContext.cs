@@ -31,6 +31,7 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
     public DbSet<SeedRun> SeedRuns => Set<SeedRun>();
     public DbSet<ProgressPhoto> ProgressPhotos => Set<ProgressPhoto>();
+    public DbSet<PlanDocument> PlanDocuments => Set<PlanDocument>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

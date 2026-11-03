@@ -10,7 +10,18 @@ public class RegisterPatientRequestValidatorTests
     private readonly RegisterPatientRequestValidator _validator = new(TimeProvider.System);
 
     private static RegisterPatientRequest ValidRequest() =>
-        new("João Souza", "joao@email.com", "529.982.247-25", "cafe-com-pao-de-queijo", new DateOnly(1995, 3, 10), BiologicalSex.Male, 178, Goal.MuscleGain);
+        new("João Souza", "joao@email.com", "529.982.247-25", "cafe-com-pao-de-queijo", new DateOnly(1995, 3, 10), BiologicalSex.Male, 178, Goal.MuscleGain,
+            HealthDataConsent.CurrentVersion, AcceptHealthData: true, AcceptInternationalTransfer: true);
+
+    // LGPD, arts. 11, I e 33, VIII: sem os dois aceites, na versão atual do termo, não há cadastro.
+    [Fact]
+    public void Should_Require_Both_Consents_In_The_Current_Version()
+    {
+        _validator.TestValidate(ValidRequest() with { AcceptHealthData = false }).ShouldHaveValidationErrorFor(x => x.AcceptHealthData);
+        _validator.TestValidate(ValidRequest() with { AcceptInternationalTransfer = false }).ShouldHaveValidationErrorFor(x => x.AcceptInternationalTransfer);
+        _validator.TestValidate(ValidRequest() with { HealthDataConsentVersion = "0" }).ShouldHaveValidationErrorFor(x => x.HealthDataConsentVersion);
+        _validator.TestValidate(ValidRequest() with { HealthDataConsentVersion = null! }).ShouldHaveValidationErrorFor(x => x.HealthDataConsentVersion);
+    }
 
     [Fact]
     public void Should_Accept_Valid_Request()

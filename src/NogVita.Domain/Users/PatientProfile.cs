@@ -18,6 +18,10 @@ public class PatientProfile : Entity
     public DateTime? ProgressPhotosConsentAtUtc { get; private set; }
     public string? ProgressPhotosConsentVersion { get; private set; }
 
+    // LGPD, arts. 8º e 11, I: o aceite dos dados de saúde (e da transferência internacional, art. 33, VIII), com a prova de quando e de qual texto.
+    public DateTime? HealthDataConsentAtUtc { get; private set; }
+    public string? HealthDataConsentVersion { get; private set; }
+
     // Rotina, opcional e no horário local do paciente. Sem regra de "janela": quem trabalha à noite acorda depois de dormir.
     public TimeOnly? WakeUpTime { get; private set; }
     public TimeOnly? BedTime { get; private set; }
@@ -125,6 +129,20 @@ public class PatientProfile : Entity
 
         ProgressPhotosConsentAtUtc = nowUtc;
         ProgressPhotosConsentVersion = version;
+    }
+
+    public bool HasHealthDataConsent(string currentVersion) =>
+        HealthDataConsentAtUtc is not null && HealthDataConsentVersion == currentVersion;
+
+    internal void GrantHealthDataConsent(string version, DateTime nowUtc)
+    {
+        if (string.IsNullOrWhiteSpace(version) || version.Length > ConsentVersionMaxLength)
+        {
+            throw new ArgumentException("Versão do termo inválida.", nameof(version));
+        }
+
+        HealthDataConsentAtUtc = nowUtc;
+        HealthDataConsentVersion = version;
     }
 
     internal void RevokeProgressPhotosConsent()

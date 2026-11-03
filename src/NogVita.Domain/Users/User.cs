@@ -239,6 +239,16 @@ public class User : Entity
         PatientProfile.GrantProgressPhotosConsent(version, nowUtc);
     }
 
+    public void GrantHealthDataConsent(string version, DateTime nowUtc)
+    {
+        if (PatientProfile is null)
+        {
+            throw new DomainException("O usuário não possui perfil de paciente.");
+        }
+
+        PatientProfile.GrantHealthDataConsent(version, nowUtc);
+    }
+
     public void RevokeProgressPhotosConsent()
     {
         if (PatientProfile is null)

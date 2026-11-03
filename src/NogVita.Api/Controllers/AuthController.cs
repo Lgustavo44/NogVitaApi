@@ -98,6 +98,7 @@ public sealed class AuthController(
     /// A resposta é sempre a mesma (202), exista ou não uma conta com esse e-mail ou CPF: o cadastro nunca revela
     /// quem já tem conta. Quem já tem recebe um aviso por e-mail. A conta só entra depois de confirmar o e-mail.
     /// A senha precisa ter pelo menos 15 caracteres, e o paciente, pelo menos 18 anos.
+    /// O cadastro exige os dois aceites do termo dos dados de saúde (`GET /api/v1/patients/health-data-consent`), na versão atual.
     /// </remarks>
     [HttpPost("register/patient")]
     [AllowAnonymous]

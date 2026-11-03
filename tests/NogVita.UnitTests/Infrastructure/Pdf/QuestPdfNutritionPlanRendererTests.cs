@@ -25,7 +25,8 @@ public class QuestPdfNutritionPlanRendererTests
             plan,
             [new MealResponse(Guid.NewGuid(), "Almoço", "Comer devagar.", 1, new TimeOnly(12, 0), [rice])]);
 
-        var pdf = new QuestPdfNutritionPlanRenderer().Render(detail, new DateOnly(2026, 10, 17));
+        var stamp = new PlanPdfStamp("ABCD-EFGH-JKLM", new DateTime(2026, 10, 17, 14, 5, 0), 3, "12345", "https://nogvita.vercel.app/verificar-documento/ABCDEFGHJKLM");
+        var pdf = new QuestPdfNutritionPlanRenderer().Render(detail, stamp);
 
         Assert.True(pdf.Length > 1000);
         Assert.Equal("%PDF", Encoding.ASCII.GetString(pdf, 0, 4));

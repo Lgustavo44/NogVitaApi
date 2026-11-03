@@ -6,4 +6,7 @@ public static class BrazilianCalendar
 
     public static DateOnly Today(TimeProvider timeProvider) =>
         DateOnly.FromDateTime(timeProvider.GetUtcNow().ToOffset(BrasiliaOffset).DateTime);
+
+    public static DateTime ToBrasilia(DateTime utc) =>
+        new DateTimeOffset(DateTime.SpecifyKind(utc, DateTimeKind.Utc)).ToOffset(BrasiliaOffset).DateTime;
 }

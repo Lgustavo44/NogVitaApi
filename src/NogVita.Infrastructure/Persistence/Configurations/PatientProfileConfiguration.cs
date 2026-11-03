@@ -29,6 +29,9 @@ public class PatientProfileConfiguration : IEntityTypeConfiguration<PatientProfi
         builder.Property(p => p.ProgressPhotosConsentVersion)
             .HasMaxLength(PatientProfile.ConsentVersionMaxLength);
 
+        builder.Property(p => p.HealthDataConsentVersion)
+            .HasMaxLength(PatientProfile.ConsentVersionMaxLength);
+
         builder.Property(p => p.Goal)
             .HasConversion<string>()
             .HasMaxLength(20)

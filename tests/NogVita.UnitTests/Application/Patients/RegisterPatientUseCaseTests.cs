@@ -15,7 +15,8 @@ public class RegisterPatientUseCaseTests
     private readonly FakeUnitOfWork _unitOfWork = new();
 
     private static RegisterPatientRequest CreateRequest(string email = "joao@email.com", string cpf = "529.982.247-25") =>
-        new("João Souza", email, cpf, "cafe-com-pao-de-queijo", new DateOnly(1995, 3, 10), BiologicalSex.Male, 178, Goal.MuscleGain);
+        new("João Souza", email, cpf, "cafe-com-pao-de-queijo", new DateOnly(1995, 3, 10), BiologicalSex.Male, 178, Goal.MuscleGain,
+            HealthDataConsent.CurrentVersion, AcceptHealthData: true, AcceptInternationalTransfer: true);
 
     private RegisterPatientUseCase CreateUseCase()
     {
@@ -32,6 +33,7 @@ public class RegisterPatientUseCaseTests
             _passwordHasher,
             emailConfirmationService,
             _unitOfWork,
+            TimeProvider.System,
             NullLogger<RegisterPatientUseCase>.Instance);
     }
     [Fact]
@@ -59,6 +61,7 @@ public class RegisterPatientUseCaseTests
         Assert.False(user.IsActive);
         Assert.False(user.IsEmailConfirmed);
         Assert.NotNull(user.PatientProfile);
+        Assert.True(user.PatientProfile.HasHealthDataConsent(HealthDataConsent.CurrentVersion));
         Assert.Equal(_passwordHasher.Hash("cafe-com-pao-de-queijo"), user.PasswordHash);
         Assert.Single(_tokenRepository.Tokens);
         Assert.Equal(1, _unitOfWork.SaveChangesCount);

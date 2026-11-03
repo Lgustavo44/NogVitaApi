@@ -35,5 +35,16 @@ public sealed class RegisterPatientRequestValidator : AbstractValidator<Register
 
         RuleFor(x => x.Goal)
             .IsInEnum().WithMessage("O objetivo informado não é válido.");
+
+        // LGPD, arts. 8º, 11, I e 33, VIII: o cadastro só existe com os dois aceites, na versão atual do termo.
+        RuleFor(x => x.HealthDataConsentVersion)
+            .NotEmpty().WithMessage(HealthDataConsentMessages.VersionRequired)
+            .Equal(HealthDataConsent.CurrentVersion).WithMessage("O termo foi atualizado. Leia a versão nova e aceite de novo.");
+
+        RuleFor(x => x.AcceptHealthData)
+            .Equal(true).WithMessage(HealthDataConsentMessages.HealthDataRequired);
+
+        RuleFor(x => x.AcceptInternationalTransfer)
+            .Equal(true).WithMessage(HealthDataConsentMessages.InternationalTransferRequired);
     }
 }

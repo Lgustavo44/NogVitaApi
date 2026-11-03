@@ -706,6 +706,69 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.ToTable("tb_nutrition_plan", (string)null);
                 });
 
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.PlanDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CrnNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("crn_number");
+
+                    b.Property<int>("CrnRegion")
+                        .HasColumnType("integer")
+                        .HasColumnName("crn_region");
+
+                    b.Property<DateTime>("IssuedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("issued_at_utc");
+
+                    b.Property<string>("NutritionistName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nutritionist_name");
+
+                    b.Property<Guid>("PlanId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("plan_id");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("sha256");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_plan_document");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ux_plan_document_code");
+
+                    b.HasIndex("PlanId")
+                        .HasDatabaseName("ix_tb_plan_document_plan_id");
+
+                    b.ToTable("tb_plan_document", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.ProgressPhotos.ProgressPhoto", b =>
                 {
                     b.Property<Guid>("Id")
@@ -835,6 +898,15 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("goal");
+
+                    b.Property<DateTime?>("HealthDataConsentAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("health_data_consent_at_utc");
+
+                    b.Property<string>("HealthDataConsentVersion")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("health_data_consent_version");
 
                     b.Property<int>("HeightInCm")
                         .HasColumnType("integer")
@@ -1144,6 +1216,16 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tb_nutrition_plan_users_patient_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.NutritionPlans.PlanDocument", b =>
+                {
+                    b.HasOne("NogVita.Domain.NutritionPlans.NutritionPlan", null)
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_plan_document_tb_nutrition_plan_plan_id");
                 });
 
             modelBuilder.Entity("NogVita.Domain.ProgressPhotos.ProgressPhoto", b =>

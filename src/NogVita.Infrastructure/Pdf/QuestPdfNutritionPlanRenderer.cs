@@ -25,10 +25,10 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
     private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
     private static readonly Lazy<byte[]> Logo = new(LoadLogo);
 
-    public byte[] Render(NutritionPlanDetailResponse detail, DateOnly generatedOn) =>
-        Create(detail, generatedOn).GeneratePdf();
+    public byte[] Render(NutritionPlanDetailResponse detail, PlanPdfStamp stamp) =>
+        Create(detail, stamp).GeneratePdf();
 
-    internal static IDocument Create(NutritionPlanDetailResponse detail, DateOnly generatedOn)
+    internal static IDocument Create(NutritionPlanDetailResponse detail, PlanPdfStamp stamp)
     {
         PdfFonts.Register();
 
@@ -47,8 +47,8 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
                 page.Background().AlignTop().Height(8).Background(Orange);
 
                 page.Header().Element(header => ComposeHeader(header, detail));
-                page.Content().Element(content => ComposeContent(content, detail));
-                page.Footer().Element(footer => ComposeFooter(footer, detail, generatedOn));
+                page.Content().Element(content => ComposeContent(content, detail, stamp));
+                page.Footer().Element(footer => ComposeFooter(footer, detail, stamp));
             });
         });
     }
@@ -72,13 +72,13 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
         });
     }
 
-    private static void ComposeContent(IContainer container, NutritionPlanDetailResponse detail)
+    private static void ComposeContent(IContainer container, NutritionPlanDetailResponse detail, PlanPdfStamp stamp)
     {
         container.Column(column =>
         {
             column.Spacing(14);
 
-            column.Item().Element(item => ComposePlanInfo(item, detail.Plan));
+            column.Item().Element(item => ComposePlanInfo(item, detail.Plan, stamp));
 
             if (detail.Plan.Description is { } description)
             {
@@ -104,7 +104,7 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
         });
     }
 
-    private static void ComposePlanInfo(IContainer container, NutritionPlanResponse plan)
+    private static void ComposePlanInfo(IContainer container, NutritionPlanResponse plan, PlanPdfStamp stamp)
     {
         var period = plan.EndDate is { } end
             ? $"{plan.StartDate.ToString("dd/MM/yyyy", PtBr)} a {end.ToString("dd/MM/yyyy", PtBr)}"
@@ -113,7 +113,7 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
         container.Background(Light).Padding(10).Row(row =>
         {
             InfoItem(row.RelativeItem(3), "Paciente", plan.PatientName);
-            InfoItem(row.RelativeItem(3), "Nutricionista", plan.NutritionistName);
+            InfoItem(row.RelativeItem(3), "Nutricionista", $"{plan.NutritionistName}\nCRN-{stamp.CrnRegion} {stamp.CrnNumber}");
             InfoItem(row.RelativeItem(3), "Período", period);
             InfoItem(row.RelativeItem(2), "Situação", StatusLabel(plan.Status));
         });
@@ -304,7 +304,7 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
         BodyCell(table.Cell()).AlignRight().Text($"{FormatDifference(comparison.Difference)} {unit}").Bold();
     }
 
-    private static void ComposeFooter(IContainer container, NutritionPlanDetailResponse detail, DateOnly generatedOn)
+    private static void ComposeFooter(IContainer container, NutritionPlanDetailResponse detail, PlanPdfStamp stamp)
     {
         var sources = detail.Meals
             .SelectMany(m => m.Foods)
@@ -325,7 +325,9 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
 
             column.Item().PaddingTop(3).Row(row =>
             {
-                row.RelativeItem().Text($"NogVita · Acompanhamento nutricional · Gerado em {generatedOn.ToString("dd/MM/yyyy", PtBr)}")
+                row.RelativeItem().Text(
+                        $"NogVita · Gerado em {stamp.IssuedAtBrasilia.ToString("dd/MM/yyyy 'às' HH:mm", PtBr)} (horário de Brasília) · " +
+                        $"Código verificador: {stamp.VerificationCode} · Confira em {stamp.VerificationUrl}")
                     .FontSize(7).FontColor(Muted);
 
                 row.AutoItem().Text(text =>

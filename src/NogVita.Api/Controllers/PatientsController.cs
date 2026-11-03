@@ -19,8 +19,46 @@ namespace NogVita.Api.Controllers;
 public sealed class PatientsController(
     GetMyPatientProfileUseCase getMyPatientProfileUseCase,
     UpdateMyPatientProfileUseCase updateMyPatientProfileUseCase,
-    ProfilePhotoUseCase profilePhotoUseCase) : ControllerBase
+    ProfilePhotoUseCase profilePhotoUseCase,
+    HealthDataConsentUseCase healthDataConsentUseCase) : ControllerBase
 {
+    /// <summary>Devolve o termo atual dos dados de saúde e da transferência internacional, para a tela de cadastro.</summary>
+    /// <remarks>São dois aceites separados (LGPD, arts. 11, I, e 33, VIII). Envie a `version` deste termo no cadastro.</remarks>
+    [HttpGet("health-data-consent")]
+    [AllowAnonymous]
+    [ProducesResponseType<HealthDataConsentTermResponse>(StatusCodes.Status200OK)]
+    public HealthDataConsentTermResponse GetHealthDataConsentTerm() => HealthDataConsent.Term;
+
+    /// <summary>Diz se o paciente aceitou a versão atual do termo dos dados de saúde.</summary>
+    /// <remarks>Quem se cadastrou antes do termo, ou antes de uma versão nova, vem com `accepted: false` e precisa aceitar.</remarks>
+    [HttpGet("me/health-data-consent")]
+    [ProducesResponseType<HealthDataConsentResponse>(StatusCodes.Status200OK)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetHealthDataConsent(CancellationToken cancellationToken)
+    {
+        var response = await healthDataConsentUseCase.GetAsync(User.GetUserId(), cancellationToken);
+
+        return response is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Perfil de paciente não encontrado.")
+            : Ok(response);
+    }
+
+    /// <summary>Aceita o termo dos dados de saúde e da transferência internacional, na versão informada (precisa ser a atual).</summary>
+    [HttpPost("me/health-data-consent")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    [ProducesProblem(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> AcceptHealthDataConsent(AcceptHealthDataConsentRequest request, CancellationToken cancellationToken) =>
+        await healthDataConsentUseCase.AcceptAsync(User.GetUserId(), request, cancellationToken) switch
+        {
+            HealthDataConsentResult.Done => NoContent(),
+            HealthDataConsentResult.OutdatedVersion => Problem(
+                statusCode: StatusCodes.Status422UnprocessableEntity,
+                title: "O termo foi atualizado. Leia a versão nova e aceite de novo."),
+            _ => Problem(statusCode: StatusCodes.Status404NotFound, title: "Perfil de paciente não encontrado.")
+        };
+
     /// <summary>Devolve o perfil do paciente: dados de saúde, objetivo e rotina.</summary>
     [HttpGet("me")]
     [ProducesResponseType<PatientProfileResponse>(StatusCodes.Status200OK)]

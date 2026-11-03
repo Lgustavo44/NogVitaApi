@@ -10,6 +10,7 @@ public sealed class RegisterPatientUseCase(
     IPasswordHasher passwordHasher,
     EmailConfirmationService emailConfirmationService,
     IUnitOfWork unitOfWork,
+    TimeProvider timeProvider,
     ILogger<RegisterPatientUseCase> logger)
 {
     public async Task ExecuteAsync(RegisterPatientRequest request, CancellationToken cancellationToken = default)
@@ -55,6 +56,7 @@ public sealed class RegisterPatientUseCase(
         var user = new User(request.Name, request.Email, cpf);
         user.SetPasswordHash(passwordHasher.Hash(request.Password));
         user.CreatePatientProfile(request.BirthDate, request.BiologicalSex, request.HeightInCm, request.Goal);
+        user.GrantHealthDataConsent(request.HealthDataConsentVersion, timeProvider.GetUtcNow().UtcDateTime);
 
         userRepository.Add(user);
 
