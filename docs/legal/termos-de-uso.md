@@ -1,6 +1,6 @@
 # Termos de Uso do NogVita
 
-**Última atualização:** 11/10/2026
+**Última atualização:** 03/11/2026
 
 Estes Termos de Uso regem o uso da plataforma NogVita. Ao criar uma conta ou usar a plataforma, você concorda com estes termos e com a [Política de Privacidade](politica-de-privacidade.md). Se não concordar, não use a plataforma.
 
@@ -8,7 +8,7 @@ Estes Termos de Uso regem o uso da plataforma NogVita. Ao criar uma conta ou usa
 
 ## 1. O que é o NogVita
 
-O NogVita é uma plataforma que conecta **pacientes** e **nutricionistas** para o acompanhamento nutricional. Nela, o paciente encontra um nutricionista e solicita acompanhamento, e o nutricionista acompanha os seus pacientes e consulta uma base de alimentos com valores nutricionais.
+O NogVita é uma plataforma que conecta **pacientes** e **nutricionistas** para o acompanhamento nutricional. Nela, o paciente encontra um nutricionista e solicita acompanhamento, e o nutricionista acompanha os seus pacientes, monta planos alimentares a partir de uma base de alimentos com valores nutricionais e vê o peso e, se o paciente enviar, as fotos de evolução.
 
 ## 2. O NogVita não substitui atendimento profissional
 
@@ -25,6 +25,7 @@ O NogVita é uma plataforma que conecta **pacientes** e **nutricionistas** para 
 ## 4. A sua conta
 
 - **Pacientes** criam a conta sozinhos. A conta só é ativada depois da confirmação do e-mail.
+- No cadastro de paciente, além destes termos, há dois aceites separados: o dos **dados de saúde** e o da **transferência internacional** dos dados, explicados na [Política de Privacidade](politica-de-privacidade.md). Sem eles, a conta de paciente não é criada.
 - **Nutricionistas** são pré-cadastrados por um administrador, que confere o registro no Conselho Regional de Nutricionistas (CRN), e ativam a conta pelo convite enviado por e-mail.
 - Você é responsável por manter a sua senha em segredo e por tudo o que for feito com a sua conta. Se suspeitar de uso indevido, troque a senha e avise-nos.
 
@@ -42,7 +43,9 @@ O nutricionista se compromete a:
 - ter **registro ativo no CRN** e manter os dados profissionais atualizados;
 - atuar de acordo com o **Código de Ética e de Conduta do Nutricionista**;
 - usar os dados dos pacientes **apenas para o acompanhamento nutricional**, mantendo o sigilo profissional;
-- não usar a plataforma para publicidade enganosa nem para captar pacientes fora das regras da profissão.
+- não usar a plataforma para publicidade enganosa nem para captar pacientes fora das regras da profissão;
+- **nunca divulgar** fotos, medidas, exames ou outros resultados de pacientes, inclusive fotos de "antes e depois", como proíbe o Código de Ética;
+- conferir o PDF do plano alimentar antes de entregá-lo. O PDF traz o nome e o CRN do nutricionista, a data e a hora da emissão e um código verificador. Para dar ao documento a validade de um documento assinado (Lei nº 14.063/2020, art. 14), o nutricionista pode assinar o PDF com uma assinatura eletrônica avançada ou qualificada, como a assinatura gratuita do gov.br.
 
 ## 7. Uso proibido
 

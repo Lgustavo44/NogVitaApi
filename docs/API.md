@@ -194,7 +194,10 @@ Cria a conta e o perfil de paciente em uma etapa. A conta nasce **inativa**, e a
   "birthDate": "1995-04-20",
   "biologicalSex": "Female",
   "heightInCm": 165,
-  "goal": "WeightLoss"
+  "goal": "WeightLoss",
+  "healthDataConsentVersion": "1",
+  "acceptHealthData": true,
+  "acceptInternationalTransfer": true
 }
 ```
 
@@ -208,6 +211,11 @@ Cria a conta e o perfil de paciente em uma etapa. A conta nasce **inativa**, e a
 | `biologicalSex` | `Male` ou `Female` |
 | `heightInCm` | Maior que zero |
 | `goal` | `WeightLoss`, `Maintenance` ou `MuscleGain` |
+| `healthDataConsentVersion` | Obrigatório: a `version` do termo de [`GET /api/v1/patients/health-data-consent`](#get-apiv1patientshealth-data-consent-). Se o termo mudou, o `400` diz "O termo foi atualizado..." |
+| `acceptHealthData` | Precisa ser `true`: o aceite dos dados de saúde (LGPD, art. 11, I) |
+| `acceptInternationalTransfer` | Precisa ser `true`: o aceite da transferência internacional (LGPD, art. 33, VIII) |
+
+> **Dois checkboxes separados, desmarcados**, cada um com o seu texto (`healthDataText` e `internationalTransferText`). A lei pede que a transferência fique "distinguida claramente" das outras finalidades, então não junte os dois num só, nem no aceite dos Termos.
 
 - `202` → sempre a mesma resposta, mesmo que o e-mail ou o CPF já estejam cadastrados:
 
@@ -324,6 +332,46 @@ Chamado pelo "Esqueci minha senha" da tela de login.
 > Se o e-mail da conta ainda não estava confirmado, a redefinição também o confirma. Depois dela, o login já funciona.
 
 ### Paciente
+
+#### `GET /api/v1/patients/health-data-consent` 🌐
+
+O termo atual dos dados de saúde, para a tela de cadastro.
+
+```json
+{
+  "version": "1",
+  "healthDataText": "Autorizo o NogVita a tratar os meus dados de saúde (...)",
+  "internationalTransferText": "Autorizo que esses dados sejam guardados e processados fora do Brasil (...)"
+}
+```
+
+Mostre os dois textos, cada um com o seu checkbox, e envie a `version` no cadastro.
+
+#### `GET /api/v1/patients/me/health-data-consent` 🧑
+
+Diz se o paciente aceitou a versão **atual** do termo. Quem se cadastrou antes do termo existir, ou antes de uma versão nova, vem com `accepted: false`.
+
+```json
+{
+  "version": "1",
+  "healthDataText": "…",
+  "internationalTransferText": "…",
+  "accepted": false,
+  "acceptedAtUtc": null
+}
+```
+
+> Depois do login de um paciente, chame esta rota. Com `accepted: false`, mostre os dois textos em destaque e peça o aceite antes de seguir (é também o aviso da mudança da política, LGPD, art. 8º, §6º).
+
+#### `POST /api/v1/patients/me/health-data-consent` 🧑
+
+```json
+{ "version": "1", "acceptHealthData": true, "acceptInternationalTransfer": true }
+```
+
+- `204` → aceito (a data e a versão ficam guardadas)
+- `400` → falta um dos aceites, ou a versão
+- `422` → "O termo foi atualizado. Leia a versão nova e aceite de novo." (a tela estava aberta com uma versão antiga)
 
 #### `GET /api/v1/patients/me` 🧑
 
@@ -994,6 +1042,29 @@ Baixa o plano em PDF, em qualquer status (inclusive rascunho, para conferir ante
 
 > A rota exige o token, então um `<a href>` simples não funciona. Baixe com `fetch`/`HttpClient` (`responseType: 'blob'`) e salve com um link temporário (`URL.createObjectURL`).
 
+**Todo PDF é um documento identificado** (Res. CFN 760/2023, art. 10): ele traz o nome e o CRN do nutricionista, a data e a hora da emissão (horário de Brasília) e um **código verificador** (`ABCD-EFGH-JKLM`), com o link `https://nogvita.vercel.app/verificar-documento/<código>`. Cada download (e cada envio por e-mail) gera um código novo, e a emissão fica registrada. Para o PDF valer como documento assinado, o nutricionista pode assiná-lo com o assinador gratuito do gov.br.
+
+##### `GET /api/v1/plan-documents/{code}` 🌐
+
+Confere um PDF pelo código do rodapé, com ou sem os traços. É a rota da página `/verificar-documento/{code}` do front.
+
+```json
+{
+  "code": "ABCD-EFGH-JKLM",
+  "issuedAtUtc": "2026-11-03T17:05:00Z",
+  "nutritionistName": "Ana Souza",
+  "crnRegion": 3,
+  "crnNumber": "12345",
+  "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+}
+```
+
+- `200` → o documento existe. Mostre quem emitiu e quando. O `sha256` é a impressão digital do arquivo emitido: quem quiser pode comparar com o arquivo que recebeu.
+- `404` → "Documento não encontrado. Confira o código."
+- `429` → muitas tentativas (10 por minuto por IP)
+
+> A resposta **nunca** traz dado do paciente: qualquer pessoa com o código pode consultá-la.
+
 ##### `POST /api/v1/nutritionists/me/nutrition-plans/{id}/activate`, `.../finish` e `.../cancel`
 
 Sem corpo.
@@ -1401,7 +1472,8 @@ POST /auth/login
 
 ```
 Tela de cadastro
-  POST /auth/register/patient
+  GET /patients/health-data-consent → os dois textos, cada um com o seu checkbox
+  POST /auth/register/patient (com a version e os dois aceites)
     ├─ 400 → mostra os erros nos campos
     └─ 202 → tela "Verifique seu e-mail" (com botão "Reenviar link")
 
@@ -1503,6 +1575,10 @@ Convite que nunca foi aceito (isProfileActive: false):
 - [ ] Rota `/redefinir-senha` lendo o token do hash, pedindo a nova senha e mandando para o login depois do `204`
 - [ ] "Esqueci minha senha" na tela de login
 - [ ] Cadastro sem login automático: tela "verifique seu e-mail" depois do `202`
+- [ ] Cadastro com **dois checkboxes separados e desmarcados** (dados de saúde e transferência internacional), com os textos de `GET /patients/health-data-consent`
+- [ ] Depois do login de um paciente, `GET /patients/me/health-data-consent`: com `accepted: false`, pedir o aceite em destaque
+- [ ] Página pública `/verificar-documento/{code}`, que chama `GET /plan-documents/{code}`
+- [ ] PDFs da política e dos termos em `public/legal`, gerados por `npm run legal:pdf -- <pasta docs/legal da API>` sempre que o texto mudar
 - [ ] Login tratando o `403` com a opção de reenviar o link
 - [ ] Enviar `Authorization: Bearer <accessToken>` nas rotas protegidas
 - [ ] Renovar o token uma vez por vez e salvar o novo `refreshToken`

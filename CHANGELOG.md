@@ -16,6 +16,8 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 - Fotos de evolução do paciente (frente, lado, costas por data), com termo de consentimento versionado,
   revogação que apaga todas as fotos, e acesso do nutricionista que acompanha o paciente.
 - As imagens são recodificadas em WebP, sem metadados (sem localização GPS).
+- `GET /api/v1/patients/health-data-consent` (público), `GET` e `POST /api/v1/patients/me/health-data-consent`: o termo dos dados de saúde e da transferência internacional, com a versão e a data do aceite guardadas (LGPD, arts. 8º, 11, I, e 33, VIII).
+- Todo PDF de plano traz o CRN do nutricionista, a data e a hora da emissão e um código verificador. `GET /api/v1/plan-documents/{code}` (público) confere o documento, sem nenhum dado do paciente.
 - `GET /health/live` (o processo responde, sem o banco) e `GET /health/ready` (a API consegue atender, com o banco). O `GET /health` continua, igual ao `ready`.
 - `GET /api/v1/admin/foods`: a busca de alimentos do administrador, incluindo os desativados (`isActive: false`).
 - `DELETE /api/v1/admin/nutritionists/{id}`: cancela um pré-cadastro cujo convite nunca foi aceito, liberando o CPF, o e-mail e o CRN.
@@ -23,6 +25,8 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 
 ### Alterado
 
+- ⚠️ **Mudança no contrato:** `POST /api/v1/auth/register/patient` passou a exigir `healthDataConsentVersion`, `acceptHealthData: true` e `acceptInternationalTransfer: true`. Sem eles, a resposta é `400`. É uma exigência legal (o consentimento dos dados de saúde precisa ser específico, destacado e provado), e o front precisa ser publicado junto.
+- A política de privacidade e os termos de uso foram atualizados em 03/11/2026 (fotos, armazenamento, transferência internacional e o PDF verificável).
 - A busca de alimentos ordena por relevância: primeiro os nomes que começam com a primeira palavra buscada, depois os da TACO, depois os de nome mais curto, e só então a ordem alfabética. Antes, era só alfabética.
 - A busca de alimentos ficou mais rápida no banco (um índice de trigramas: de cerca de 23 ms para 1,5 ms por consulta). O formato da resposta não mudou.
 - Desativar um nutricionista encerra os acompanhamentos dele (os pacientes recebem um e-mail), finaliza ou cancela os planos em aberto e recusa as solicitações pendentes.

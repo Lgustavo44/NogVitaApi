@@ -469,7 +469,7 @@ O Swagger basta para usar a API sem perguntar nada: cada endpoint tem a descriç
 - **Login com e-mail não confirmado:** um `403` significa "e-mail não confirmado". Mostre a opção de reenviar o link (`POST /api/v1/auth/email-confirmation/resend`).
 - **Redefinição de senha:** o link abre `/redefinir-senha#token=...` no front. A tela lê o token do fragmento da URL, pede a nova senha e envia os dois no corpo do `POST /api/v1/auth/password-reset/confirm`. A tela de login precisa de um "Esqueci minha senha" que chame o `POST /api/v1/auth/password-reset/request`.
 - **Convite de nutricionista:** o e-mail leva para `/nutri/convite#token=...`. A tela lê o token do fragmento da URL e o envia no corpo do `POST /api/v1/auth/invitations/accept`.
-- **Termos de Uso e Política de Privacidade:** os textos ficam em [`docs/legal/`](docs/legal/) (veja [Termos de Uso e Privacidade](#termos-de-uso-e-privacidade)). No cadastro de paciente, além da frase de concordância, inclua um *checkbox* desmarcado de consentimento para os dados de saúde.
+- **Termos de Uso e Política de Privacidade:** os textos ficam em [`docs/legal/`](docs/legal/) (veja [Termos de Uso e Privacidade](#termos-de-uso-e-privacidade)). No cadastro de paciente, além da frase de concordância, inclua **dois** *checkboxes* desmarcados e separados, com os textos de `GET /api/v1/patients/health-data-consent`: os dados de saúde e a transferência internacional.
 
 O guia completo, com exemplos de cada endpoint, está em [docs/API.md](docs/API.md); o Swagger do staging é a referência interativa. A política está em [docs/dev/versionamento.md](docs/dev/versionamento.md).
 
@@ -536,13 +536,20 @@ Os documentos que o front exibe ao usuário ficam em [`docs/legal/`](docs/legal/
 - [Termos de Uso](docs/legal/termos-de-uso.md)
 - [Política de Privacidade](docs/legal/politica-de-privacidade.md)
 
-A política segue a LGPD e descreve o que o sistema faz de fato: os dados guardados, quem pode ver cada um, os serviços que tratam os dados (Render, Vercel e Brevo) e os direitos do titular.
+O front publica os dois também em PDF (`public/legal`). Sempre que um texto mudar, gere os PDFs de novo, no repositório do front: `npm run legal:pdf -- <caminho deste docs/legal>`.
+
+Documentos internos da LGPD, para revisar a cada feature que mexa com dado pessoal:
+
+- [Registro das operações de tratamento](docs/legal/registro-de-operacoes.md) (art. 37)
+- [Relatório de impacto à proteção de dados](docs/legal/relatorio-de-impacto.md) (art. 38)
+
+A política segue a LGPD e descreve o que o sistema faz de fato: os dados guardados, quem pode ver cada um, os serviços que tratam os dados (Render, Vercel, Supabase e Brevo), a base legal da transferência internacional e os direitos do titular.
 
 > **Textos de um projeto de estudo:** foram escritos com base no que o sistema faz de fato, mas não substituem a revisão de um advogado.
 
 Pontos em aberto, para o sistema cumprir o que os documentos prometem:
 
-- **Consentimento para dados de saúde:** data de nascimento, sexo biológico, altura e objetivo são dados sensíveis (art. 11 da LGPD), que exigem consentimento específico e destacado. O cadastro de paciente precisa de um *checkbox* desmarcado para isso, e não só da frase "Ao prosseguir, você concorda...".
+- **Consentimento dos pacientes antigos:** a API já exige e guarda os dois aceites no cadastro. Quem se cadastrou antes vem com `accepted: false` em `GET /api/v1/patients/me/health-data-consent`, e o front precisa pedir o aceite.
 - **Exclusão de conta:** ainda não há endpoint para isso. Por enquanto, a exclusão é feita por pedido no e-mail de contato.
 
 ## Licenças de terceiros

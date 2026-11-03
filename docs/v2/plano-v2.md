@@ -1,6 +1,6 @@
 # NogVita: o plano da V2
 
-> **Status:** proposta para discussão. Nada aqui está implementado.
+> **Status:** proposta para discussão. O E4 está concluído. **Atualizado em 03/11/2026** com a pesquisa com nutricionistas (seção 1.1) e com a conformidade legal (seção 7).
 > **Para quem:** Gustavo e Yuri, a dupla que vai desenvolver a V2. Lê-se em uns 15 minutos.
 > **Regra de ouro:** uma coisa de cada vez. Um épico só começa quando o anterior estiver em produção.
 
@@ -34,6 +34,24 @@ A V2 continua sem custo. Isso tem limites que **precisam estar na cabeça de que
 
 > Todos os números vêm de pesquisas feitas em outubro de 2026 (veja as Fontes). **Confira na página oficial de cada serviço antes de depender deles.**
 
+### 1.1. O que a pesquisa com nutricionistas mudou (03/11/2026)
+
+Base: a apresentação "NogVita para nutricionistas" e a conversa com a nutricionista Júlia Ávila.
+
+| O que ela disse | O que muda no plano |
+|---|---|
+| **O paciente não deve ver carboidrato e proteína.** As kcal podem aparecer, mas os macros podem virar gatilho em quem tem histórico de anorexia ou obesidade, e levam o paciente a questionar a conduta | **Item novo e prioritário: E6.7.** Hoje o paciente vê os macros (o `shared/plan/meal-card.html` é o mesmo para os dois perfis, e o PDF sempre mostra Prot./Carb./Gord.). **É o achado mais importante da conversa** |
+| As notificações são essenciais (consulta, horário das refeições, água) | O E6.4 sobe de prioridade, com a solução que funciona com a Render dormindo (veja o E6.4) |
+| Anamnese que salva o questionário de cada um, e que o paciente responde antes, no atendimento online | O E6.6 sobe de prioridade e vira um questionário-modelo que o nutricionista monta. A Res. CFN 594/2017 já exige a anamnese na primeira consulta |
+| Pode entrar qualquer dado, desde que algumas coisas fiquem visíveis só para ela | As notas do E6.3 são **privadas do nutricionista** por padrão |
+| Na clínica, a recepção cuida da agenda e do pagamento, e os estagiários das medidas | **E6.8:** um papel "recepção" sem acesso a dado clínico. O estagiário só com a autorização prévia do paciente (Res. CFN 760/2023, art. 9º, XI). Fica para depois das clínicas |
+| Lembrete para o paciente refazer as fotos | **E6.10:** um lembrete periódico, que complementa o E4 |
+| Quem entrega o plano na hora precisa de agilidade | **E6.9:** modelos de plano |
+| Assistente virtual (o feedback da semana, o pagamento, a remarcação), mas o WhatsApp dela continua com os pacientes | Só para tarefas administrativas. Pelo novo Código de Ética (2026), a IA **não substitui** o nutricionista no contato com o paciente, e o uso de IA precisa ser informado. O feedback da semana encaixa no check-in do E6.1 |
+| Usa o Dietbox (plano pago), inclusive a parte Academy | É a referência de concorrente. Os cursos ficam fora do escopo |
+
+**⚠️ O tamanho da amostra:** a própria Júlia ainda não atende todos os dias. Antes de reordenar os sprints de vez, ouvir **mais 3 ou 4 nutricionistas**, de preferência alguém que atende **só online** e alguém que trabalha em **clínica**.
+
 ---
 
 ## 2. Como trabalhar em dupla
@@ -53,6 +71,7 @@ Na V1, o desenvolvimento foi de uma pessoa só, direto na `main`. Com dois, isso
 - [ ] `docs/API.md` e `CHANGELOG.md` atualizados
 - [ ] O deploy do staging subiu e o `/health/ready` responde `200` (a migration foi aplicada, se houver)
 - [ ] Testado no staging, **só com dados fictícios** (são dados de saúde e a LGPD se aplica)
+- [ ] Se a tarefa cria, muda ou compartilha um dado pessoal: o `docs/legal/registro-de-operacoes.md` e a política de privacidade atualizados (e, se mudar um consentimento, a versão do termo sobe)
 
 **A regra de compatibilidade do contrato** (`docs/dev/versionamento.md`): **acrescentar** um campo na resposta não quebra o front. **Renomear, remover ou mudar o tipo** de um campo quebra, e exige o `/api/v2`. Todos os épicos abaixo foram pensados para serem **só acréscimos**.
 
@@ -146,6 +165,10 @@ Tamanhos: **P** (até uma semana para um dev), **M** (1 a 2 semanas), **G** (mai
 
 **A biblioteca de imagem:** escolha conferindo a licença (o SkiaSharp é MIT; o ImageSharp tem uma licença dividida, com condições).
 
+**⚠️ O Código de Ética (Res. CFN 599/2018, reforçada pelo código de 2026) proíbe divulgar resultados de pacientes**, como fotos de "antes e depois", dados corporais e exames. As fotos de evolução continuam privadas, **sem nenhuma forma de compartilhar** e sem aparecer em perfil público. Nenhuma feature futura pode mudar isso.
+
+**Falta (da pesquisa):** o lembrete periódico para refazer as fotos (E6.10).
+
 ---
 
 ### E5. Agenda e teleconsulta (G), o maior épico
@@ -166,26 +189,41 @@ Tamanhos: **P** (até uma semana para um dev), **M** (1 a 2 semanas), **G** (mai
 - **LGPD:** a chamada passa por um serviço no exterior, então a transferência internacional entra na política de privacidade. **Nada de gravação.**
 
 **⚠️ As regras do CFN (Resolução nº 760/2023, que regulamenta a telenutrição e revogou a 666/2020):**
-- O nutricionista precisa estar no cadastro **e-Nutricionista** para fazer teleconsulta.
-- O paciente precisa **aceitar o Termo de Consentimento** da telenutrição antes da primeira teleconsulta. O NogVita guarda esse aceite, com a data e a versão.
+- O nutricionista precisa estar no cadastro **e-Nutricionista** antes do primeiro atendimento (art. 5º). O admin registra isso junto com a conferência do CRN.
+- O paciente precisa **aceitar o Termo de Consentimento (TCLE)** da telenutrição antes da primeira teleconsulta, e o comprovante fica guardado (art. 9º, VI). O NogVita guarda o aceite com a data e a versão, no mesmo padrão do termo dos dados de saúde.
+- **Nada de gravação:** o conteúdo com dados pessoais "não poderá ser gravado nem compartilhado [...] por ambas as partes" (art. 9º, VII). Avisar isso no TCLE.
+- A tela da consulta mostra o nome, a profissão e o CRN do nutricionista (art. 9º, V).
+- O atendimento presencial continua sendo o padrão de referência (art. 6º).
+- Promoções e sorteios como propaganda seguem vedados, inclusive na telenutrição (art. 12, §1º). Importa se o NogVita tiver cobrança.
+- O Daily entra na política de privacidade como operador no exterior, e no aceite da transferência internacional (a versão do termo sobe).
 - Confira o texto vigente no site do CFN antes de implementar.
 
 **Divida em partes:** (a) a disponibilidade e o agendamento, (b) cancelar, remarcar e o `.ics`, (c) o vídeo.
 
 ---
 
-### E6. Os essenciais que faltam (propostas para discutir)
+### E6. Os essenciais que faltam
 
-Os épicos acima ficam incompletos sem estes itens. Priorizem juntos:
+Os épicos acima ficam incompletos sem estes itens. A coluna **Prioridade** vem da pesquisa com nutricionistas (seção 1.1); confirmem com as próximas entrevistas.
 
-| # | Item | Por que é essencial |
-|---|---|---|
-| E6.1 | **Diário alimentar / check-in de adesão** ("segui o almoço? sim, parcial, não") | Sem saber o que foi comido, não existe o "balanço do dia" do E3, e o nutricionista não vê a adesão ao plano |
-| E6.2 | **Medidas corporais** (cintura, quadril, % de gordura) | O peso sozinho engana. As medidas e as fotos (E4) contam a evolução de verdade |
-| E6.3 | **Notas da consulta** (o prontuário ligado ao agendamento) | Uma consulta (E5) sem registro não serve. O CFN exige a guarda do prontuário |
-| E6.4 | **Notificações no app** ("nova solicitação", "consulta amanhã") | O e-mail é limitado (300/dia) e se perde. Já estava no backlog |
-| E6.5 | **Excluir e exportar a conta (LGPD)** | Com as fotos e as consultas, o volume de dado sensível cresce. Já estava no backlog |
-| E6.6 | **Anamnese** (um questionário inicial: alergias, restrições, histórico) | É o primeiro passo de qualquer consulta, e alimenta as substituições (E2): "não sugerir lactose" |
+| # | Item | Prioridade | Por que é essencial |
+|---|---|---|---|
+| E6.7 | **O que o paciente vê** (P): o nutricionista escolhe, por plano ou por paciente, se o paciente vê as kcal e se vê os macros | **1** (pode entrar junto com o S1) | Os macros podem ser gatilho para quem tem histórico de transtorno alimentar. Vale para a tela do paciente, o PDF que ele baixa ou recebe por e-mail, o "balanço do dia" do E3 e o diário do E6.1. O PDF do nutricionista continua completo |
+| E6.6 | **Anamnese** configurável: um questionário-modelo que o nutricionista monta e o paciente responde **antes da consulta** | **2** | É o primeiro passo de qualquer consulta (a Res. CFN 594/2017 a exige na primeira), alimenta as substituições (E2: "não sugerir lactose") e agiliza o atendimento online |
+| E6.3 | **Notas da consulta**, privadas do nutricionista | **3** | Uma consulta (E5) sem registro não serve. ⚠️ Veja abaixo a guarda de 20 anos |
+| E6.4 | **Notificações**: consulta, horário das refeições, água, nova solicitação | **4** | O e-mail é limitado (300/dia) e se perde. **Como funciona com a Render dormindo:** a consulta usa o `.ics` com alarme (E5); as refeições e a água usam **Web Push**, disparado por um **cron gratuito externo** (por exemplo, o cron-job.org) que chama um endpoint da API, o que também acorda a API |
+| E6.1 | **Diário alimentar / check-in de adesão** ("segui o almoço? sim, parcial, não"), com o feedback da semana | **5** | Sem saber o que foi comido, não existe o "balanço do dia" do E3. **Respeita o E6.7** |
+| E6.2 | **Medidas corporais** (cintura, quadril, % de gordura) | — | O peso sozinho engana. As medidas e as fotos (E4) contam a evolução de verdade |
+| E6.5 | **Excluir e exportar a conta (LGPD)** | — | Com as fotos e as consultas, o volume de dado sensível cresce. ⚠️ Não pode apagar as notas da consulta (abaixo) |
+| E6.9 | **Modelos de plano** | — | Quem entrega o plano na hora precisa de agilidade |
+| E6.10 | **Lembrete para refazer as fotos** de evolução | — | Pedido da pesquisa; usa a mesma infraestrutura do E6.4 |
+| E6.8 | **Papel "recepção"** (agenda e pagamento, sem dado clínico) | Depois das clínicas | O estagiário só entra com a autorização prévia do paciente (Res. CFN 760/2023, art. 9º, XI) |
+
+**⚠️ As notas da consulta (E6.3) e a exclusão da conta (E6.5) entram em conflito. Decidir no desenho:**
+- A Res. CFN 594/2017, art. 3º, VI, "b", manda guardar o prontuário eletrônico de forma permanente, "podendo ser eliminado 20 anos após o último registro". A Lei 13.787/2018, art. 6º, fixa o mesmo mínimo de 20 anos. A LGPD permite guardar por obrigação legal (art. 16, I).
+- **Excluir a conta não pode apagar as notas:** elas ficam guardadas, bloqueadas e fora do uso normal.
+- **O nutricionista continua lendo as próprias notas depois que o vínculo termina.** Isso é uma exceção ao D-V2-06 (e à mesma regra do peso), só para as notas.
+- A Res. 594 pede conteúdo mínimo (art. 4º: anamnese, antropometria, diagnóstico e prescrição com data e horário) e "no mínimo dois níveis de garantia de segurança" na identificação (art. 8º). Isso é pesado para um projeto gratuito: **até lá, chamar as notas de "anotações de apoio", e não de prontuário.**
 
 ---
 
@@ -208,14 +246,14 @@ Sprints de 2 semanas. **Um épico por vez**, e dentro dele as duas pessoas pegam
 | Sprint | Entrega | Dev A | Dev B |
 |---|---|---|---|
 | S0 | O processo da dupla | As regras da seção 2, a proteção da `main` no GitHub | **Criar a conta do Daily e confirmar se pede cartão** (decide o E5); baixar e avaliar a tabela do IBGE (E1) |
-| S1 | **E1. Porções** | O domínio, a migration e o seed do IBGE | Os casos de uso, os endpoints e o PDF |
+| S1 | **E1. Porções** + **E6.7** (o que o paciente vê) | O domínio, a migration e o seed do IBGE | Os casos de uso, os endpoints e o PDF; o E6.7 |
 | S2 | **E2. Substituições** | O domínio e a migration | Os totais, a diferença, as respostas e o PDF |
 | S3 | **E4. Imagens** | O armazenamento e a recodificação (EXIF) | Os endpoints, a URL assinada, o consentimento |
 | S4 | **E3. Atividade e água** | O diário de atividades e os METs | A água, a TMB e as sugestões de meta |
 | S5–S6 | **E5. Agenda e teleconsulta** | A disponibilidade, o agendamento e o `.ics` | O `IVideoRoomProvider`, o termo do CFN e o vídeo |
-| S7 | **E6** (o que a dupla priorizar) | — | — |
+| S7+ | **E6**, na ordem da tabela do E6: a anamnese, as notas, as notificações e o diário | — | — |
 
-**Por que essa ordem:** o E1 é pequeno, isolado e de alto valor (um bom primeiro épico para a dupla treinar o processo). O E2 depende do E1. O E4 vem antes do E3 porque é independente e ensina o armazenamento de arquivos. O E5 é o maior, e fica para quando a dupla já estiver afinada.
+**Por que essa ordem:** o E1 é pequeno, isolado e de alto valor (um bom primeiro épico para a dupla treinar o processo). O E6.7 entra junto porque é pequeno e foi o achado mais importante da pesquisa. O E2 depende do E1. O E4 vem antes do E3 porque é independente e ensina o armazenamento de arquivos. O E5 é o maior, e fica para quando a dupla já estiver afinada.
 
 **O front Angular** acompanha cada épico. Combinem quem faz as telas de cada sprint.
 
@@ -239,6 +277,9 @@ Sprints de 2 semanas. **Um épico por vez**, e dentro dele as duas pessoas pegam
 | D-V2-10 | O caminho do arquivo é gerado pela API; o nome enviado pelo usuário nunca é usado |
 | D-V2-11 | A foto de perfil do paciente é opcional e privada: só a veem ele, os nutricionistas com pedido pendente dele e quem o acompanha |
 | D-V2-12 | Um bucket privado `patient-photos`, organizado por paciente, para apagar a conta inteira de uma vez (LGPD) |
+| D-V2-18 | O cadastro de paciente exige **dois aceites separados**, os dados de saúde (LGPD, art. 11, I) e a transferência internacional (art. 33, VIII), com a versão e a data guardadas. Os pacientes antigos aceitam pelo `POST /patients/me/health-data-consent` |
+| D-V2-19 | Cada PDF de plano leva o CRN, a data e a hora da emissão e um **código verificador**, conferível em `GET /plan-documents/{code}`, sem nenhum dado do paciente (Res. CFN 760/2023, art. 10). A assinatura avançada fica com o nutricionista (o assinador do gov.br) |
+| D-V2-20 | As fotos de evolução nunca são compartilháveis nem públicas (Código de Ética do CFN) |
 
 ### Em aberto (decidir no começo de cada épico)
 
@@ -250,11 +291,33 @@ Sprints de 2 semanas. **Um épico por vez**, e dentro dele as duas pessoas pegam
 | E3 | Quantas modalidades na lista | ~30 comuns, curadas do Compêndio |
 | E4 | A biblioteca de imagem | Conferir a licença; SkiaSharp (MIT) é a primeira candidata |
 | E5 | A antecedência mínima para cancelar | 24 h, configurável pelo nutricionista |
-| E6 | Quais itens entram, e em que ordem | O E6.1 (diário/adesão) e o E6.3 (notas da consulta) primeiro |
+| E6 | Quais itens entram, e em que ordem | A ordem da tabela do E6 (da pesquisa), confirmada com mais 3 ou 4 nutricionistas |
+| E6.7 | O padrão da visibilidade | Mostrar as kcal e esconder os macros, com o nutricionista podendo mudar por paciente |
+| E6.3 | Quem é o controlador das notas | Pela Res. CFN 594, art. 3º, V, o nutricionista guarda o próprio prontuário, o que o aproxima do papel de controlador (LGPD, art. 5º, VI) e coloca o NogVita como operador (art. 39). **Crítico se entrarem clínicas.** Ouvir alguém de direito digital ou de saúde |
 
 ---
 
-## 7. Fontes (pesquisadas em outubro de 2026; confira antes de usar)
+## 7. A conformidade legal (revisada em 03/11/2026)
+
+**Feito:**
+- O consentimento dos dados de saúde e o da transferência internacional, separados, com a versão e a data (D-V2-18).
+- A política de privacidade e os termos de uso atualizados (as fotos, o Storage, a hipótese certa do art. 33 e o aviso de mudança), e os PDFs deles refeitos (no front, `npm run legal:pdf`).
+- O PDF do plano com o CRN, a data e a hora e o código verificador (D-V2-19).
+- O [registro das operações](../legal/registro-de-operacoes.md) (art. 37) e o [relatório de impacto](../legal/relatorio-de-impacto.md) (art. 38).
+
+**Falta:**
+- **O front** pedir os dois aceites no cadastro, e pedir o aceite aos pacientes antigos (`GET /patients/me/health-data-consent` → `accepted: false`); a página `/verificar-documento/{code}`; e o aviso, com destaque, da mudança da política.
+- Confirmar a região do Supabase (se for São Paulo, a transferência internacional diminui).
+- No E5: o e-Nutricionista, o TCLE, sem gravação, o Daily na política.
+- No E6.3 e no E6.5: a guarda das notas por 20 anos.
+
+---
+
+## 8. Fontes (pesquisadas em outubro e novembro de 2026; confira antes de usar)
+
+- **A pesquisa:** a apresentação "NogVita para nutricionistas" e a conversa com a nutricionista Júlia Ávila (03/11/2026)
+- LGPD, Lei 13.709/2018: [normas.leg.br](https://normas.leg.br/?urn=urn:lex:br:federal:lei:2018-08-14;13709) · Lei 13.787/2018 (prontuário eletrônico): [normas.leg.br](https://normas.leg.br/?urn=urn:lex:br:federal:lei:2018-12-27;13787) · Lei 14.063/2020 (assinaturas eletrônicas): [normas.leg.br](https://normas.leg.br/?urn=urn:lex:br:federal:lei:2020-09-23;14063). Conferidas no acervo [ctresb/leis](https://github.com/ctresb/leis), que tem caráter informativo
+- CFN: [Res. 594/2017 (prontuário)](https://cfn.org.br/wp-content/uploads/resolucoes/Res_594_2017.htm), [Res. 599/2018 (Código de Ética anterior)](https://cfn.org.br/wp-content/uploads/resolucoes/Res_599_2018.html), [a atualização do Código de Ética (abril de 2026)](https://cfn.org.br/cfn-atualiza-codigo-de-etica-e-reforca-protecao-ao-paciente-e-a-pratica-profissional-na-nutricao/), [a proibição do "antes e depois"](https://cfn.org.br/novo-codigo-de-etica-dos-nutricionistas-proibe-divulgacao-de-fotos-antes-e-depois-de-pacientes/), [Exame: o novo código e a IA](https://exame.com/brasil/o-que-o-novo-codigo-de-nutricionistas-define-sobre-uso-de-ia-e-redes-sociais/)
 
 - CFN, Resolução nº 760/2023 (telenutrição): [cfn.org.br](https://cfn.org.br/cfn-publica-resolucao-que-regulamenta-a-telenutricao/), [Machado Meyer](https://www.machadomeyer.com.br/pt/inteligencia-juridica/publicacoes-ij/life-sciences-e-saude/cfn-atualiza-regras-de-telenutricao), [LegisMap](https://legismap.com.br/leis-e-normas/resolucao-cfn-n-760-de-22-10-2023)
 - IBGE, Tabela de Medidas Referidas (POF): [biblioteca do IBGE](https://biblioteca.ibge.gov.br/visualizacao/livros/liv50002.pdf), [Revista de Nutrição (a revisão 2017-2018)](https://scielo.br/j/rn/a/g9C8cp87zgmdMXYtc4rMKQC/?lang=en)
