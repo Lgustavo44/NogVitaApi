@@ -25,6 +25,103 @@ namespace NogVita.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "unaccent");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("NogVita.Domain.Anamneses.Anamnesis", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Answers")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("answers");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("NutritionistId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("nutritionist_id");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<string>("Questions")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("questions");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("SubmittedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at_utc");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_anamnesis");
+
+                    b.HasIndex("NutritionistId")
+                        .HasDatabaseName("ix_tb_anamnesis_nutritionist_id");
+
+                    b.HasIndex("PatientId", "NutritionistId")
+                        .HasDatabaseName("ix_anamnesis_patient_nutritionist");
+
+                    b.ToTable("tb_anamnesis", (string)null);
+                });
+
+            modelBuilder.Entity("NogVita.Domain.Anamneses.Questionnaire", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("NutritionistId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("nutritionist_id");
+
+                    b.Property<string>("Questions")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("questions");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_questionnaire");
+
+                    b.HasIndex("NutritionistId")
+                        .HasDatabaseName("ix_questionnaire_nutritionist");
+
+                    b.ToTable("tb_questionnaire", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.Audit.AdminAuditEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1092,6 +1189,33 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasName("pk_tb_seed_run");
 
                     b.ToTable("tb_seed_run", (string)null);
+                });
+
+            modelBuilder.Entity("NogVita.Domain.Anamneses.Anamnesis", b =>
+                {
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("NutritionistId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_anamnesis_users_nutritionist_id");
+
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_anamnesis_users_patient_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.Anamneses.Questionnaire", b =>
+                {
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("NutritionistId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_questionnaire_users_nutritionist_id");
                 });
 
             modelBuilder.Entity("NogVita.Domain.Audit.AdminAuditEntry", b =>

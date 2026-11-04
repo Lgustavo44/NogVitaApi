@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Admin;
+using NogVita.Application.Anamneses;
 using NogVita.Application.Auth;
 using NogVita.Application.FollowUps;
 using NogVita.Application.Foods;
@@ -71,6 +72,9 @@ public static class DependencyInjection
         services.AddScoped<IAdminAuditRepository, AdminAuditRepository>();
         services.AddScoped<IWeightRecordQueries, WeightRecordQueries>();
         services.AddScoped<IProgressPhotoRepository, ProgressPhotoRepository>();
+        services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
+        services.AddScoped<IAnamnesisRepository, AnamnesisRepository>();
+        services.AddScoped<IAnamnesisQueries, AnamnesisQueries>();
         services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
         services.AddSingleton(emailSettings);
         services.AddSingleton(storageSettings);

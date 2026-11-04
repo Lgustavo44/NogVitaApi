@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using NogVita.Application.Admin;
+using NogVita.Application.Anamneses;
 using NogVita.Application.Auth;
 using NogVita.Application.FollowUps;
 using NogVita.Application.Foods;
@@ -80,6 +81,11 @@ public static class DependencyInjection
         services.AddScoped<ManageMealsUseCase>();
         services.AddScoped<ManageMealFoodsUseCase>();
         services.AddScoped<PlanPdfUseCase>();
+
+        // Anamnese (Anamneses)
+        services.AddScoped<ManageQuestionnaireUseCase>();
+        services.AddScoped<AnamnesisUseCase>();
+        services.AddScoped<NutritionistAnamnesisQueriesUseCase>();
 
         // Registro de peso (WeightRecords)
         services.AddScoped<RecordWeightUseCase>();

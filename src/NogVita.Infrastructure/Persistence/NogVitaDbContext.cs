@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NogVita.Application.Abstractions;
+using NogVita.Domain.Anamneses;
 using NogVita.Domain.Audit;
 using NogVita.Domain.Auth;
 using NogVita.Domain.Common;
@@ -32,6 +33,8 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<SeedRun> SeedRuns => Set<SeedRun>();
     public DbSet<ProgressPhoto> ProgressPhotos => Set<ProgressPhoto>();
     public DbSet<PlanDocument> PlanDocuments => Set<PlanDocument>();
+    public DbSet<Questionnaire> Questionnaires => Set<Questionnaire>();
+    public DbSet<Anamnesis> Anamneses => Set<Anamnesis>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
