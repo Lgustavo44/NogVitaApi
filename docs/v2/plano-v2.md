@@ -1,6 +1,6 @@
 # NogVita: o plano da V2
 
-> **Status:** proposta para discussão. O E4 está concluído. **Atualizado em 03/11/2026** com a pesquisa com nutricionistas (seção 1.1) e com a conformidade legal (seção 7).
+> **Status:** proposta para discussão. O E4 está concluído. **Atualizado em 03/11/2026** com a pesquisa com nutricionistas (seção 1.1) e com a conformidade legal (seção 7). **Atualizado em 04/11/2026** com a sequência por prioridade (seção 5) e a Cloudflare gratuita (D-V2-21).
 > **Para quem:** Gustavo e Yuri, a dupla que vai desenvolver a V2. Lê-se em uns 15 minutos.
 > **Regra de ouro:** uma coisa de cada vez. Um épico só começa quando o anterior estiver em produção.
 
@@ -30,7 +30,13 @@ A V2 continua sem custo. Isso tem limites que **precisam estar na cabeça de que
 | Render | A API | O serviço dorme após 15 min sem uso; a primeira requisição leva ~1 min | **Nada roda em segundo plano com confiança.** Um lembrete "às 9h" não dispara se a API estiver dormindo |
 | Supabase | O banco + **as fotos (novo)** | Banco de 500 MB, 1 GB de arquivos, **pausa após 7 dias sem uso** | As fotos precisam ser comprimidas. O projeto não pode ficar uma semana parado |
 | Brevo | Os e-mails | 300 e-mails por dia | Os lembretes de consulta contam nesse limite |
-| Daily.co | **A videochamada (novo)** | ~10.000 minutos-participante por mês | ~100 consultas de 50 min com 2 pessoas por mês |
+| **Cloudflare Realtime** | **A videochamada (plano A, D-V2-01)** | 1.000 GB de saída por mês, somando o SFU e o TURN; depois, US$ 0,05/GB | Uma consulta de 50 min em 720p gasta ~1,1 GB (estimativa): **~900 consultas por mês** |
+| **Cloudflare Workers (Cron Triggers)** | **Os horários das notificações (E6.4)** | 5 crons por conta; 10 ms de CPU por execução | O cron só **chama** a API, que faz o trabalho. Cada chamada acorda a Render (veja o E6.4) |
+| **Cloudflare Turnstile** | **Antirrobô no cadastro, no login e na recuperação de senha** | Gratuito, sem limite de verificações (até 20 widgets) | A API confere o token no servidor, com uma chave secreta guardada na Render |
+| Cloudflare R2 | **Plano B das fotos**, se o 1 GB do Supabase encher | 10 GB por mês e saída gratuita | Só uma implementação nova do `IFileStorage` (D-V2-09): nenhum caso de uso muda |
+| Daily.co | A videochamada (plano B) | ~10.000 minutos-participante por mês | ~100 consultas de 50 min com 2 pessoas por mês |
+
+> **Sobre a Cloudflare:** um domínio próprio (para usar o DNS e o proxy da Cloudflare na frente da API) **não** é gratuito: um `.com.br` custa por ano. Sem ele, a API continua em `onrender.com` e o front na Vercel, e tudo acima funciona do mesmo jeito.
 
 > Todos os números vêm de pesquisas feitas em outubro de 2026 (veja as Fontes). **Confira na página oficial de cada serviço antes de depender deles.**
 
@@ -182,10 +188,11 @@ Tamanhos: **P** (até uma semana para um dev), **M** (1 a 2 semanas), **G** (mai
 - O fuso horário: a V1 usa o horário de Brasília fixo, o que basta enquanto os usuários forem do Brasil. O fuso por paciente continua no backlog.
 
 **A videochamada (D-V2-01):**
-- **Plano A: o vídeo dentro do NogVita, com o Daily.co**, **se o cadastro não pedir cartão de crédito**. As fontes divergem sobre isso, então **criar a conta e confirmar é uma tarefa do Sprint 0**.
-- **Plano B, se pedir o cartão:** a agenda no NogVita + **um link externo** (uma sala do Jitsi gerada pela API, ou o link do Google Meet que o nutricionista cadastrou), aberto em outra aba.
-- **A arquitetura que deixa os dois planos trocáveis:** uma interface `IVideoRoomProvider` na camada Application, com duas implementações (a do Daily e a do "link externo"). Os casos de uso não sabem qual está em uso.
-- **Segurança:** a chave da API do Daily fica só no servidor. As salas são **privadas**, e a API emite um **token de entrada** só para o paciente e o nutricionista daquele agendamento, válido só perto do horário.
+- **Plano A: o vídeo dentro do NogVita, com o Cloudflare Realtime** (o SFU e o TURN da Cloudflare). O limite gratuito (~900 consultas por mês) é bem maior que o do Daily. O preço disso: o Realtime é de **baixo nível**, e o front monta a chamada com WebRTC. **No Sprint 0, uma prova de conceito de 1 dia** (uma chamada entre dois navegadores) e a conferência de que a conta não pede cartão.
+- **Plano B: o Daily.co**, se a prova de conceito do Realtime ficar pesada demais para a dupla. O SDK pronto é mais simples, mas o limite é de ~100 consultas por mês, e também precisa conferir o cartão.
+- **Plano C: a agenda no NogVita + um link externo** (uma sala do Jitsi gerada pela API, ou o link do Google Meet que o nutricionista cadastrou), aberto em outra aba.
+- **A arquitetura que deixa os três planos trocáveis:** uma interface `IVideoRoomProvider` na camada Application, com uma implementação por plano. Os casos de uso não sabem qual está em uso.
+- **Segurança:** a chave do provedor fica só no servidor (variável da Render). As salas são **privadas**, e a API emite as credenciais de entrada só para o paciente e o nutricionista daquele agendamento, válidas só perto do horário.
 - **LGPD:** a chamada passa por um serviço no exterior, então a transferência internacional entra na política de privacidade. **Nada de gravação.**
 
 **⚠️ As regras do CFN (Resolução nº 760/2023, que regulamenta a telenutrição e revogou a 666/2020):**
@@ -208,10 +215,10 @@ Os épicos acima ficam incompletos sem estes itens. A coluna **Prioridade** vem 
 
 | # | Item | Prioridade | Por que é essencial |
 |---|---|---|---|
-| E6.7 | **O que o paciente vê** (P): o nutricionista escolhe, por plano ou por paciente, se o paciente vê as kcal e se vê os macros | **1** (pode entrar junto com o S1) | Os macros podem ser gatilho para quem tem histórico de transtorno alimentar. Vale para a tela do paciente, o PDF que ele baixa ou recebe por e-mail, o "balanço do dia" do E3 e o diário do E6.1. O PDF do nutricionista continua completo |
+| E6.7 | **O que o paciente vê** (P): o nutricionista escolhe, por plano ou por paciente, se o paciente vê as kcal e se vê os macros | **1** (o S1, sozinho) | Os macros podem ser gatilho para quem tem histórico de transtorno alimentar. Vale para a tela do paciente, o PDF que ele baixa ou recebe por e-mail, o "balanço do dia" do E3 e o diário do E6.1. O PDF do nutricionista continua completo. **⚠️ Esconder na API, e não só no front:** se a resposta trouxer os macros e o front só esconder, qualquer um vê pelo F12. Os campos do paciente passam a poder ser `null`, com um `macrosVisible`; é uma mudança de tipo, registrada no CHANGELOG |
 | E6.6 | **Anamnese** configurável: um questionário-modelo que o nutricionista monta e o paciente responde **antes da consulta** | **2** | É o primeiro passo de qualquer consulta (a Res. CFN 594/2017 a exige na primeira), alimenta as substituições (E2: "não sugerir lactose") e agiliza o atendimento online |
 | E6.3 | **Notas da consulta**, privadas do nutricionista | **3** | Uma consulta (E5) sem registro não serve. ⚠️ Veja abaixo a guarda de 20 anos |
-| E6.4 | **Notificações**: consulta, horário das refeições, água, nova solicitação | **4** | O e-mail é limitado (300/dia) e se perde. **Como funciona com a Render dormindo:** a consulta usa o `.ics` com alarme (E5); as refeições e a água usam **Web Push**, disparado por um **cron gratuito externo** (por exemplo, o cron-job.org) que chama um endpoint da API, o que também acorda a API |
+| E6.4 | **Notificações**: consulta, horário das refeições, água, nova solicitação | **4** | O e-mail é limitado (300/dia) e se perde. **Como funciona com a Render dormindo:** a consulta usa o `.ics` com alarme (E5); as refeições e a água usam **Web Push**, disparado por um **Cron Trigger da Cloudflare** que chama um endpoint da API (o que também acorda a API). ⚠️ O endpoint exige um **segredo no cabeçalho** (sem isso, quem achar a URL dispara notificações para todos). ⚠️ O cron só roda **das 6h às 22h**: acordar a Render 24 h por dia gasta ~730 das 750 horas gratuitas do mês. ⚠️ No **iPhone**, o Web Push só funciona com o NogVita **instalado na tela de início** (PWA); conferir a regra atual antes de implementar |
 | E6.1 | **Diário alimentar / check-in de adesão** ("segui o almoço? sim, parcial, não"), com o feedback da semana | **5** | Sem saber o que foi comido, não existe o "balanço do dia" do E3. **Respeita o E6.7** |
 | E6.2 | **Medidas corporais** (cintura, quadril, % de gordura) | — | O peso sozinho engana. As medidas e as fotos (E4) contam a evolução de verdade |
 | E6.5 | **Excluir e exportar a conta (LGPD)** | — | Com as fotos e as consultas, o volume de dado sensível cresce. ⚠️ Não pode apagar as notas da consulta (abaixo) |
@@ -243,17 +250,36 @@ Itens anotados durante a V1, para encaixar quando fizer sentido:
 
 Sprints de 2 semanas. **Um épico por vez**, e dentro dele as duas pessoas pegam partes diferentes. **Gustavo e Yuri decidem juntos quem fica com a coluna "Dev A" e quem fica com a "Dev B"** em cada sprint. Vale alternar, para os dois passarem pelo domínio e pelos endpoints.
 
-| Sprint | Entrega | Dev A | Dev B |
-|---|---|---|---|
-| S0 | O processo da dupla | As regras da seção 2, a proteção da `main` no GitHub | **Criar a conta do Daily e confirmar se pede cartão** (decide o E5); baixar e avaliar a tabela do IBGE (E1) |
-| S1 | **E1. Porções** + **E6.7** (o que o paciente vê) | O domínio, a migration e o seed do IBGE | Os casos de uso, os endpoints e o PDF; o E6.7 |
-| S2 | **E2. Substituições** | O domínio e a migration | Os totais, a diferença, as respostas e o PDF |
-| S3 | **E4. Imagens** | O armazenamento e a recodificação (EXIF) | Os endpoints, a URL assinada, o consentimento |
-| S4 | **E3. Atividade e água** | O diário de atividades e os METs | A água, a TMB e as sugestões de meta |
-| S5–S6 | **E5. Agenda e teleconsulta** | A disponibilidade, o agendamento e o `.ics` | O `IVideoRoomProvider`, o termo do CFN e o vídeo |
-| S7+ | **E6**, na ordem da tabela do E6: a anamnese, as notas, as notificações e o diário | — | — |
+**A sequência por prioridade (revisada em 04/11/2026).** Cada linha só começa quando a anterior estiver em produção.
 
-**Por que essa ordem:** o E1 é pequeno, isolado e de alto valor (um bom primeiro épico para a dupla treinar o processo). O E6.7 entra junto porque é pequeno e foi o achado mais importante da pesquisa. O E2 depende do E1. O E4 vem antes do E3 porque é independente e ensina o armazenamento de arquivos. O E5 é o maior, e fica para quando a dupla já estiver afinada.
+| # | Sprint | Entrega | Tamanho | Por que nesta posição |
+|---|---|---|---|---|
+| ✅ | — | **E4. Imagens** e o consentimento dos dados de saúde + o código verificador do PDF (D-V2-18, D-V2-19) | — | Feito |
+| 1 | **Já** | **O front da conformidade legal**: os dois aceites no cadastro, o aceite dos pacientes antigos, a página `/verificar-documento/{code}` e o aviso da política nova | P | A API já exige isso, e o staging tem dados de saúde. Sem o front, os pacientes antigos ficam sem o aceite |
+| 2 | **S0** | **O processo da dupla e as contas**: a proteção da `main` (sem `push --force`), o PR obrigatório, o Yuri no projeto; a conta da Cloudflare (sem cartão?) e a prova de conceito de 1 dia do Realtime (decide o vídeo do E5); confirmar a região do Supabase; baixar a tabela do IBGE (E1); **marcar as entrevistas com mais 3 ou 4 nutricionistas** | P | Sem isso, dois devs na mesma `main` repetem o problema do histórico reescrito |
+| 3 | **S1** | **E6.7. O que o paciente vê** (os macros escondidos **na API**) + **o Turnstile** no cadastro, no login e na recuperação de senha | P + P | O E6.7 é o achado mais importante da pesquisa, e é segurança do paciente. O Turnstile é uma proteção rápida e gratuita: cabe na coluna do segundo dev |
+| 4 | **S2** | **E1. Porções** | P–M | Pequeno, isolado e o pedido original da V2 |
+| 5 | **S3** | **E6.6. Anamnese** configurável | M | A prioridade 2 da pesquisa, e exigida pelo CFN na primeira consulta. Alimenta o E2 ("não sugerir lactose") |
+| 6 | **S4** | **E2. Substituições** | M | Depende do E1 (as alternativas usam as porções) e aproveita a anamnese |
+| 7 | **S5** | **E6.4. Notificações** (Web Push + o Cron Trigger da Cloudflare) + **E6.10**, o lembrete das fotos | M | A prioridade 4 da pesquisa. Vem antes da agenda porque o E5 usa a mesma estrutura de notificação |
+| 8 | **S6–S7** | **E5. Agenda e teleconsulta** (o vídeo pelo plano escolhido no S0) | G | O maior épico, para quando a dupla já estiver afinada |
+| 9 | **S8** | **E6.3. Notas da consulta**, privadas, e **E6.5. Excluir e exportar a conta**, desenhados **juntos** (a guarda de 20 anos) | M | As notas ficam ligadas à consulta do E5, e as duas regras entram em conflito: desenhar separado obriga a refazer |
+| 10 | **S9** | **E6.1. Diário / check-in de adesão** | M | A base do "balanço do dia" do E3. Respeita o E6.7 |
+| 11 | **S10** | **E3. Atividade física e água** | M–G | O balanço do dia só faz sentido com o diário (E6.1) |
+| 12 | depois | **E6.2** (medidas), **E6.9** (modelos de plano), **E6.8** (recepção, só com clínicas), o **R2** se o 1 GB das fotos encher | — | Sem pressão da pesquisa; a ordem fica para as próximas entrevistas |
+
+**Quem faz o quê (decidido em 04/11/2026):**
+
+| Gustavo | Yuri | Os dois juntos | A definir |
+|---|---|---|---|
+| E4. Imagens ✅ · E2. Substituições · E6.6. Anamnese · E6.3 + E6.5. Notas e exclusão da conta · E6.1. Diário | E1. Porções · E6.4. Notificações (+ E6.10) · E3. Atividade e água | E5. Agenda e teleconsulta | E6.7 + Turnstile (S1) · E6.2 · E6.9 · E6.8 |
+
+Com cada um no seu épico, **as duas trilhas andam em paralelo**, mas três regras continuam valendo:
+- **Uma migration por vez** (seção 2): antes de gerar uma, avise o outro.
+- **O E2 do Gustavo depende do E1 do Yuri**: as alternativas usam as porções. Enquanto o E1 não estiver na `main`, o Gustavo faz a anamnese (E6.6).
+- **O E3 do Yuri depende do E6.1 do Gustavo**: o balanço do dia precisa do diário. Enquanto o E6.1 não estiver na `main`, o Yuri faz as notificações (E6.4).
+
+**Por que essa ordem:** a pesquisa com a nutricionista mudou o que vale mais. O que protege o paciente (os aceites legais, os macros escondidos) vem primeiro. Depois vêm os épicos pequenos que treinam a dupla (as porções, a anamnese). Os grandes (a agenda, o diário, a atividade) ficam para o fim. **Depois das entrevistas do S0, revisem as linhas de 5 em diante.**
 
 **O front Angular** acompanha cada épico. Combinem quem faz as telas de cada sprint.
 
@@ -265,7 +291,8 @@ Sprints de 2 semanas. **Um épico por vez**, e dentro dele as duas pessoas pegam
 
 | ID | Decisão |
 |---|---|
-| D-V2-01 | O vídeo **dentro do app (Daily)**, se o cadastro não pedir cartão; senão, **a agenda + um link externo** (Jitsi ou Meet). Os dois atrás da interface `IVideoRoomProvider` |
+| D-V2-01 | O vídeo **dentro do app**: plano A o **Cloudflare Realtime**, plano B o Daily, plano C **a agenda + um link externo** (Jitsi ou Meet). Os três atrás da interface `IVideoRoomProvider`; a escolha sai da prova de conceito do S0 (revisada em 04/11/2026) |
+| D-V2-21 | **A Cloudflare gratuita** cobre as peças que a Render dormindo não cobre: o vídeo (Realtime), os horários das notificações (Cron Triggers) e o antirrobô (Turnstile). O R2 fica como plano B das fotos. Sem domínio próprio, por enquanto (não é gratuito) |
 | D-V2-02 | As metas (a água, o gasto): **o sistema sugere, marcado como estimativa; o nutricionista confirma** |
 | D-V2-03 | As fotos no **Supabase Storage**: um bucket público (o perfil do nutricionista) e um privado com URL assinada (as fotos do paciente) |
 | D-V2-04 | Só o paciente envia e apaga as fotos de evolução; o nutricionista só vê |
@@ -316,6 +343,7 @@ Sprints de 2 semanas. **Um épico por vez**, e dentro dele as duas pessoas pegam
 ## 8. Fontes (pesquisadas em outubro e novembro de 2026; confira antes de usar)
 
 - **A pesquisa:** a apresentação "NogVita para nutricionistas" e a conversa com a nutricionista Júlia Ávila (03/11/2026)
+- Cloudflare (pesquisado em 04/11/2026): [Realtime, preço do SFU](https://developers.cloudflare.com/realtime/sfu/pricing), [Realtime, visão geral](https://developers.cloudflare.com/realtime/), [limites dos Workers](https://developers.cloudflare.com/workers/about/limits), [o limite de crons do plano gratuito (terceiros)](https://github.com/knowtific/helppuff/wiki/Cloudflare-Free-Plan), [planos do Turnstile](https://developers.cloudflare.com/turnstile/plans/)
 - LGPD, Lei 13.709/2018: [normas.leg.br](https://normas.leg.br/?urn=urn:lex:br:federal:lei:2018-08-14;13709) · Lei 13.787/2018 (prontuário eletrônico): [normas.leg.br](https://normas.leg.br/?urn=urn:lex:br:federal:lei:2018-12-27;13787) · Lei 14.063/2020 (assinaturas eletrônicas): [normas.leg.br](https://normas.leg.br/?urn=urn:lex:br:federal:lei:2020-09-23;14063). Conferidas no acervo [ctresb/leis](https://github.com/ctresb/leis), que tem caráter informativo
 - CFN: [Res. 594/2017 (prontuário)](https://cfn.org.br/wp-content/uploads/resolucoes/Res_594_2017.htm), [Res. 599/2018 (Código de Ética anterior)](https://cfn.org.br/wp-content/uploads/resolucoes/Res_599_2018.html), [a atualização do Código de Ética (abril de 2026)](https://cfn.org.br/cfn-atualiza-codigo-de-etica-e-reforca-protecao-ao-paciente-e-a-pratica-profissional-na-nutricao/), [a proibição do "antes e depois"](https://cfn.org.br/novo-codigo-de-etica-dos-nutricionistas-proibe-divulgacao-de-fotos-antes-e-depois-de-pacientes/), [Exame: o novo código e a IA](https://exame.com/brasil/o-que-o-novo-codigo-de-nutricionistas-define-sobre-uso-de-ia-e-redes-sociais/)
 
