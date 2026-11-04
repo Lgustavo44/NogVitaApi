@@ -1,34 +1,21 @@
-using System.Globalization;
-using System.Reflection;
+using NogVita.Application.Documents;
 using NogVita.Application.Foods;
 using NogVita.Application.NutritionPlans;
 using NogVita.Domain.NutritionPlans;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using static NogVita.Infrastructure.Pdf.PdfBrand;
 
 namespace NogVita.Infrastructure.Pdf;
 
-// Layout no estilo dos e-mails (EmailLayout): faixa laranja no topo, a mesma logo, blocos de destaque cor de polpa.
-// O fundo da página fica branco, e não cinza como no e-mail, para não gastar tinta na impressão.
+// O visual comum (cores, logo, cabeçalho e carimbo do rodapé) fica no PdfBrand.
 internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
 {
-    private const string Orange = "#F28C28";
-    private const string Pulp = "#FFF4E3";
-    private const string DarkGreen = "#1D2A24";
-    private const string Muted = "#5B6B63";
-    private const string Light = "#F4F6F5";
-    private const string Line = "#E3E8E5";
-
-    private const string LogoResource = "NogVita.Email.logo.png";
-
-    private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
-    private static readonly Lazy<byte[]> Logo = new(LoadLogo);
-
-    public byte[] Render(NutritionPlanDetailResponse detail, PlanPdfStamp stamp) =>
+    public byte[] Render(NutritionPlanDetailResponse detail, DocumentStamp stamp) =>
         Create(detail, stamp).GeneratePdf();
 
-    internal static IDocument Create(NutritionPlanDetailResponse detail, PlanPdfStamp stamp)
+    internal static IDocument Create(NutritionPlanDetailResponse detail, DocumentStamp stamp)
     {
         PdfFonts.Register();
 
@@ -36,43 +23,16 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
         {
             document.Page(page =>
             {
-                page.Size(PageSizes.A4);
-                page.MarginHorizontal(36);
-                page.MarginTop(30);
-                page.MarginBottom(24);
-                page.PageColor(Colors.White);
-                page.DefaultTextStyle(text => text.FontFamily(PdfFonts.Family).FontSize(9).FontColor(DarkGreen));
+                SetupPage(page);
 
-                // A faixa laranja ocupa a largura toda da página, como no topo dos e-mails.
-                page.Background().AlignTop().Height(8).Background(Orange);
-
-                page.Header().Element(header => ComposeHeader(header, detail));
+                page.Header().Element(header => Header(header, "Plano alimentar", detail.Plan.Name));
                 page.Content().Element(content => ComposeContent(content, detail, stamp));
                 page.Footer().Element(footer => ComposeFooter(footer, detail, stamp));
             });
         });
     }
 
-    private static void ComposeHeader(IContainer container, NutritionPlanDetailResponse detail)
-    {
-        container.PaddingBottom(14).Column(column =>
-        {
-            column.Item().Row(row =>
-            {
-                row.ConstantItem(120).AlignMiddle().Image(Logo.Value).FitWidth();
-
-                row.RelativeItem().AlignRight().AlignMiddle().Column(title =>
-                {
-                    title.Item().AlignRight().Text("PLANO ALIMENTAR").FontSize(8).Bold().FontColor(Muted).LetterSpacing(0.08f);
-                    title.Item().AlignRight().Text(detail.Plan.Name).FontSize(14).Bold();
-                });
-            });
-
-            column.Item().PaddingTop(10).LineHorizontal(1).LineColor(Line);
-        });
-    }
-
-    private static void ComposeContent(IContainer container, NutritionPlanDetailResponse detail, PlanPdfStamp stamp)
+    private static void ComposeContent(IContainer container, NutritionPlanDetailResponse detail, DocumentStamp stamp)
     {
         container.Column(column =>
         {
@@ -104,7 +64,7 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
         });
     }
 
-    private static void ComposePlanInfo(IContainer container, NutritionPlanResponse plan, PlanPdfStamp stamp)
+    private static void ComposePlanInfo(IContainer container, NutritionPlanResponse plan, DocumentStamp stamp)
     {
         var period = plan.EndDate is { } end
             ? $"{plan.StartDate.ToString("dd/MM/yyyy", PtBr)} a {end.ToString("dd/MM/yyyy", PtBr)}"
@@ -116,15 +76,6 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
             InfoItem(row.RelativeItem(3), "Nutricionista", $"{plan.NutritionistName}\nCRN-{stamp.CrnRegion} {stamp.CrnNumber}");
             InfoItem(row.RelativeItem(3), "Período", period);
             InfoItem(row.RelativeItem(2), "Situação", StatusLabel(plan.Status));
-        });
-    }
-
-    private static void InfoItem(IContainer container, string label, string value)
-    {
-        container.PaddingRight(8).Column(column =>
-        {
-            column.Item().Text(label.ToUpperInvariant()).FontSize(7).Bold().FontColor(Muted).LetterSpacing(0.06f);
-            column.Item().PaddingTop(2).Text(value).Bold();
         });
     }
 
@@ -321,7 +272,7 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
         BodyCell(table.Cell()).AlignRight().Text($"{FormatDifference(comparison.Difference)} {unit}").Bold();
     }
 
-    private static void ComposeFooter(IContainer container, NutritionPlanDetailResponse detail, PlanPdfStamp stamp)
+    private static void ComposeFooter(IContainer container, NutritionPlanDetailResponse detail, DocumentStamp stamp)
     {
         var sources = detail.Meals
             .SelectMany(m => m.Foods)
@@ -340,27 +291,9 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
                     .FontSize(7).FontColor(Muted);
             }
 
-            column.Item().PaddingTop(3).Row(row =>
-            {
-                row.RelativeItem().Text(
-                        $"NogVita · Gerado em {stamp.IssuedAtBrasilia.ToString("dd/MM/yyyy 'às' HH:mm", PtBr)} (horário de Brasília) · " +
-                        $"Código verificador: {stamp.VerificationCode} · Confira em {stamp.VerificationUrl}")
-                    .FontSize(7).FontColor(Muted);
-
-                row.AutoItem().Text(text =>
-                {
-                    text.DefaultTextStyle(style => style.FontSize(7).FontColor(Muted));
-                    text.Span("Página ");
-                    text.CurrentPageNumber();
-                    text.Span(" de ");
-                    text.TotalPages();
-                });
-            });
+            StampLine(column, stamp);
         });
     }
-
-    private static void Notice(IContainer container, string text) =>
-        container.Background(Pulp).BorderLeft(4).BorderColor(Orange).Padding(10).Text(text);
 
     private static string StatusLabel(NutritionPlanStatus status) => status switch
     {
@@ -378,13 +311,4 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
 
     private static string FormatDifference(decimal difference) =>
         difference > 0 ? $"+{difference.ToString("#,##0.0", PtBr)}" : difference.ToString("#,##0.0", PtBr);
-
-    private static byte[] LoadLogo()
-    {
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(LogoResource)
-            ?? throw new InvalidOperationException($"A logo embutida '{LogoResource}' não foi encontrada.");
-        using var memory = new MemoryStream();
-        stream.CopyTo(memory);
-        return memory.ToArray();
-    }
 }

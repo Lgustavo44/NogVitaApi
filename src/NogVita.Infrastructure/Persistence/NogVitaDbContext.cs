@@ -4,6 +4,7 @@ using NogVita.Domain.Anamneses;
 using NogVita.Domain.Audit;
 using NogVita.Domain.Auth;
 using NogVita.Domain.Common;
+using NogVita.Domain.Documents;
 using NogVita.Domain.FollowUps;
 using NogVita.Domain.Foods;
 using NogVita.Domain.Invitations;
@@ -32,7 +33,7 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
     public DbSet<SeedRun> SeedRuns => Set<SeedRun>();
     public DbSet<ProgressPhoto> ProgressPhotos => Set<ProgressPhoto>();
-    public DbSet<PlanDocument> PlanDocuments => Set<PlanDocument>();
+    public DbSet<IssuedDocument> IssuedDocuments => Set<IssuedDocument>();
     public DbSet<Questionnaire> Questionnaires => Set<Questionnaire>();
     public DbSet<Anamnesis> Anamneses => Set<Anamnesis>();
 

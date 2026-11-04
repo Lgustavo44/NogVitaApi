@@ -40,7 +40,7 @@ O NogVita conecta pacientes e nutricionistas. O nutricionista monta o plano alim
 | Entrada | Validação de todos os campos; limite de tamanho; *rate limit* nas rotas públicas e nos envios |
 | Respostas | Mensagens que não revelam se um e-mail ou CPF tem conta; erros sem detalhe interno; cabeçalhos de segurança |
 | *Logs* | Sem dado pessoal, só identificadores |
-| Documentos | Cada PDF de plano tem um código verificador e o registro da emissão (sem dado do paciente) |
+| Documentos | Cada PDF de plano ou de anamnese tem um código verificador e o registro da emissão (sem dado do paciente) |
 | Processo | Integração contínua com os testes; revisão de código por PR; staging só com dados fictícios |
 
 ## 5. Os riscos e as medidas

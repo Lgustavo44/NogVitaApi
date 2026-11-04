@@ -1055,11 +1055,12 @@ Baixa o plano em PDF, em qualquer status (inclusive rascunho, para conferir ante
 
 ##### `GET /api/v1/plan-documents/{code}` 🌐
 
-Confere um PDF pelo código do rodapé, com ou sem os traços. É a rota da página `/verificar-documento/{code}` do front.
+Confere um PDF (plano alimentar ou anamnese) pelo código do rodapé, com ou sem os traços. É a rota da página `/verificar-documento/{code}` do front. O nome da rota ficou `plan-documents` por compatibilidade.
 
 ```json
 {
   "code": "ABCD-EFGH-JKLM",
+  "kind": "NutritionPlan",
   "issuedAtUtc": "2026-11-03T17:05:00Z",
   "nutritionistName": "Ana Souza",
   "crnRegion": 3,
@@ -1068,7 +1069,7 @@ Confere um PDF pelo código do rodapé, com ou sem os traços. É a rota da pág
 }
 ```
 
-- `200` → o documento existe. Mostre quem emitiu e quando. O `sha256` é a impressão digital do arquivo emitido: quem quiser pode comparar com o arquivo que recebeu.
+- `200` → o documento existe. `kind` é `NutritionPlan` (plano alimentar) ou `Anamnesis` (anamnese). Mostre o tipo, quem emitiu e quando. O `sha256` é a impressão digital do arquivo emitido: quem quiser pode comparar com o arquivo que recebeu.
 - `404` → "Documento não encontrado. Confira o código."
 - `429` → muitas tentativas (10 por minuto por IP)
 
@@ -1434,6 +1435,16 @@ As anamneses que o nutricionista enviou ao paciente, da mais recente para a mais
 - `200` → `AnamnesisResponse`
 - `404` → "Anamnese não encontrada."
 
+##### `GET /api/v1/nutritionists/me/anamneses/{id}/pdf`
+
+A anamnese respondida em PDF, para imprimir, guardar no prontuário ou assinar (a anamnese faz parte do prontuário, Res. CFN 594/2017, art. 4º). Tem o mesmo carimbo do PDF do plano: o CRN, a data e a hora da emissão e um código verificador, conferido em [`GET /plan-documents/{code}`](#get-apiv1plan-documentscode-) com `kind: "Anamnesis"`.
+
+- `200` → o arquivo (`application/pdf`), com o nome `nogvita-anamnese-<data da resposta>.pdf`
+- `404` → "Anamnese não encontrada." (também sem o acompanhamento ativo)
+- `409` → "A anamnese ainda não foi respondida." Mostre o botão só nas `Submitted`.
+
+Baixe como *blob*, como o PDF do plano (a rota exige o token).
+
 #### Minhas anamneses 🧑
 
 O paciente lê as anamneses dele mesmo depois de o acompanhamento acabar.
@@ -1446,6 +1457,10 @@ As pendentes primeiro, depois as respondidas, da mais recente para a mais antiga
 
 - `200` → `AnamnesisResponse`
 - `404` → "Anamnese não encontrada."
+
+##### `GET /api/v1/patients/me/anamneses/{id}/pdf`
+
+Uma cópia da anamnese respondida em PDF, igual à do nutricionista. Mesmas respostas: `200`, `404` e `409`.
 
 ##### `POST /api/v1/patients/me/anamneses/{id}/answers`
 

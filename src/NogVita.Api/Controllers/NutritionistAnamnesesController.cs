@@ -19,7 +19,8 @@ namespace NogVita.Api.Controllers;
 [ProducesProblem(StatusCodes.Status500InternalServerError)]
 public sealed class NutritionistAnamnesesController(
     AnamnesisUseCase anamnesisUseCase,
-    NutritionistAnamnesisQueriesUseCase queriesUseCase) : ControllerBase
+    NutritionistAnamnesisQueriesUseCase queriesUseCase,
+    AnamnesisPdfUseCase pdfUseCase) : ControllerBase
 {
     /// <summary>Envia um questionário ao paciente, que passa a ter uma anamnese pendente.</summary>
     /// <param name="patientId">O Id do paciente.</param>
@@ -66,6 +67,19 @@ public sealed class NutritionistAnamnesesController(
             ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Anamnese não encontrada.")
             : Ok(anamnesis);
     }
+
+    /// <summary>Baixa a anamnese respondida em PDF, para imprimir, guardar ou assinar.</summary>
+    /// <remarks>
+    /// Traz o CRN do nutricionista, a data e a hora da emissão e um código verificador (conferido em `GET /plan-documents/{code}`).
+    /// Uma anamnese pendente responde 409: ainda não há respostas.
+    /// </remarks>
+    /// <param name="id">O Id da anamnese.</param>
+    [HttpGet("anamneses/{id:guid}/pdf")]
+    [ProducesResponseType<Stream>(StatusCodes.Status200OK, "application/pdf")]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    [ProducesProblem(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DownloadPdf(Guid id, CancellationToken cancellationToken) =>
+        this.ToActionResult(await pdfUseCase.RenderForNutritionistAsync(User.GetUserId(), id, cancellationToken));
 
     private ObjectResult PatientNotFound() =>
         Problem(statusCode: StatusCodes.Status404NotFound, title: "Paciente não encontrado.");

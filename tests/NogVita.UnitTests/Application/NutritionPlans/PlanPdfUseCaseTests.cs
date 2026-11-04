@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using NogVita.Application.Common;
 using NogVita.Application.Common.Pagination;
+using NogVita.Application.Documents;
 using NogVita.Application.FollowUps;
 using NogVita.Application.NutritionPlans;
+using NogVita.Domain.Documents;
 using NogVita.Domain.NutritionPlans;
 using NogVita.Domain.Users;
 using NogVita.UnitTests.Fakes;
@@ -15,7 +17,7 @@ public class PlanPdfUseCaseTests
     private readonly FakeEmailSender _emailSender = new();
     private readonly StubQueries _queries = new();
     private readonly StubRenderer _renderer = new();
-    private readonly FakePlanDocumentRepository _documents = new();
+    private readonly FakeIssuedDocumentRepository _documents = new();
     private readonly User _patient;
     private readonly User _nutritionist;
 
@@ -35,13 +37,13 @@ public class PlanPdfUseCaseTests
             new NutritionistPlanQueriesUseCase(
                 new CareAccessService(_userRepository, new FakeCareRelationshipRepository()), _queries),
             _userRepository,
-            _documents,
-            new FakeUnitOfWork(),
+            CreateIssuer(),
             _renderer,
-            new FrontendSettings { BaseUrl = "https://nogvita.vercel.app/" },
             _emailSender,
-            TimeProvider.System,
             NullLogger<PlanPdfUseCase>.Instance);
+
+    private DocumentIssuer CreateIssuer() =>
+        new(_userRepository, _documents, new FakeUnitOfWork(), new FrontendSettings { BaseUrl = "https://nogvita.vercel.app/" }, TimeProvider.System);
 
     private NutritionPlanDetailResponse CreateDetail() =>
         new(
@@ -103,7 +105,8 @@ public class PlanPdfUseCaseTests
         var document = Assert.Single(_documents.Documents);
         Assert.Equal(stamp.VerificationCode.Replace("-", ""), document.Code);
         Assert.Equal($"https://nogvita.vercel.app/verificar-documento/{document.Code}", stamp.VerificationUrl);
-        Assert.Equal(_queries.Detail.Plan.Id, document.PlanId);
+        Assert.Equal(DocumentKind.NutritionPlan, document.Kind);
+        Assert.Equal(_queries.Detail.Plan.Id, document.SourceId);
         Assert.Equal(Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(file.Content)), document.Sha256);
     }
 
@@ -116,7 +119,7 @@ public class PlanPdfUseCaseTests
         await CreateUseCase().RenderForPatientAsync(_patient.Id, _queries.Detail.Plan.Id, TestContext.Current.CancellationToken);
         var code = _renderer.LastStamp!.VerificationCode;
 
-        var result = await CreateUseCase().VerifyAsync(
+        var result = await CreateIssuer().VerifyAsync(
             typedLowercaseWithDashes ? code.ToLowerInvariant() : code.Replace("-", ""), TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
@@ -130,16 +133,16 @@ public class PlanPdfUseCaseTests
     [InlineData("curto")]
     public async Task Should_Not_Verify_An_Unknown_Code(string code)
     {
-        var result = await CreateUseCase().VerifyAsync(code, TestContext.Current.CancellationToken);
+        var result = await CreateIssuer().VerifyAsync(code, TestContext.Current.CancellationToken);
 
         Assert.Null(result);
     }
 
     private sealed class StubRenderer : INutritionPlanPdfRenderer
     {
-        public PlanPdfStamp? LastStamp { get; private set; }
+        public DocumentStamp? LastStamp { get; private set; }
 
-        public byte[] Render(NutritionPlanDetailResponse plan, PlanPdfStamp stamp)
+        public byte[] Render(NutritionPlanDetailResponse plan, DocumentStamp stamp)
         {
             LastStamp = stamp;
             return [0x25, 0x50, 0x44, 0x46];

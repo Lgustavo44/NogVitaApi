@@ -16,7 +16,10 @@ namespace NogVita.Api.Controllers;
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 [ProducesProblem(StatusCodes.Status500InternalServerError)]
-public sealed class PatientAnamnesesController(IAnamnesisQueries anamnesisQueries, AnamnesisUseCase anamnesisUseCase) : ControllerBase
+public sealed class PatientAnamnesesController(
+    IAnamnesisQueries anamnesisQueries,
+    AnamnesisUseCase anamnesisUseCase,
+    AnamnesisPdfUseCase pdfUseCase) : ControllerBase
 {
     /// <summary>Lista as anamneses do paciente: as pendentes primeiro, depois as respondidas, da mais recente para a mais antiga.</summary>
     [HttpGet]
@@ -56,6 +59,16 @@ public sealed class PatientAnamnesesController(IAnamnesisQueries anamnesisQuerie
                 statusCode: StatusCodes.Status409Conflict, title: "Este questionário não está mais disponível."),
             SubmitAnamnesisResult.NotFound => AnamnesisNotFound()
         };
+
+    /// <summary>Baixa uma cópia da anamnese respondida em PDF.</summary>
+    /// <remarks>Uma anamnese pendente responde 409: ainda não há respostas.</remarks>
+    /// <param name="id">O Id da anamnese.</param>
+    [HttpGet("{id:guid}/pdf")]
+    [ProducesResponseType<Stream>(StatusCodes.Status200OK, "application/pdf")]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    [ProducesProblem(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DownloadPdf(Guid id, CancellationToken cancellationToken) =>
+        this.ToActionResult(await pdfUseCase.RenderForPatientAsync(User.GetUserId(), id, cancellationToken));
 
     private ObjectResult AnamnesisNotFound() =>
         Problem(statusCode: StatusCodes.Status404NotFound, title: "Anamnese não encontrada.");

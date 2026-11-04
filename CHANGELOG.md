@@ -12,6 +12,8 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 
 ### Adicionado
 
+- `GET /api/v1/nutritionists/me/anamneses/{id}/pdf` e `GET /api/v1/patients/me/anamneses/{id}/pdf`: a anamnese respondida em PDF, com o CRN, a data e a hora da emissão e o código verificador, como o PDF do plano.
+- `GET /api/v1/plan-documents/{code}` passou a conferir também os PDFs de anamnese, e a resposta ganhou o campo `kind` (`NutritionPlan` ou `Anamnesis`). Os códigos já emitidos continuam valendo.
 - Anamnese: o nutricionista monta questionários (`/api/v1/nutritionists/me/questionnaires`, com o modelo base em `.../template`), envia um ao paciente que acompanha (`POST /api/v1/nutritionists/me/patients/{patientId}/anamneses`) e lê as respostas. O paciente lista e responde as dele em `/api/v1/patients/me/anamneses`, uma vez só, e com o aceite do termo dos dados de saúde.
 - `PUT /api/v1/nutritionists/me/nutrition-plans/{id}/patient-view`: o nutricionista decide, por plano, se o paciente vê proteína, carboidrato e gordura. O plano ganhou `patientSeesMacros` (padrão `false`, também nos planos que já existiam).
 - Fotos de perfil do nutricionista (pública) e do paciente (privada, opcional), com o `photoUrl` nas respostas.

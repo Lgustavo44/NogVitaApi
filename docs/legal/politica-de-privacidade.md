@@ -62,7 +62,7 @@ Não usamos cookies de publicidade nem ferramentas de rastreamento de terceiros.
 | Tratar os seus dados de saúde para o acompanhamento nutricional, inclusive as fotos de evolução | Consentimento específico e destacado (art. 11, I) |
 | Guardar os seus dados de saúde em serviços fora do Brasil | Consentimento específico e em destaque para a transferência (art. 33, VIII) |
 | Guardar a foto de perfil | Execução de contrato (art. 7º, V) |
-| Registrar a emissão de cada PDF de plano alimentar (o código, a data e o nutricionista), para permitir a conferência do documento | Legítimo interesse (art. 7º, IX): a autenticidade dos documentos, que a Resolução CFN nº 760/2023 (art. 10) pede ao nutricionista |
+| Registrar a emissão de cada PDF de plano alimentar ou de anamnese (o tipo, o código, a data e o nutricionista), para permitir a conferência do documento | Legítimo interesse (art. 7º, IX): a autenticidade dos documentos, que a Resolução CFN nº 760/2023 (art. 10) pede ao nutricionista |
 | Enviar e-mails necessários ao serviço (confirmação de e-mail, convite, avisos de acompanhamento e de tentativa de cadastro) | Execução de contrato (art. 7º, V) |
 | Proteger a plataforma contra abusos e acessos indevidos | Legítimo interesse (art. 7º, IX) |
 
@@ -74,7 +74,7 @@ Você pode retirar o consentimento a qualquer momento (seção 7). Como os dados
 - **Nutricionista que recebe a sua solicitação:** vê o seu nome, a sua foto de perfil (se houver) e a mensagem que você escreveu.
 - **Fotos de evolução:** só você e o nutricionista que acompanha você **no momento** podem vê-las. Quando o acompanhamento termina, ele perde o acesso. As fotos ficam num espaço privado, e a plataforma só as mostra por links temporários, que expiram em poucos minutos. **As fotos nunca são públicas** e não podem ser divulgadas: o Código de Ética dos nutricionistas proíbe divulgar fotos de "antes e depois" de pacientes.
 - **Foto de perfil do paciente:** é privada. Só a veem você, os nutricionistas com uma solicitação sua pendente e o nutricionista que acompanha você.
-- **Quem confere um PDF de plano:** qualquer pessoa com o código verificador impresso no PDF consegue confirmar que o documento foi emitido pelo NogVita. A conferência mostra **só** a data e a hora da emissão, o nome e o CRN do nutricionista e uma impressão digital do arquivo (o *hash* SHA-256). **Nenhum dado do paciente aparece.**
+- **Quem confere um PDF de plano ou de anamnese:** qualquer pessoa com o código verificador impresso no PDF consegue confirmar que o documento foi emitido pelo NogVita. A conferência mostra **só** a data e a hora da emissão, o nome e o CRN do nutricionista e uma impressão digital do arquivo (o *hash* SHA-256). **Nenhum dado do paciente aparece.**
 - **Outros usuários conectados:** se você é nutricionista, o seu nome, o seu CRN e a sua apresentação aparecem na lista de nutricionistas para qualquer usuário conectado, para que os pacientes possam escolher. **O seu e-mail e o seu CPF nunca aparecem nessa lista.**
 - **Administradores do NogVita:** têm acesso aos dados cadastrais para gerenciar contas, como cadastrar nutricionistas e ativar ou desativar contas.
 
@@ -108,7 +108,7 @@ Só usamos fornecedores com medidas de segurança, como conexão cifrada e contr
 - **Registros de peso:** ficam guardados até serem apagados por quem os registrou, ou até a exclusão da conta. Quando um acompanhamento termina, o nutricionista deixa de ver o seu histórico de peso, mas os registros continuam na sua conta.
 - **Fotos:** ficam guardadas até você apagá-las, trocar a foto de perfil, retirar o consentimento das fotos de evolução ou excluir a conta. Apagar uma foto remove o **arquivo**, e não só o registro.
 - **Registros de consentimento:** a data e a versão de cada aceite ficam guardadas enquanto a conta existir, como prova do consentimento (art. 8º, §2º).
-- **Registros de emissão dos PDFs:** o código, a data e a hora, o nome e o CRN do nutricionista e o *hash* do arquivo ficam guardados enquanto o plano existir, para que o documento possa ser conferido.
+- **Registros de emissão dos PDFs:** o código, a data e a hora, o nome e o CRN do nutricionista e o *hash* do arquivo ficam guardados enquanto o plano ou a anamnese existir, para que o documento possa ser conferido.
 - **Tokens de confirmação de e-mail e de convite:** expiram em 24 horas e em 72 horas, respectivamente, e só podem ser usados uma vez.
 
 Ao receber um pedido de exclusão, apagamos ou anonimizamos os seus dados, exceto os que a lei obrigue a manter.

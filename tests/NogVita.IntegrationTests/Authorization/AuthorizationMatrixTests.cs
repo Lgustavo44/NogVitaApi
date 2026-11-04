@@ -61,6 +61,7 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("GET", "api/v1/patients/me/anamneses", Patient),
         ("GET", "api/v1/patients/me/anamneses/{id:guid}", Patient),
         ("POST", "api/v1/patients/me/anamneses/{id:guid}/answers", Patient),
+        ("GET", "api/v1/patients/me/anamneses/{id:guid}/pdf", Patient),
         ("PUT", "api/v1/patients/me/photo", Patient),
         ("DELETE", "api/v1/patients/me/photo", Patient),
         ("GET", "api/v1/patients/me/progress-photos/consent", Patient),
@@ -115,6 +116,7 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("POST", "api/v1/nutritionists/me/patients/{patientId:guid}/anamneses", Nutritionist),
         ("GET", "api/v1/nutritionists/me/patients/{patientId:guid}/anamneses", Nutritionist),
         ("GET", "api/v1/nutritionists/me/anamneses/{id:guid}", Nutritionist),
+        ("GET", "api/v1/nutritionists/me/anamneses/{id:guid}/pdf", Nutritionist),
 
         // Alimentos: quem monta planos e quem cuida da base
         ("GET", "api/v1/foods", NutritionistOrAdmin),

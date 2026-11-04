@@ -1,4 +1,5 @@
 using System.Text;
+using NogVita.Application.Documents;
 using NogVita.Application.NutritionPlans;
 using NogVita.Domain.Foods;
 using NogVita.Domain.NutritionPlans;
@@ -10,7 +11,7 @@ namespace NogVita.UnitTests.Infrastructure.Pdf;
 [Trait(TestCategories.Key, TestCategories.Slow)] // o QuestPDF carrega as fontes e gera um PDF de verdade
 public class QuestPdfNutritionPlanRendererTests
 {
-    private static readonly PlanPdfStamp Stamp = new("ABCD-EFGH-JKLM", new DateTime(2026, 10, 17, 14, 5, 0), 3, "12345", "https://nogvita.vercel.app/verificar-documento/ABCDEFGHJKLM");
+    private static readonly DocumentStamp Stamp = new("ABCD-EFGH-JKLM", new DateTime(2026, 10, 17, 14, 5, 0), 3, "12345", "https://nogvita.vercel.app/verificar-documento/ABCDEFGHJKLM");
 
     private static NutritionPlanDetailResponse Detail()
     {
