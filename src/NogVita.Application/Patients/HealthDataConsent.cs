@@ -42,6 +42,7 @@ public static class HealthDataConsentMessages
     public const string VersionRequired = "Informe a versão do termo que você leu.";
     public const string HealthDataRequired = "Para usar o NogVita como paciente, autorize o tratamento dos seus dados de saúde.";
     public const string InternationalTransferRequired = "Para usar o NogVita, autorize a transferência dos seus dados para os serviços no exterior.";
+    public const string ConsentRequired = "Autorize o tratamento dos seus dados de saúde para continuar. O termo está na sua área de paciente.";
 }
 
 public sealed class AcceptHealthDataConsentRequestValidator : AbstractValidator<AcceptHealthDataConsentRequest>

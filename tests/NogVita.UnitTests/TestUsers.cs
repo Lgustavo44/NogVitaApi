@@ -1,3 +1,4 @@
+using NogVita.Application.Patients;
 using NogVita.Domain.FollowUps;
 using NogVita.Domain.Users;
 using NogVita.UnitTests.Fakes;
@@ -36,12 +37,19 @@ public static class TestUsers
     public static User Patient(
         string name = "Paciente Teste", string email = "paciente@email.com", string? cpf = null,
         DateOnly? birthDate = null, BiologicalSex biologicalSex = BiologicalSex.Female, int heightInCm = 165,
-        Goal goal = Goal.WeightLoss)
+        Goal goal = Goal.WeightLoss, bool healthDataConsent = true)
     {
         var patient = new User(name, email, Cpf.Create(cpf ?? TestCpf.Next()));
         patient.SetPasswordHash("hash");
         patient.ConfirmEmail(DateTime.UtcNow);
         patient.CreatePatientProfile(birthDate ?? new DateOnly(1995, 3, 10), biologicalSex, heightInCm, goal);
+
+        // Todo paciente novo aceita o termo no cadastro (D-V2-18). Sem o aceite, só o paciente antigo.
+        if (healthDataConsent)
+        {
+            patient.GrantHealthDataConsent(HealthDataConsent.CurrentVersion, DateTime.UtcNow);
+        }
+
         return patient;
     }
 

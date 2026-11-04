@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Common;
 using NogVita.Application.FollowUps;
+using NogVita.Application.Patients;
 using NogVita.Application.Photos;
 using NogVita.Domain.ProgressPhotos;
 using NogVita.Domain.Users;
@@ -108,6 +109,8 @@ public sealed class ProgressPhotoUseCase(
         {
             return new(ProgressPhotoResult.ProfileNotFound);
         }
+
+        HealthDataConsentGuard.EnsureAccepted(patient);
 
         if (!patient.PatientProfile!.HasProgressPhotosConsent(ProgressPhotoConsent.CurrentVersion))
         {

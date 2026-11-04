@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using NogVita.Application.Abstractions;
 using NogVita.Application.FollowUps;
+using NogVita.Application.Patients;
 using NogVita.Application.ProgressPhotos;
+using NogVita.Domain.Common;
 using NogVita.Domain.ProgressPhotos;
 using NogVita.Domain.Users;
 using NogVita.Infrastructure.Images;
@@ -185,5 +187,19 @@ public class ProgressPhotoUseCaseTests
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
         return new MemoryStream(data.ToArray());
+    }
+
+    // D-V2-22: o termo das fotos não basta; sem o aceite dos dados de saúde, nenhuma foto é guardada.
+    [Fact]
+    public async Task Upload_without_health_data_consent_is_refused_even_with_photos_consent()
+    {
+        var patient = TestUsers.Patient(healthDataConsent: false).AddTo(_users);
+        patient.GrantProgressPhotosConsent(ProgressPhotoConsent.CurrentVersion, Now.UtcDateTime);
+
+        var exception = await Assert.ThrowsAsync<DomainException>(() =>
+            _useCase.UploadAsync(patient.Id, Today, ProgressPhotoAngle.Front, CreateImage(), _ct));
+
+        Assert.Equal(HealthDataConsentMessages.ConsentRequired, exception.Message);
+        Assert.Empty(_photos.Photos);
     }
 }

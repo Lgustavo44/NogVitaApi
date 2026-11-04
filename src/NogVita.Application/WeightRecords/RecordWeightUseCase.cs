@@ -2,6 +2,7 @@ using FluentValidation;
 using NogVita.Application.Abstractions;
 using NogVita.Application.Common;
 using NogVita.Application.FollowUps;
+using NogVita.Application.Patients;
 using NogVita.Domain.WeightRecords;
 
 namespace NogVita.Application.WeightRecords;
@@ -53,6 +54,8 @@ public sealed class RecordWeightUseCase(
             return new RecordWeightResult(RecordWeightStatus.NotFound);
         }
 
+        HealthDataConsentGuard.EnsureAccepted(patient);
+
         return await RecordAsync(patientId, authorId: patientId, request, cancellationToken);
     }
 
@@ -65,6 +68,15 @@ public sealed class RecordWeightUseCase(
         {
             return new RecordWeightResult(RecordWeightStatus.NotFound);
         }
+
+        // D-V2-22: o peso lançado pelo nutricionista também é dado de saúde novo do paciente.
+        var patient = await userRepository.GetByIdAsync(patientId, cancellationToken);
+        if (patient is null)
+        {
+            return new RecordWeightResult(RecordWeightStatus.NotFound);
+        }
+
+        HealthDataConsentGuard.EnsureAccepted(patient);
 
         return await RecordAsync(patientId, authorId: nutritionistId, request, cancellationToken);
     }

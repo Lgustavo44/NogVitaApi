@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using NogVita.Application.Abstractions;
+using NogVita.Application.Patients;
 using NogVita.Application.Photos;
+using NogVita.Domain.Common;
 using NogVita.Infrastructure.Images;
 using NogVita.Infrastructure.Storage;
 using NogVita.UnitTests.Fakes;
@@ -103,5 +105,19 @@ public class ProfilePhotoUseCaseTests
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
         return new MemoryStream(data.ToArray());
+    }
+
+    // D-V2-22: sem o aceite da versão atual, a foto do paciente nem chega ao bucket.
+    [Fact]
+    public async Task Patient_photo_without_health_data_consent_is_refused()
+    {
+        var patient = TestUsers.Patient(healthDataConsent: false).AddTo(_users);
+
+        var exception = await Assert.ThrowsAsync<DomainException>(() =>
+            _useCase.UploadAsync(patient.Id, ProfilePhotoOwner.Patient, CreateImage(), TestContext.Current.CancellationToken));
+
+        Assert.Equal(HealthDataConsentMessages.ConsentRequired, exception.Message);
+        Assert.Null(patient.PatientProfile!.PhotoPath);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
     }
 }

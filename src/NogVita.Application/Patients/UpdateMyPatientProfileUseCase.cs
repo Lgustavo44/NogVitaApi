@@ -18,6 +18,8 @@ public sealed class UpdateMyPatientProfileUseCase(
             return null;
         }
 
+        HealthDataConsentGuard.EnsureAccepted(user);
+
         user.UpdatePatientProfile(request.BirthDate, request.BiologicalSex, request.HeightInCm, request.Goal);
         user.UpdatePatientRoutine(request.WakeUpTime, request.BedTime, request.TrainingTime);
         await unitOfWork.SaveChangesAsync(cancellationToken);

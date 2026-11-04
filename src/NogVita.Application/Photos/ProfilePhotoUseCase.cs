@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using NogVita.Application.Abstractions;
+using NogVita.Application.Patients;
 using NogVita.Domain.Users;
 
 namespace NogVita.Application.Photos;
@@ -38,6 +39,12 @@ public sealed class ProfilePhotoUseCase(
         if (!HasProfile(user, owner))
         {
             return new ProfilePhotoOutcome(ProfilePhotoResult.ProfileNotFound);
+        }
+
+        // A foto do paciente é dado de saúde (D-V2-22); a do nutricionista, não.
+        if (owner == ProfilePhotoOwner.Patient)
+        {
+            HealthDataConsentGuard.EnsureAccepted(user!);
         }
 
         var processed = imageProcessor.Process(content, MaxSide);

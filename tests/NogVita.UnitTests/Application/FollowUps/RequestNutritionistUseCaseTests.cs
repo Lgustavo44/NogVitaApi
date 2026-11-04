@@ -1,4 +1,6 @@
 using NogVita.Application.FollowUps;
+using NogVita.Application.Patients;
+using NogVita.Domain.Common;
 using NogVita.Domain.FollowUps;
 using NogVita.Domain.Users;
 using NogVita.UnitTests.Fakes;
@@ -148,6 +150,21 @@ public class RequestNutritionistUseCaseTests
             patient.Id, new RequestNutritionistRequest(nutritionist.Id, null), TestContext.Current.CancellationToken);
 
         Assert.Equal(RequestNutritionistStatus.PatientNotFound, result.Status);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    // D-V2-22: sem o aceite da versão atual, o paciente não pede um nutricionista.
+    [Fact]
+    public async Task Should_Refuse_Without_Health_Data_Consent()
+    {
+        var patient = TestUsers.Patient(healthDataConsent: false).AddTo(_userRepository);
+        var nutritionist = AddNutritionist();
+
+        var exception = await Assert.ThrowsAsync<DomainException>(() => CreateUseCase().ExecuteAsync(
+            patient.Id, new RequestNutritionistRequest(nutritionist.Id, null), TestContext.Current.CancellationToken));
+
+        Assert.Equal(HealthDataConsentMessages.ConsentRequired, exception.Message);
+        Assert.Empty(_requestRepository.Requests);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
     }
 }

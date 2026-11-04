@@ -1,4 +1,5 @@
 using NogVita.Application.Patients;
+using NogVita.Domain.Common;
 using NogVita.Domain.Users;
 using NogVita.Infrastructure.Storage;
 using NogVita.UnitTests.Fakes;
@@ -19,6 +20,7 @@ public class UpdateMyPatientProfileUseCaseTests
         user.SetPasswordHash("hash");
         user.Activate();
         user.CreatePatientProfile(new DateOnly(1995, 3, 10), BiologicalSex.Female, 165, Goal.WeightLoss);
+        user.GrantHealthDataConsent(HealthDataConsent.CurrentVersion, DateTime.UtcNow);
         return user;
     }
 
@@ -76,6 +78,21 @@ public class UpdateMyPatientProfileUseCaseTests
         var response = await useCase.ExecuteAsync(Guid.NewGuid(), CreateRequest(), TestContext.Current.CancellationToken);
 
         Assert.Null(response);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    // D-V2-22: o paciente antigo, sem o aceite da versão atual, não muda o perfil nem a rotina.
+    [Fact]
+    public async Task Should_Refuse_And_Not_Save_Without_Health_Data_Consent()
+    {
+        var user = TestUsers.Patient(healthDataConsent: false);
+        var useCase = CreateUseCase(user);
+
+        var exception = await Assert.ThrowsAsync<DomainException>(() =>
+            useCase.ExecuteAsync(user.Id, CreateRequest(), TestContext.Current.CancellationToken));
+
+        Assert.Equal(HealthDataConsentMessages.ConsentRequired, exception.Message);
+        Assert.Equal(165, user.PatientProfile!.HeightInCm);
         Assert.Equal(0, _unitOfWork.SaveChangesCount);
     }
 }

@@ -1,5 +1,7 @@
 using NogVita.Application.FollowUps;
+using NogVita.Application.Patients;
 using NogVita.Application.WeightRecords;
+using NogVita.Domain.Common;
 using NogVita.Domain.FollowUps;
 using NogVita.Domain.Users;
 using NogVita.Domain.WeightRecords;
@@ -127,5 +129,33 @@ public class WeightRecordUseCasesTests
 
         Assert.False(deleted);
         Assert.Single(_recordRepository.Records);
+    }
+
+    // D-V2-22: sem o aceite da versão atual, nenhum peso novo, nem pelo paciente nem pelo nutricionista.
+    [Fact]
+    public async Task Patient_Without_Health_Data_Consent_Should_Not_Record()
+    {
+        var patient = TestUsers.Patient(healthDataConsent: false).AddTo(_userRepository);
+
+        var exception = await Assert.ThrowsAsync<DomainException>(() => CreateRecordUseCase().RecordForSelfAsync(
+            patient.Id, new RecordWeightRequest(80m, null, null), TestContext.Current.CancellationToken));
+
+        Assert.Equal(HealthDataConsentMessages.ConsentRequired, exception.Message);
+        Assert.Empty(_recordRepository.Records);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
+    }
+
+    [Fact]
+    public async Task Nutritionist_Should_Not_Record_For_A_Patient_Without_Health_Data_Consent()
+    {
+        var patient = TestUsers.Patient(healthDataConsent: false).AddTo(_userRepository);
+        _relationshipRepository.Add(TestUsers.Follow(patient.Id, _nutritionist.Id));
+
+        var exception = await Assert.ThrowsAsync<DomainException>(() => CreateRecordUseCase().RecordForPatientAsync(
+            _nutritionist.Id, patient.Id, new RecordWeightRequest(80m, null, null), TestContext.Current.CancellationToken));
+
+        Assert.Equal(HealthDataConsentMessages.ConsentRequired, exception.Message);
+        Assert.Empty(_recordRepository.Records);
+        Assert.Equal(0, _unitOfWork.SaveChangesCount);
     }
 }

@@ -1,5 +1,6 @@
 using FluentValidation;
 using NogVita.Application.Abstractions;
+using NogVita.Application.Patients;
 using NogVita.Domain.FollowUps;
 
 namespace NogVita.Application.FollowUps;
@@ -44,6 +45,8 @@ public sealed class RequestNutritionistUseCase(
         {
             return new RequestNutritionistResult(RequestNutritionistStatus.PatientNotFound);
         }
+
+        HealthDataConsentGuard.EnsureAccepted(patient);
 
         if (request.NutritionistId == patientId)
         {
