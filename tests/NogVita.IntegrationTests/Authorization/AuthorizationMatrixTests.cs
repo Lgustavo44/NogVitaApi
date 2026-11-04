@@ -36,8 +36,14 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("POST", "api/v1/auth/password-reset/confirm", Anyone),
         ("POST", "api/v1/auth/invitations/accept", Anyone),
 
+        // Abertas fora de /auth: o termo dos dados de saúde (lido antes do cadastro) e a conferência do PDF pelo código
+        ("GET", "api/v1/patients/health-data-consent", Anyone),
+        ("GET", "api/v1/plan-documents/{code}", Anyone),
+
         // Paciente
         ("GET", "api/v1/patients/me", Patient),
+        ("GET", "api/v1/patients/me/health-data-consent", Patient),
+        ("POST", "api/v1/patients/me/health-data-consent", Patient),
         ("PUT", "api/v1/patients/me", Patient),
         ("POST", "api/v1/patients/me/nutritionist-requests", Patient),
         ("GET", "api/v1/patients/me/nutritionist-requests", Patient),

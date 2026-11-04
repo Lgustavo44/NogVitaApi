@@ -83,7 +83,9 @@ internal sealed class SkiaImageProcessor(int maxPixels = SkiaImageProcessor.Defa
 
         using var canvas = new SKCanvas(result);
         canvas.SetMatrix(OriginMatrix(origin, source.Width, source.Height));
-        canvas.DrawBitmap(source, 0, 0);
+        // Girar e espelhar levam cada pixel a outro pixel exato: a amostragem mais simples já é a fiel.
+        using var image = SKImage.FromBitmap(source);
+        canvas.DrawImage(image, 0, 0, new SKSamplingOptions(SKFilterMode.Nearest));
 
         return result;
     }

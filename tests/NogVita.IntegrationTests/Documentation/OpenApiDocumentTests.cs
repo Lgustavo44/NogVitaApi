@@ -66,8 +66,10 @@ public class OpenApiDocumentTests(NogVitaApiFixture fixture)
     public async Task Protected_Endpoints_Should_Declare_The_401()
     {
         // As rotas abertas (login, cadastro, confirmação, senha e convite) ficam em /auth, menos o "quem sou eu".
+        // Fora de /auth, só a conferência pública do PDF do plano pelo código verificador.
         var anonymous = new[] { "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout", "/api/v1/auth/register/",
-            "/api/v1/auth/email-confirmation/", "/api/v1/auth/password-reset/", "/api/v1/auth/invitations/" };
+            "/api/v1/auth/email-confirmation/", "/api/v1/auth/password-reset/", "/api/v1/auth/invitations/",
+            "/api/v1/plan-documents/" };
 
         var missing = Operations(await DocumentAsync())
             .Where(o => o.Name.Contains("/api/") && !anonymous.Any(prefix => o.Name.Contains(prefix)))
