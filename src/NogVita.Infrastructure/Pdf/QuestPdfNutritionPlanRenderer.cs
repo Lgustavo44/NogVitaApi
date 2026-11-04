@@ -161,17 +161,20 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
                 {
                     columns.RelativeColumn(4);
                     columns.RelativeColumn(1.4f);
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
+                    // kcal, os três macros (só quando visíveis) e fibra.
+                    for (var i = 0; i < (meal.MacrosVisible ? 5 : 2); i++)
+                    {
+                        columns.RelativeColumn();
+                    }
                 });
 
                 table.Header(header =>
                 {
                     HeaderCell(header.Cell(), "Alimento", alignRight: false);
-                    foreach (var label in new[] { "Quantidade", "kcal", "Prot. (g)", "Carb. (g)", "Gord. (g)", "Fibra (g)" })
+                    var labels = meal.MacrosVisible
+                        ? new[] { "Quantidade", "kcal", "Prot. (g)", "Carb. (g)", "Gord. (g)", "Fibra (g)" }
+                        : new[] { "Quantidade", "kcal", "Fibra (g)" };
+                    foreach (var label in labels)
                     {
                         HeaderCell(header.Cell(), label, alignRight: true);
                     }
@@ -184,18 +187,26 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
                     BodyCell(table.Cell()).Text(name);
                     BodyCell(table.Cell()).AlignRight().Text($"{food.QuantityInGrams.ToString("0.#", PtBr)} g");
                     BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.EnergyKcal));
-                    BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Protein));
-                    BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Carbohydrate));
-                    BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Fat));
+                    if (meal.MacrosVisible)
+                    {
+                        BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Protein));
+                        BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Carbohydrate));
+                        BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Fat));
+                    }
+
                     BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Fiber));
                 }
 
                 // Total da refeição: o rótulo ocupa as duas primeiras colunas (alimento e quantidade).
                 TotalCell(table.Cell().ColumnSpan(2)).Text("Total da refeição").Bold();
                 TotalCell(table.Cell()).AlignRight().Text(Format(meal.Totals.EnergyKcal)).Bold();
-                TotalCell(table.Cell()).AlignRight().Text(Format(meal.Totals.Protein)).Bold();
-                TotalCell(table.Cell()).AlignRight().Text(Format(meal.Totals.Carbohydrate)).Bold();
-                TotalCell(table.Cell()).AlignRight().Text(Format(meal.Totals.Fat)).Bold();
+                if (meal.Totals is { Protein: { } protein, Carbohydrate: { } carbohydrate, Fat: { } fat })
+                {
+                    TotalCell(table.Cell()).AlignRight().Text(Format(protein)).Bold();
+                    TotalCell(table.Cell()).AlignRight().Text(Format(carbohydrate)).Bold();
+                    TotalCell(table.Cell()).AlignRight().Text(Format(fat)).Bold();
+                }
+
                 TotalCell(table.Cell()).AlignRight().Text(Format(meal.Totals.Fiber)).Bold();
             });
         });
@@ -217,6 +228,7 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
     {
         var totals = detail.DailyTotals;
         var hasIncomplete = new[] { totals.EnergyKcal, totals.Protein, totals.Carbohydrate, totals.Fat, totals.Fiber, totals.SodiumMg }
+            .OfType<NutrientTotalResponse>()
             .Any(t => !t.IsComplete);
 
         // O mesmo bloco de destaque dos e-mails: fundo polpa e borda laranja à esquerda.
@@ -227,9 +239,14 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
             column.Item().PaddingTop(8).Row(row =>
             {
                 Stat(row.RelativeItem(), Format(totals.EnergyKcal), "kcal", "Energia");
-                Stat(row.RelativeItem(), Format(totals.Protein), "g", "Proteínas");
-                Stat(row.RelativeItem(), Format(totals.Carbohydrate), "g", "Carboidratos");
-                Stat(row.RelativeItem(), Format(totals.Fat), "g", "Gorduras");
+
+                if (totals is { Protein: { } protein, Carbohydrate: { } carbohydrate, Fat: { } fat })
+                {
+                    Stat(row.RelativeItem(), Format(protein), "g", "Proteínas");
+                    Stat(row.RelativeItem(), Format(carbohydrate), "g", "Carboidratos");
+                    Stat(row.RelativeItem(), Format(fat), "g", "Gorduras");
+                }
+
                 Stat(row.RelativeItem(), Format(totals.Fiber), "g", "Fibras");
                 Stat(row.RelativeItem(), Format(totals.SodiumMg), "mg", "Sódio");
             });

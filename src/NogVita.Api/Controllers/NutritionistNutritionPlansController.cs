@@ -141,6 +141,15 @@ public sealed class NutritionistNutritionPlansController(
     public async Task<IActionResult> ClearTarget(Guid id, CancellationToken cancellationToken) =>
         ToActionResult(await managePlanUseCase.ClearTargetAsync(User.GetUserId(), id, cancellationToken));
 
+    /// <summary>Define se o paciente vê proteína, carboidrato e gordura neste plano (padrão: não vê).</summary>
+    /// <remarks>Vale em qualquer status do plano. As kcal, as fibras e o sódio o paciente sempre vê.</remarks>
+    /// <param name="id">O Id do plano.</param>
+    [HttpPut("nutrition-plans/{id:guid}/patient-view")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetPatientView(Guid id, PatientViewRequest request, CancellationToken cancellationToken) =>
+        ToActionResult(await managePlanUseCase.SetPatientSeesMacrosAsync(User.GetUserId(), id, request.PatientSeesMacros, cancellationToken));
+
     private IActionResult ToActionResult(ManageNutritionPlanResult result) => result switch
     {
         ManageNutritionPlanResult.Done => NoContent(),
@@ -153,3 +162,5 @@ public sealed class NutritionistNutritionPlansController(
     private ObjectResult PlanNotFound() =>
         Problem(statusCode: StatusCodes.Status404NotFound, title: "Plano não encontrado.");
 }
+
+public sealed record PatientViewRequest(bool PatientSeesMacros);

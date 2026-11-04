@@ -34,17 +34,18 @@ public sealed record NutrientTotalResponse(decimal Value, bool IsComplete)
 
 public sealed record NutrientTotalsResponse(
     NutrientTotalResponse EnergyKcal,
-    NutrientTotalResponse Protein,
-    NutrientTotalResponse Carbohydrate,
-    NutrientTotalResponse Fat,
+    NutrientTotalResponse? Protein,
+    NutrientTotalResponse? Carbohydrate,
+    NutrientTotalResponse? Fat,
     NutrientTotalResponse Fiber,
     NutrientTotalResponse SodiumMg)
 {
-    public static NutrientTotalsResponse From(NutrientTotals totals) => new(
+    // Os macros escondidos vêm null, e não "0 g incompleto", que seria falso.
+    public static NutrientTotalsResponse From(NutrientTotals totals, bool macrosVisible = true) => new(
         NutrientTotalResponse.From(totals.EnergyKcal),
-        NutrientTotalResponse.From(totals.Protein),
-        NutrientTotalResponse.From(totals.Carbohydrate),
-        NutrientTotalResponse.From(totals.Fat),
+        macrosVisible ? NutrientTotalResponse.From(totals.Protein) : null,
+        macrosVisible ? NutrientTotalResponse.From(totals.Carbohydrate) : null,
+        macrosVisible ? NutrientTotalResponse.From(totals.Fat) : null,
         NutrientTotalResponse.From(totals.Fiber),
         NutrientTotalResponse.From(totals.SodiumMg));
 }

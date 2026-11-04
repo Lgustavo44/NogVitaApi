@@ -203,4 +203,20 @@ public sealed class ManageNutritionPlanUseCase(
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return ManageNutritionPlanResult.Done;
     }
+
+    // Sem a verificação do IsEditable (D-V2-26): o nutricionista pode esconder os macros de um plano finalizado.
+    public async Task<ManageNutritionPlanResult> SetPatientSeesMacrosAsync(
+        Guid nutritionistId, Guid planId, bool visible, CancellationToken cancellationToken = default)
+    {
+        var plan = await planAccess.LoadOwnPlanAsync(nutritionistId, planId, cancellationToken);
+
+        if (plan is null)
+        {
+            return ManageNutritionPlanResult.NotFound;
+        }
+
+        plan.SetPatientSeesMacros(visible);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return ManageNutritionPlanResult.Done;
+    }
 }

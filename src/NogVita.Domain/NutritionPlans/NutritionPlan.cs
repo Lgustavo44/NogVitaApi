@@ -20,6 +20,9 @@ public class NutritionPlan : Entity
     public decimal? TargetCarbohydrateGrams { get; private set; }
     public decimal? TargetFatGrams { get; private set; }
 
+    // D-V2-23: os macros podem ser gatilho para quem tem histórico de transtorno alimentar.
+    public bool PatientSeesMacros { get; private set; }
+
     public const int MaxMeals = 10;
 
     private readonly List<Meal> _meals = [];
@@ -230,6 +233,9 @@ public class NutritionPlan : Entity
         TargetCarbohydrateGrams = null;
         TargetFatGrams = null;
     }
+
+    // D-V2-26: regra de exibição, e não de prescrição, então vale em qualquer status.
+    public void SetPatientSeesMacros(bool visible) => PatientSeesMacros = visible;
 
     // Todas as refeições do plano, cada uma uma vez: sem faltar, sem repetir e sem Id de fora.
     public bool IsCompleteMealOrder(IReadOnlyList<Guid> orderedMealIds) =>

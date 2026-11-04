@@ -921,7 +921,8 @@ O `409` sempre vem com o `title` "Esta ação não é permitida no status atual 
   "targetEnergyKcal": 2200,
   "targetProteinGrams": 150,
   "targetCarbohydrateGrams": null,
-  "targetFatGrams": null
+  "targetFatGrams": null,
+  "patientSeesMacros": false
 }
 ```
 
@@ -929,6 +930,7 @@ O `409` sempre vem com o `title` "Esta ação não é permitida no status atual 
 - Os campos `target*` são a [meta diária](#meta-diária-). Sem meta, os quatro vêm `null`. Com meta, `targetEnergyKcal` sempre tem valor, e os outros três são opcionais.
 - Ao finalizar, a `endDate` vira o dia da finalização, se ainda não tinha passado. Ela nunca fica antes da `startDate`.
 - As **listagens** devolvem um `NutritionPlanResponse` em cada item, **sem** as refeições.
+- `patientSeesMacros` é a [chave do que o paciente vê](#o-que-o-paciente-vê-). Começa `false`.
 
 #### Formato do detalhe (`NutritionPlanDetailResponse`)
 
@@ -985,6 +987,12 @@ As três rotas de detalhe (o detalhe do nutricionista, o detalhe do paciente e o
 - `target` vem `null` quando o plano não tem meta. Dentro dele, `energyKcal` sempre existe, e `protein`, `carbohydrate` e `fat` vêm `null` quando a meta não define aquele nutriente.
 - `difference` é **`planned − target`**: negativo quando o plano está **abaixo** da meta, positivo quando está **acima**. No exemplo, faltam 219,6 kcal e sobram 12 g de proteína.
 - `isComplete` tem o mesmo sentido dos totais: com `false`, o `planned` pode estar subestimado.
+
+**Os macros na visão do paciente (`macrosVisible`):**
+
+- O detalhe traz `macrosVisible` no primeiro nível e em cada refeição. Para o nutricionista, é sempre `true`.
+- Nas rotas do paciente, quando o nutricionista **não** liberou os macros (o padrão), vem `macrosVisible: false` e ficam `null`: `protein`, `carbohydrate` e `fat` em `totals`, `dailyTotals` e `target`; `proteinPer100g`, `carbohydratePer100g` e `fatPer100g` (e os mesmos campos em `portion`) de cada alimento; e `targetProteinGrams`, `targetCarbohydrateGrams` e `targetFatGrams` do plano, também na listagem. As kcal, as fibras e o sódio sempre vêm.
+- No front do paciente, **esconda o que vier `null`**, sem mostrar "0" nem "—". O PDF do paciente segue a mesma regra.
 
 #### Nutricionista 🥗
 
@@ -1245,6 +1253,21 @@ Remove a meta. Sem corpo.
 
 - `204` → removida (os campos `target*` voltam a `null`, e o detalhe passa a trazer `target: null`)
 - `404` ou `409` (plano finalizado ou cancelado)
+
+#### O que o paciente vê 🥗
+
+Os macros podem ser gatilho para quem tem histórico de transtorno alimentar. Por isso, o paciente só recebe proteína, carboidrato e gordura quando o nutricionista libera, plano a plano. As kcal, as fibras e o sódio ele sempre vê. O corte é feito na API (ver [`macrosVisible`](#formato-do-detalhe-nutritionplandetailresponse)), e o nutricionista continua vendo tudo.
+
+##### `PUT /api/v1/nutritionists/me/nutrition-plans/{id}/patient-view`
+
+```json
+{ "patientSeesMacros": true }
+```
+
+- `204` → salvo. Vale em **qualquer status**, inclusive em planos finalizados e cancelados: é uma regra de exibição, e não de prescrição.
+- `404` → "Plano não encontrado."
+
+A posição atual da chave vem em `plan.patientSeesMacros`. Sugestão de rótulo: "O paciente vê proteínas, carboidratos e gorduras".
 
 #### Paciente 🧑
 

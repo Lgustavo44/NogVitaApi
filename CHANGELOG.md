@@ -12,6 +12,7 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 
 ### Adicionado
 
+- `PUT /api/v1/nutritionists/me/nutrition-plans/{id}/patient-view`: o nutricionista decide, por plano, se o paciente vê proteína, carboidrato e gordura. O plano ganhou `patientSeesMacros` (padrão `false`, também nos planos que já existiam).
 - Fotos de perfil do nutricionista (pública) e do paciente (privada, opcional), com o `photoUrl` nas respostas.
 - Fotos de evolução do paciente (frente, lado, costas por data), com termo de consentimento versionado,
   revogação que apaga todas as fotos, e acesso do nutricionista que acompanha o paciente.
@@ -25,6 +26,7 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 
 ### Alterado
 
+- ⚠️ **Mudança de tipo:** na visão do paciente, os macros vêm `null` quando o nutricionista não liberou (o padrão): `protein`, `carbohydrate` e `fat` nos totais e na meta, os `*Per100g` dos alimentos e os `target*Grams` do plano. O detalhe ganhou `macrosVisible`. As kcal, as fibras e o sódio continuam vindo. O PDF do paciente também não mostra os macros. O front do paciente precisa esconder o que vier `null`.
 - ⚠️ **Mudança no contrato:** `POST /api/v1/auth/register/patient` passou a exigir `healthDataConsentVersion`, `acceptHealthData: true` e `acceptInternationalTransfer: true`. Sem eles, a resposta é `400`. É uma exigência legal (o consentimento dos dados de saúde precisa ser específico, destacado e provado), e o front precisa ser publicado junto.
 - A política de privacidade e os termos de uso foram atualizados em 03/11/2026 (fotos, armazenamento, transferência internacional e o PDF verificável).
 - A busca de alimentos ordena por relevância: primeiro os nomes que começam com a primeira palavra buscada, depois os da TACO, depois os de nome mais curto, e só então a ordem alfabética. Antes, era só alfabética.

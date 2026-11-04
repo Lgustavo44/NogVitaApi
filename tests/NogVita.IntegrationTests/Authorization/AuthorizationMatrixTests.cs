@@ -91,6 +91,7 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("POST", "api/v1/nutritionists/me/nutrition-plans/{id:guid}/cancel", Nutritionist),
         ("PUT", "api/v1/nutritionists/me/nutrition-plans/{id:guid}/target", Nutritionist),
         ("DELETE", "api/v1/nutritionists/me/nutrition-plans/{id:guid}/target", Nutritionist),
+        ("PUT", "api/v1/nutritionists/me/nutrition-plans/{id:guid}/patient-view", Nutritionist),
         ("POST", "api/v1/nutritionists/me/nutrition-plans/{planId:guid}/meals", Nutritionist),
         ("PUT", "api/v1/nutritionists/me/nutrition-plans/{planId:guid}/meals/{mealId:guid}", Nutritionist),
         ("DELETE", "api/v1/nutritionists/me/nutrition-plans/{planId:guid}/meals/{mealId:guid}", Nutritionist),

@@ -19,7 +19,8 @@ public sealed record NutritionPlanResponse(
     decimal? TargetEnergyKcal,
     decimal? TargetProteinGrams,
     decimal? TargetCarbohydrateGrams,
-    decimal? TargetFatGrams);
+    decimal? TargetFatGrams,
+    bool PatientSeesMacros = false);
 
 public sealed record NutritionPlanListRequest : PageRequest
 {

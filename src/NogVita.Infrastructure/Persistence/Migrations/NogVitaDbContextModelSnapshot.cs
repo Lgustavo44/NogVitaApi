@@ -655,6 +655,10 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("patient_id");
 
+                    b.Property<bool>("PatientSeesMacros")
+                        .HasColumnType("boolean")
+                        .HasColumnName("patient_sees_macros");
+
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date")
                         .HasColumnName("start_date");

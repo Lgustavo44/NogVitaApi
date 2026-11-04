@@ -11,18 +11,31 @@ public sealed record MealResponse(
     int Order,
     TimeOnly? SuggestedTime,
     IReadOnlyList<MealFoodResponse> Foods,
-    bool? OutsideRoutine = null)
+    bool? OutsideRoutine = null,
+    bool MacrosVisible = true)
 {
     internal NutrientTotals RawTotals => NutrientTotals.FromPortions(Foods.Select(f => f.RawPortion));
 
-    public NutrientTotalsResponse Totals => NutrientTotalsResponse.From(RawTotals);
+    public NutrientTotalsResponse Totals => NutrientTotalsResponse.From(RawTotals, MacrosVisible);
 }
 
-public sealed record NutritionPlanDetailResponse(NutritionPlanResponse Plan, IReadOnlyList<MealResponse> Meals)
+public sealed record NutritionPlanDetailResponse(NutritionPlanResponse Plan, IReadOnlyList<MealResponse> Meals, bool MacrosVisible = true)
 {
     private NutrientTotals RawDailyTotals => NutrientTotals.Combine(Meals.Select(m => m.RawTotals));
 
-    public NutrientTotalsResponse DailyTotals => NutrientTotalsResponse.From(RawDailyTotals);
+    public NutrientTotalsResponse DailyTotals => NutrientTotalsResponse.From(RawDailyTotals, MacrosVisible);
+
+    // D-V2-25: a visão do paciente. Os macros saem dos alimentos, dos totais e da meta; as kcal, as fibras e o sódio ficam.
+    public NutritionPlanDetailResponse ForPatient() => Plan.PatientSeesMacros ? this : this with
+    {
+        MacrosVisible = false,
+        Plan = Plan with { TargetProteinGrams = null, TargetCarbohydrateGrams = null, TargetFatGrams = null },
+        Meals = Meals.Select(meal => meal with
+        {
+            MacrosVisible = false,
+            Foods = meal.Foods.Select(food => food with { ProteinPer100g = null, CarbohydratePer100g = null, FatPer100g = null }).ToList()
+        }).ToList()
+    };
 
     // null quando o plano não tem meta. A meta de energia é obrigatória numa meta; as de macronutrientes, opcionais.
     public TargetComparisonResponse? Target

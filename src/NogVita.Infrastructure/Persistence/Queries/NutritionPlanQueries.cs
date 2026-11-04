@@ -45,17 +45,18 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
         return Project(plans
                 .OrderByDescending(p => p.Status == NutritionPlanStatus.Active)
                 .ThenByDescending(p => p.StartDate)
-                .ThenBy(p => p.Id))
+                .ThenBy(p => p.Id), forPatient: true)
             .ToPagedResponseAsync(request, cancellationToken);
     }
 
-    public Task<NutritionPlanDetailResponse?> GetByPatientAsync(
+    // D-V2-25: as duas consultas do paciente cortam os macros; a tela, o PDF baixado e o enviado por e-mail passam por elas.
+    public async Task<NutritionPlanDetailResponse?> GetByPatientAsync(
         Guid patientId, Guid planId, CancellationToken cancellationToken = default) =>
-        WithMealsAsync(VisibleToPatient(patientId).Where(p => p.Id == planId), cancellationToken);
+        (await WithMealsAsync(VisibleToPatient(patientId).Where(p => p.Id == planId), cancellationToken))?.ForPatient();
 
-    public Task<NutritionPlanDetailResponse?> GetCurrentByPatientAsync(
+    public async Task<NutritionPlanDetailResponse?> GetCurrentByPatientAsync(
         Guid patientId, CancellationToken cancellationToken = default) =>
-        WithMealsAsync(VisibleToPatient(patientId).Where(p => p.Status == NutritionPlanStatus.Active), cancellationToken);
+        (await WithMealsAsync(VisibleToPatient(patientId).Where(p => p.Status == NutritionPlanStatus.Active), cancellationToken))?.ForPatient();
 
     private IQueryable<NutritionPlan> VisibleToPatient(Guid patientId) =>
         context.NutritionPlans
@@ -63,7 +64,8 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             .Where(p => p.PatientId == patientId
                 && (p.Status == NutritionPlanStatus.Active || p.Status == NutritionPlanStatus.Finished));
 
-    private IQueryable<NutritionPlanResponse> Project(IQueryable<NutritionPlan> plans) =>
+    // forPatient: a lista do paciente também esconde a meta dos macros (D-V2-25); o detalhe faz o corte no ForPatient.
+    private IQueryable<NutritionPlanResponse> Project(IQueryable<NutritionPlan> plans, bool forPatient = false) =>
         from p in plans
         join patient in context.Users on p.PatientId equals patient.Id
         join nutritionist in context.Users on p.NutritionistId equals nutritionist.Id
@@ -80,9 +82,10 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
             p.Status,
             p.CreatedAt,
             p.TargetEnergyKcal,
-            p.TargetProteinGrams,
-            p.TargetCarbohydrateGrams,
-            p.TargetFatGrams);
+            forPatient && !p.PatientSeesMacros ? null : p.TargetProteinGrams,
+            forPatient && !p.PatientSeesMacros ? null : p.TargetCarbohydrateGrams,
+            forPatient && !p.PatientSeesMacros ? null : p.TargetFatGrams,
+            p.PatientSeesMacros);
 
     // Duas consultas: o plano (com os nomes do paciente e do nutricionista) e, se ele existir, as refeições em ordem.
     private async Task<NutritionPlanDetailResponse?> WithMealsAsync(

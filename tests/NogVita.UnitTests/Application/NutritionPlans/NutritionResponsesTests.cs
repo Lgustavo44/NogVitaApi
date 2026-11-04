@@ -13,10 +13,10 @@ public class NutritionResponsesTests
     private static MealResponse Meal(params MealFoodResponse[] foods) =>
         new(Guid.NewGuid(), "Refeição", null, 1, null, foods);
 
-    private static NutritionPlanResponse Plan(decimal? targetKcal = null, decimal? targetProtein = null) =>
+    private static NutritionPlanResponse Plan(decimal? targetKcal = null, decimal? targetProtein = null, bool patientSeesMacros = false) =>
         new(Guid.NewGuid(), Guid.NewGuid(), "Paciente", Guid.NewGuid(), "Nutri", "Plano", null,
             new DateOnly(2026, 10, 1), null, NutritionPlanStatus.Active, DateTime.UtcNow,
-            targetKcal, targetProtein, null, null);
+            targetKcal, targetProtein, null, null, patientSeesMacros);
 
     [Fact]
     public void Portion_Should_Be_Rounded_To_One_Decimal()
@@ -76,5 +76,48 @@ public class NutritionResponsesTests
         var plan = new NutritionPlanDetailResponse(Plan(), [Meal(Item(100m, 100m, 1m, 1m))]);
 
         Assert.Null(plan.Target);
+    }
+
+    [Fact]
+    public void ForPatient_Should_Hide_Macros_But_Keep_Energy_When_Not_Released()
+    {
+        var detail = new NutritionPlanDetailResponse(
+            Plan(targetKcal: 2000m, targetProtein: 150m), [Meal(Item(100m, 200m, 10m, 2m))]).ForPatient();
+
+        Assert.False(detail.MacrosVisible);
+        Assert.Null(detail.DailyTotals.Protein);
+        Assert.Null(detail.DailyTotals.Carbohydrate);
+        Assert.Null(detail.DailyTotals.Fat);
+        Assert.Equal(200m, detail.DailyTotals.EnergyKcal.Value);
+        Assert.Equal(2m, detail.DailyTotals.Fiber.Value);
+        Assert.Null(detail.Meals[0].Totals.Protein);
+        Assert.Null(detail.Meals[0].Foods[0].ProteinPer100g);
+        Assert.Null(detail.Meals[0].Foods[0].Portion.Protein);
+        Assert.Equal(200m, detail.Meals[0].Foods[0].EnergyKcalPer100g);
+        Assert.Null(detail.Plan.TargetProteinGrams);
+        Assert.Null(detail.Target!.Protein);
+        Assert.Equal(2000m, detail.Target.EnergyKcal.Target);
+    }
+
+    [Fact]
+    public void Nutritionist_View_Should_Keep_Macros_When_Not_Released()
+    {
+        var detail = new NutritionPlanDetailResponse(Plan(), [Meal(Item(100m, 200m, 10m, 2m))]);
+
+        Assert.True(detail.MacrosVisible);
+        Assert.Equal(10m, detail.DailyTotals.Protein!.Value);
+        Assert.Equal(10m, detail.Meals[0].Foods[0].ProteinPer100g);
+    }
+
+    [Fact]
+    public void ForPatient_Should_Keep_Macros_When_Released()
+    {
+        var detail = new NutritionPlanDetailResponse(
+            Plan(targetKcal: 2000m, targetProtein: 150m, patientSeesMacros: true), [Meal(Item(100m, 200m, 10m, 2m))]).ForPatient();
+
+        Assert.True(detail.MacrosVisible);
+        Assert.Equal(10m, detail.DailyTotals.Protein!.Value);
+        Assert.Equal(10m, detail.Meals[0].Foods[0].ProteinPer100g);
+        Assert.Equal(150m, detail.Target!.Protein!.Target);
     }
 }
