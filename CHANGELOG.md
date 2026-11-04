@@ -12,6 +12,7 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 
 ### Adicionado
 
+- Anamnese: o nutricionista monta questionários (`/api/v1/nutritionists/me/questionnaires`, com o modelo base em `.../template`), envia um ao paciente que acompanha (`POST /api/v1/nutritionists/me/patients/{patientId}/anamneses`) e lê as respostas. O paciente lista e responde as dele em `/api/v1/patients/me/anamneses`, uma vez só, e com o aceite do termo dos dados de saúde.
 - `PUT /api/v1/nutritionists/me/nutrition-plans/{id}/patient-view`: o nutricionista decide, por plano, se o paciente vê proteína, carboidrato e gordura. O plano ganhou `patientSeesMacros` (padrão `false`, também nos planos que já existiam).
 - Fotos de perfil do nutricionista (pública) e do paciente (privada, opcional), com o `photoUrl` nas respostas.
 - Fotos de evolução do paciente (frente, lado, costas por data), com termo de consentimento versionado,

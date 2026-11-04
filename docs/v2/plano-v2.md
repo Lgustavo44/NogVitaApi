@@ -216,7 +216,7 @@ Os épicos acima ficam incompletos sem estes itens. A coluna **Prioridade** vem 
 | # | Item | Prioridade | Por que é essencial |
 |---|---|---|---|
 | E6.7 | **O que o paciente vê** ✅ concluído (P): o nutricionista escolhe, por plano ou por paciente, se o paciente vê as kcal e se vê os macros | **1** (o S1, sozinho) | Os macros podem ser gatilho para quem tem histórico de transtorno alimentar. Vale para a tela do paciente, o PDF que ele baixa ou recebe por e-mail, o "balanço do dia" do E3 e o diário do E6.1. O PDF do nutricionista continua completo. **⚠️ Esconder na API, e não só no front:** se a resposta trouxer os macros e o front só esconder, qualquer um vê pelo F12. Os campos do paciente passam a poder ser `null`, com um `macrosVisible`; é uma mudança de tipo, registrada no CHANGELOG |
-| E6.6 | **Anamnese** configurável: um questionário-modelo que o nutricionista monta e o paciente responde **antes da consulta** | **2** | É o primeiro passo de qualquer consulta (a Res. CFN 594/2017 a exige na primeira), alimenta as substituições (E2: "não sugerir lactose") e agiliza o atendimento online |
+| E6.6 | **Anamnese** configurável ✅ concluído: um questionário-modelo que o nutricionista monta e o paciente responde **antes da consulta** | **2** | É o primeiro passo de qualquer consulta (a Res. CFN 594/2017 a exige na primeira), alimenta as substituições (E2: "não sugerir lactose") e agiliza o atendimento online |
 | E6.3 | **Notas da consulta**, privadas do nutricionista | **3** | Uma consulta (E5) sem registro não serve. ⚠️ Veja abaixo a guarda de 20 anos |
 | E6.4 | **Notificações**: consulta, horário das refeições, água, nova solicitação | **4** | O e-mail é limitado (300/dia) e se perde. **Como funciona com a Render dormindo:** a consulta usa o `.ics` com alarme (E5); as refeições e a água usam **Web Push**, disparado por um **Cron Trigger da Cloudflare** que chama um endpoint da API (o que também acorda a API). ⚠️ O endpoint exige um **segredo no cabeçalho** (sem isso, quem achar a URL dispara notificações para todos). ⚠️ O cron só roda **das 6h às 22h**: acordar a Render 24 h por dia gasta ~730 das 750 horas gratuitas do mês. ⚠️ No **iPhone**, o Web Push só funciona com o NogVita **instalado na tela de início** (PWA); conferir a regra atual antes de implementar |
 | E6.1 | **Diário alimentar / check-in de adesão** ("segui o almoço? sim, parcial, não"), com o feedback da semana | **5** | Sem saber o que foi comido, não existe o "balanço do dia" do E3. **Respeita o E6.7** |
@@ -231,6 +231,7 @@ Os épicos acima ficam incompletos sem estes itens. A coluna **Prioridade** vem 
 - **Excluir a conta não pode apagar as notas:** elas ficam guardadas, bloqueadas e fora do uso normal.
 - **O nutricionista continua lendo as próprias notas depois que o vínculo termina.** Isso é uma exceção ao D-V2-06 (e à mesma regra do peso), só para as notas.
 - A Res. 594 pede conteúdo mínimo (art. 4º: anamnese, antropometria, diagnóstico e prescrição com data e horário) e "no mínimo dois níveis de garantia de segurança" na identificação (art. 8º). Isso é pesado para um projeto gratuito: **até lá, chamar as notas de "anotações de apoio", e não de prontuário.**
+- **A anamnese (E6.6) também é prontuário** (art. 4º), então a guarda de 20 anos vale para ela, e não só para as notas. Desenhar as duas juntas no E6.5. Até lá, a anamnese segue a D-V2-06: sem vínculo, o nutricionista perde o acesso, e o paciente continua lendo.
 
 ---
 
@@ -307,6 +308,12 @@ Com cada um no seu épico, **as duas trilhas andam em paralelo**, mas três regr
 | D-V2-18 | O cadastro de paciente exige **dois aceites separados**, os dados de saúde (LGPD, art. 11, I) e a transferência internacional (art. 33, VIII), com a versão e a data guardadas. Os pacientes antigos aceitam pelo `POST /patients/me/health-data-consent` |
 | D-V2-19 | Cada PDF de plano leva o CRN, a data e a hora da emissão e um **código verificador**, conferível em `GET /plan-documents/{code}`, sem nenhum dado do paciente (Res. CFN 760/2023, art. 10). A assinatura avançada fica com o nutricionista (o assinador do gov.br) |
 | D-V2-20 | As fotos de evolução nunca são compartilháveis nem públicas (Código de Ética do CFN) |
+| D-V2-27 | **O nutricionista monta os próprios questionários** de anamnese, e o NogVita oferece um modelo base para ele copiar e editar |
+| D-V2-28 | Quatro tipos de pergunta: **texto, sim/não, uma opção e várias opções**. Cada pergunta pode ser obrigatória ou não |
+| D-V2-29 | Depois de enviada, **a anamnese fica travada**. Para atualizar, o nutricionista envia um questionário novo, e o histórico continua |
+| D-V2-30 | **Só depois do vínculo:** o nutricionista que acompanha envia o questionário, e só ele vê as respostas (CareAccessService). Sem o vínculo, uma anamnese pendente não pode mais ser respondida |
+| D-V2-31 | A anamnese enviada guarda **o retrato do questionário** (o título e as perguntas), como o `FoodSnapshot` faz com o alimento. Editar ou apagar o questionário não muda as respostas antigas |
+| D-V2-32 | As perguntas e as respostas ficam numa **coluna jsonb**, gravadas por um conversor. Ninguém filtra dentro das respostas, então não há tabelas de perguntas e de respostas |
 
 ### Em aberto (decidir no começo de cada épico)
 

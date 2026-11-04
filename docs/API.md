@@ -21,6 +21,7 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
   - [Fotos](#fotos)
   - [Alimentos](#alimentos)
   - [Plano alimentar](#plano-alimentar)
+  - [Anamnese](#anamnese)
   - [Convite de nutricionista](#convite-de-nutricionista)
   - [Administração](#administração)
 - [Fluxos](#fluxos)
@@ -1307,6 +1308,157 @@ Envia o PDF do plano para o **e-mail cadastrado** do paciente. Sem corpo.
 
 > Só o paciente envia o plano por e-mail. O nutricionista baixa o PDF, mas não tem uma rota para enviá-lo ao paciente.
 
+### Anamnese
+
+O nutricionista monta questionários (do zero ou a partir do modelo base) e envia um ao paciente que acompanha. O paciente responde **uma vez**. Depois de enviada, a anamnese fica travada: para atualizar, o nutricionista envia outra, e as anteriores continuam no histórico.
+
+A anamnese enviada guarda **uma cópia** do título e das perguntas. Editar ou apagar o questionário depois não muda nenhuma anamnese já enviada: as respostas ficam sempre ligadas às perguntas que o paciente leu.
+
+#### Tipos de pergunta e de resposta
+
+| `type` | Pergunta | Resposta (`answers[]`) |
+|---|---|---|
+| `Text` | sem `options` | `{ "questionId": "...", "text": "..." }`, com até 2000 caracteres |
+| `YesNo` | sem `options` | `{ "questionId": "...", "yesNo": true }` |
+| `SingleChoice` | de 2 a 20 `options`, sem repetir | `{ "questionId": "...", "options": ["Emagrecer"] }`, com **uma** opção |
+| `MultipleChoice` | de 2 a 20 `options`, sem repetir | `{ "questionId": "...", "options": ["Lactose", "Glúten"] }`, com uma ou mais |
+
+- As opções são identificadas **pelo texto**, exatamente como vieram na pergunta.
+- Cada pergunta tem `required`. Uma pergunta opcional pode ficar de fora de `answers`, e uma resposta em branco (texto vazio, `options: []`) também conta como não respondida.
+- Só o campo do tipo da pergunta é guardado: um `yesNo` mandado numa pergunta `Text` é ignorado.
+
+Formato da pergunta (`Question`):
+
+```json
+{ "id": "0193…", "text": "Você bebe bebidas alcoólicas?", "type": "SingleChoice", "required": false, "options": ["Não", "Raramente", "Nos fins de semana", "Quase todos os dias"] }
+```
+
+#### Formato da anamnese (`AnamnesisResponse`)
+
+```json
+{
+  "id": "0193…",
+  "title": "Anamnese inicial",
+  "status": "Submitted",
+  "patientId": "…",
+  "patientName": "Maria Souza",
+  "nutritionistId": "…",
+  "nutritionistName": "Ana Lima",
+  "sentAt": "2026-11-04T13:00:00Z",
+  "submittedAt": "2026-11-05T09:12:00Z",
+  "questions": [ { "id": "…", "text": "…", "type": "Text", "required": true, "options": [] } ],
+  "answers": [ { "questionId": "…", "text": "Emagrecer", "yesNo": null, "options": null } ]
+}
+```
+
+- `status` é `Pending` (enviada, sem resposta) ou `Submitted` (respondida e travada).
+- `answers` vem `null` enquanto a anamnese está `Pending`. Depois, traz só as perguntas respondidas, na ordem das perguntas.
+- As **listas** devolvem `AnamnesisSummaryResponse`: os mesmos campos, **sem** `questions` e `answers`.
+
+#### Questionários 🥗
+
+São do nutricionista: outro nutricionista recebe `404`.
+
+##### `GET /api/v1/nutritionists/me/questionnaires`
+
+A lista paginada, em ordem alfabética: `{ "id", "title", "questionCount", "updatedAt" }`.
+
+##### `GET /api/v1/nutritionists/me/questionnaires/template`
+
+O modelo base, **no formato do corpo do `POST`** (`title` e `questions`, sem Ids). Ele traz perguntas sobre o objetivo, as alergias e intolerâncias, as doenças, os medicamentos, as restrições, o intestino, a água, o álcool, o cigarro, a atividade física e a rotina. O front carrega, deixa o nutricionista editar e cria com o `POST` abaixo.
+
+##### `GET /api/v1/nutritionists/me/questionnaires/{id}`
+
+- `200` → `{ "id", "title", "questions": [Question], "createdAt", "updatedAt" }`
+- `404` → "Questionário não encontrado."
+
+##### `POST /api/v1/nutritionists/me/questionnaires`
+
+```json
+{
+  "title": "Anamnese inicial",
+  "questions": [
+    { "text": "Qual é o seu principal objetivo?", "type": "SingleChoice", "required": true, "options": ["Emagrecer", "Ganhar massa muscular"] },
+    { "text": "Você fuma?", "type": "YesNo", "required": false }
+  ]
+}
+```
+
+| Campo | Regras |
+|---|---|
+| `title` | Obrigatório, até 100 caracteres |
+| `questions` | De 1 a 50 |
+| `questions[].text` | Obrigatório, até 500 caracteres |
+| `questions[].options` | Só em `SingleChoice` e `MultipleChoice`: de 2 a 20, cada uma com até 200 caracteres, sem repetir (sem diferenciar maiúsculas) |
+
+- `201` → `{ "id": "..." }`
+- `400` → erros de validação
+- `422` → opções repetidas ("As opções da pergunta "…" não podem se repetir.")
+
+##### `PUT /api/v1/nutritionists/me/questionnaires/{id}`
+
+O mesmo corpo do `POST`. Troca o título e **todas** as perguntas, que ganham Ids novos. As anamneses já enviadas não mudam.
+
+- `204`, `400`, `404` ou `422`
+
+##### `DELETE /api/v1/nutritionists/me/questionnaires/{id}`
+
+- `204` → apagado. As anamneses já enviadas com ele continuam.
+- `404` → "Questionário não encontrado."
+
+#### Anamneses do paciente 🥗
+
+Todas essas rotas exigem que o nutricionista autenticado tenha acompanhamento ativo com o paciente. Quando o acompanhamento acaba, ele perde o acesso, inclusive às anamneses já respondidas (`404`).
+
+##### `POST /api/v1/nutritionists/me/patients/{patientId}/anamneses`
+
+Envia um questionário ao paciente.
+
+```json
+{ "questionnaireId": "0193…" }
+```
+
+- `201` → `{ "id": "..." }` (a anamnese, `Pending`)
+- `400` → "Escolha o questionário."
+- `404` → "Paciente não encontrado." (sem acompanhamento) ou "Questionário não encontrado." (de outro nutricionista)
+
+##### `GET /api/v1/nutritionists/me/patients/{patientId}/anamneses`
+
+As anamneses que o nutricionista enviou ao paciente, da mais recente para a mais antiga (paginado).
+
+- `200` → `PagedResponse<AnamnesisSummaryResponse>`
+- `404` → "Paciente não encontrado."
+
+##### `GET /api/v1/nutritionists/me/anamneses/{id}`
+
+- `200` → `AnamnesisResponse`
+- `404` → "Anamnese não encontrada."
+
+#### Minhas anamneses 🧑
+
+O paciente lê as anamneses dele mesmo depois de o acompanhamento acabar.
+
+##### `GET /api/v1/patients/me/anamneses`
+
+As pendentes primeiro, depois as respondidas, da mais recente para a mais antiga (paginado). Use as `Pending` para mostrar um aviso de "você tem uma anamnese para responder".
+
+##### `GET /api/v1/patients/me/anamneses/{id}`
+
+- `200` → `AnamnesisResponse`
+- `404` → "Anamnese não encontrada."
+
+##### `POST /api/v1/patients/me/anamneses/{id}/answers`
+
+```json
+{ "answers": [ { "questionId": "0193…", "options": ["Emagrecer"] }, { "questionId": "0194…", "yesNo": false } ] }
+```
+
+- `204` → respondida. A partir daqui, a anamnese fica travada.
+- `400` → "Envie as respostas."
+- `404` → "Anamnese não encontrada."
+- `409` → "Esta anamnese já foi respondida." ou "Este questionário não está mais disponível." (o acompanhamento com quem enviou acabou)
+- `422` → uma regra das respostas, com a mensagem pronta para mostrar ("Responda a pergunta obrigatória "…".", "Escolha uma opção só na pergunta "…".", "Escolha entre as opções da pergunta "…"."), ou o termo dos dados de saúde não aceito ("Autorize o tratamento dos seus dados de saúde para continuar. O termo está na sua área de paciente."). No segundo caso, leve o paciente à tela do termo.
+
 ### Convite de nutricionista
 
 Nutricionistas não se cadastram sozinhos: o administrador faz o pré-cadastro, e a pessoa recebe um e-mail com um link no formato:
@@ -1615,5 +1767,7 @@ Convite que nunca foi aceito (isProfileActive: false):
 - [ ] Busca de alimentos só a partir de 2 letras, com *debounce*
 - [ ] Plano: avisar "valor parcial" nos totais com `isComplete: false`, e ler `difference` como `planned − target`
 - [ ] PDF baixado como *blob* (a rota exige o token), e o `429` do envio por e-mail tratado pelo status
+- [ ] Anamnese: editor de questionário com o botão "usar o modelo base" (`GET .../questionnaires/template`), e as opções só nas perguntas de escolha
+- [ ] Anamnese: na resposta, mandar as opções pelo texto exato, e tratar o `422` do termo levando o paciente à tela do aceite
 - [ ] Admin: confirmação antes de desativar um nutricionista, avisando que os acompanhamentos dele serão encerrados
 - [ ] Admin: botões "Reenviar convite" e "Cancelar pré-cadastro" nos nutricionistas com `isProfileActive: false`
