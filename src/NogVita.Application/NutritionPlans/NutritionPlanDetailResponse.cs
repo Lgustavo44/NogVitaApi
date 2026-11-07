@@ -33,7 +33,7 @@ public sealed record NutritionPlanDetailResponse(NutritionPlanResponse Plan, IRe
         Meals = Meals.Select(meal => meal with
         {
             MacrosVisible = false,
-            Foods = meal.Foods.Select(food => food with { ProteinPer100g = null, CarbohydratePer100g = null, FatPer100g = null }).ToList()
+            Foods = meal.Foods.Select(food => food.WithoutMacros()).ToList()
         }).ToList()
     };
 

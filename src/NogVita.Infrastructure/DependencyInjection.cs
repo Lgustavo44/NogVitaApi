@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IFoodRepository, FoodRepository>();
         services.AddScoped<IFoodQueries, FoodQueries>();
         services.AddScoped<TacoFoodSeeder>();
+        services.AddScoped<FoodPortionSeeder>();
         services.AddScoped<OpenFoodFactsBulkSeeder>();
         // D181: os testes de integração desligam a importação dos 22 mil produtos (OpenFoodFacts:ImportOnStartup = false).
         if (openFoodFactsSettings.ImportOnStartup)

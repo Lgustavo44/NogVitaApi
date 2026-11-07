@@ -586,6 +586,51 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.ToTable("tb_food", (string)null);
                 });
 
+            modelBuilder.Entity("NogVita.Domain.Foods.FoodPortion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("FoodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("food_id");
+
+                    b.Property<decimal>("Grams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("grams");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("source");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_food_portion");
+
+                    b.HasIndex("FoodId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("ux_food_portion_food_name");
+
+                    b.ToTable("tb_food_portion", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.Invitations.NutritionistInvitation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -699,10 +744,29 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("meal_id");
 
+                    b.Property<decimal?>("PortionGrams")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("portion_grams");
+
+                    b.Property<string>("PortionName")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("portion_name");
+
+                    b.Property<decimal?>("PortionQuantity")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("portion_quantity");
+
                     b.Property<decimal>("QuantityInGrams")
                         .HasPrecision(7, 2)
                         .HasColumnType("numeric(7,2)")
                         .HasColumnName("quantity_in_grams");
+
+                    b.Property<Guid?>("SubstituteForId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("substitute_for_id");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -777,6 +841,9 @@ namespace NogVita.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_tb_meal_food");
+
+                    b.HasIndex("SubstituteForId")
+                        .HasDatabaseName("ix_tb_meal_food_substitute_for_id");
 
                     b.HasIndex(new[] { "FoodId" }, "ix_meal_food_food_id")
                         .HasDatabaseName("ix_meal_food_food_id");
@@ -1298,6 +1365,16 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_tb_nutritionist_request_users_patient_id");
                 });
 
+            modelBuilder.Entity("NogVita.Domain.Foods.FoodPortion", b =>
+                {
+                    b.HasOne("NogVita.Domain.Foods.Food", null)
+                        .WithMany("Portions")
+                        .HasForeignKey("FoodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_food_portion_tb_food_food_id");
+                });
+
             modelBuilder.Entity("NogVita.Domain.Invitations.NutritionistInvitation", b =>
                 {
                     b.HasOne("NogVita.Domain.Users.User", null)
@@ -1333,6 +1410,12 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_tb_meal_food_tb_meal_meal_id");
+
+                    b.HasOne("NogVita.Domain.NutritionPlans.MealFood", null)
+                        .WithMany()
+                        .HasForeignKey("SubstituteForId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_tb_meal_food_tb_meal_food_substitute_for_id");
                 });
 
             modelBuilder.Entity("NogVita.Domain.NutritionPlans.NutritionPlan", b =>
@@ -1397,6 +1480,11 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tb_weight_record_tb_user_recorded_by_user_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.Foods.Food", b =>
+                {
+                    b.Navigation("Portions");
                 });
 
             modelBuilder.Entity("NogVita.Domain.NutritionPlans.Meal", b =>

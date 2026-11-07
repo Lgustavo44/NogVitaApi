@@ -18,6 +18,16 @@ public class MealFoodConfiguration : IEntityTypeConfiguration<MealFood>
             .HasPrecision(7, 2)
             .IsRequired();
 
+        builder.Property(mf => mf.PortionName).HasMaxLength(FoodPortion.NameMaxLength);
+        builder.Property(mf => mf.PortionGrams).HasPrecision(7, 2);
+        builder.Property(mf => mf.PortionQuantity).HasPrecision(5, 2);
+
+        // D-V2-36: a alternativa some junto com o principal (o domínio já remove; o banco garante).
+        builder.HasOne<MealFood>()
+            .WithMany()
+            .HasForeignKey(mf => mf.SubstituteForId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Cópia do alimento no momento em que entrou no plano: os mesmos limites e a mesma precisão da tb_food.
         builder.ComplexProperty(mf => mf.Snapshot, snapshot =>
         {

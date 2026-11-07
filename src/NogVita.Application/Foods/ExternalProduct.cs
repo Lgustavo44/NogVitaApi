@@ -9,4 +9,6 @@ public sealed record ExternalProduct(
     decimal? CarbohydratePer100g,
     decimal? FatPer100g,
     decimal? FiberPer100g,
-    decimal? SodiumMgPer100g);
+    decimal? SodiumMgPer100g,
+    decimal? ServingGrams = null,
+    string? ServingLabel = null);

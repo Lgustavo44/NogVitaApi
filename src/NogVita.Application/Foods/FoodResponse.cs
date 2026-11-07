@@ -33,7 +33,13 @@ public sealed record FoodResponse(
         food.Nutrients.Carbohydrate,
         food.Nutrients.Fat,
         food.Nutrients.Fiber,
-        food.Nutrients.SodiumMg);
+        food.Nutrients.SodiumMg)
+    {
+        Portions = food.Portions.OrderBy(p => p.Grams).Select(p => new FoodPortionResponse(p.Id, p.Name, p.Grams)).ToList()
+    };
+
+    // As medidas caseiras do alimento (D-V2-33), da menor para a maior. Vazia: só gramas.
+    public IReadOnlyList<FoodPortionResponse> Portions { get; init; } = [];
 
     public string Attribution => FoodSourceInfo.Attribution(Source);
 
@@ -44,3 +50,5 @@ public sealed record FoodResponse(
         && FatPer100g is not null
         && FiberPer100g is not null;
 }
+
+public sealed record FoodPortionResponse(Guid Id, string Name, decimal Grams);

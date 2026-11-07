@@ -226,6 +226,7 @@ using (var scope = app.Services.CreateScope())
 
     await seeder.SeedAsync(adminSeedSettings);
     await scope.ServiceProvider.GetRequiredService<TacoFoodSeeder>().SeedAsync();
+    await scope.ServiceProvider.GetRequiredService<FoodPortionSeeder>().SeedTacoAsync();
 }
 
 app.UseForwardedHeaders();

@@ -103,5 +103,8 @@ internal sealed class FoodQueries(NogVitaDbContext context) : IFoodQueries
             f.Nutrients.Carbohydrate,
             f.Nutrients.Fat,
             f.Nutrients.Fiber,
-            f.Nutrients.SodiumMg);
+            f.Nutrients.SodiumMg)
+        {
+            Portions = f.Portions.OrderBy(p => p.Grams).Select(p => new FoodPortionResponse(p.Id, p.Name, p.Grams)).ToList()
+        };
 }

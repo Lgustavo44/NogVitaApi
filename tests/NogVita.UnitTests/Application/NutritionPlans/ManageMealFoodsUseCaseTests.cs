@@ -49,6 +49,44 @@ public class ManageMealFoodsUseCaseTests
         Assert.Equal(1, _unitOfWork.SaveChangesCount);
     }
 
+    // D-V2-34
+    [Fact]
+    public async Task Should_Add_Food_In_Portions()
+    {
+        var spoon = _rice.AddPortion("colher de sopa cheia", 25m, FoodPortionSource.Ibge)!;
+
+        var result = await CreateUseCase().AddAsync(
+            _care.Nutritionist.Id, _plan.Id, _meal.Id, new AddMealFoodRequest(_rice.Id, null, spoon.Id, 4m), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.Done, result.Result);
+        var item = Assert.Single(_meal.Foods);
+        Assert.Equal(100m, item.QuantityInGrams);
+        Assert.Equal("colher de sopa cheia", item.PortionName);
+    }
+
+    [Fact]
+    public async Task Should_Refuse_A_Portion_Of_Another_Food()
+    {
+        var bean = Food.FromTaco(561, "Feijão, carioca, cozido", null, new NutrientsPer100g(76m, 4.8m, 13.6m, 0.5m, 8.5m, 2m));
+        var concha = bean.AddPortion("concha média cheia", 140m, FoodPortionSource.Ibge)!;
+
+        var result = await CreateUseCase().AddAsync(
+            _care.Nutritionist.Id, _plan.Id, _meal.Id, new AddMealFoodRequest(_rice.Id, null, concha.Id, 1m), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.PortionNotFound, result.Result);
+        Assert.Empty(_meal.Foods);
+    }
+
+    // D-V2-36
+    [Fact]
+    public async Task Should_Refuse_A_Substitute_Of_An_Item_Outside_The_Meal()
+    {
+        var result = await CreateUseCase().AddAsync(
+            _care.Nutritionist.Id, _plan.Id, _meal.Id, new AddMealFoodRequest(_rice.Id, 100m, SubstituteForId: Guid.NewGuid()), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ManageMealFoodResult.NotFound, result.Result);
+    }
+
     [Fact]
     public async Task Should_Reject_Inactive_Food()
     {

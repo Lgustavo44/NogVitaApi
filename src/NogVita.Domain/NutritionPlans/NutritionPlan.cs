@@ -191,16 +191,22 @@ public class NutritionPlan : Entity
         EndDate = endDate;
     }
 
-    public MealFood AddFoodToMeal(Guid mealId, Food food, decimal quantityInGrams, DateTime nowUtc)
+    public MealFood AddFoodToMeal(Guid mealId, Food food, decimal quantityInGrams, DateTime nowUtc) =>
+        AddFoodToMeal(mealId, food, FoodQuantity.InGrams(quantityInGrams), nowUtc);
+
+    public MealFood AddFoodToMeal(Guid mealId, Food food, FoodQuantity quantity, DateTime nowUtc, Guid? substituteForId = null)
     {
         EnsureEditable();
-        return GetMeal(mealId).AddFood(food, quantityInGrams, nowUtc);
+        return GetMeal(mealId).AddFood(food, quantity, nowUtc, substituteForId);
     }
 
-    public void UpdateMealFoodQuantity(Guid mealId, Guid mealFoodId, decimal quantityInGrams)
+    public void UpdateMealFoodQuantity(Guid mealId, Guid mealFoodId, decimal quantityInGrams) =>
+        UpdateMealFoodQuantity(mealId, mealFoodId, FoodQuantity.InGrams(quantityInGrams));
+
+    public void UpdateMealFoodQuantity(Guid mealId, Guid mealFoodId, FoodQuantity quantity)
     {
         EnsureEditable();
-        GetMeal(mealId).UpdateFoodQuantity(mealFoodId, quantityInGrams);
+        GetMeal(mealId).UpdateFoodQuantity(mealFoodId, quantity);
     }
 
     public void RemoveFoodFromMeal(Guid mealId, Guid mealFoodId)

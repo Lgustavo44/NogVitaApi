@@ -11,7 +11,7 @@ internal sealed class OpenFoodFactsProductCatalog(
     HttpClient httpClient,
     ILogger<OpenFoodFactsProductCatalog> logger) : IProductCatalog
 {
-    private const string Fields = "product_name,product_name_pt,brands,nutriments";
+    private const string Fields = "product_name,product_name_pt,brands,nutriments,serving_quantity,serving_size";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -72,7 +72,9 @@ internal sealed class OpenFoodFactsProductCatalog(
                 CarbohydratePer100g: nutriments?.Carbohydrates,
                 FatPer100g: nutriments?.Fat,
                 FiberPer100g: nutriments?.Fiber,
-                SodiumMgPer100g: nutriments?.SodiumGrams * 1000m);
+                SodiumMgPer100g: nutriments?.SodiumGrams * 1000m,
+                ServingGrams: body.Product.ServingQuantity,
+                ServingLabel: body.Product.ServingSize);
 
             return new ProductLookupResult(ProductLookupStatus.Found, externalProduct);
 

@@ -24,6 +24,13 @@ internal sealed class OpenFoodFactsProduct
 
     [JsonPropertyName("nutriments")]
     public OpenFoodFactsNutriments? Nutriments { get; init; }
+
+    // A porção da embalagem, em gramas (às vezes chega como texto: o LenientDecimalConverter das opções cuida disso).
+    [JsonPropertyName("serving_quantity")]
+    public decimal? ServingQuantity { get; init; }
+
+    [JsonPropertyName("serving_size")]
+    public string? ServingSize { get; init; }
 }
 
 internal sealed class OpenFoodFactsNutriments

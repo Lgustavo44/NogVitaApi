@@ -18,6 +18,9 @@ internal sealed class OpenFoodFactsImportHostedService(
             var seeder = scope.ServiceProvider.GetRequiredService<OpenFoodFactsBulkSeeder>();
 
             await seeder.SeedAsync(stoppingToken);
+
+            // As porções da embalagem só depois dos produtos (D-V2-33).
+            await scope.ServiceProvider.GetRequiredService<FoodPortionSeeder>().SeedOpenFoodFactsAsync(stoppingToken);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {

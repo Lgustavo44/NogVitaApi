@@ -12,7 +12,8 @@ namespace NogVita.Api.Controllers;
 /// <summary>Os alimentos de uma refeição.</summary>
 /// <remarks>
 /// Ao entrar na refeição, o alimento é copiado (os valores por 100 g e a data da cópia): uma correção posterior na base
-/// não muda o que o paciente recebeu. O mesmo alimento entra uma vez por refeição, e uma refeição tem no máximo 20 alimentos.
+/// não muda o que o paciente recebeu. O mesmo alimento entra uma vez por refeição, e uma refeição tem no máximo 20 alimentos
+/// (contando as alternativas). A quantidade vai em gramas ou numa porção do alimento (`portionId` + `portionQuantity`).
 /// </remarks>
 [ApiController]
 [Route("api/v1/nutritionists/me/nutrition-plans/{planId:guid}/meals/{mealId:guid}/foods")]
@@ -22,7 +23,11 @@ namespace NogVita.Api.Controllers;
 [ProducesProblem(StatusCodes.Status500InternalServerError)]
 public sealed class NutritionistMealFoodsController(ManageMealFoodsUseCase manageMealFoodsUseCase) : ControllerBase
 {
-    /// <summary>Acrescenta um alimento à refeição, com a quantidade em gramas.</summary>
+    /// <summary>Acrescenta um alimento à refeição, em gramas ou em porções, como item principal ou como alternativa de outro.</summary>
+    /// <remarks>
+    /// Com `substituteForId`, o alimento entra como alternativa ("ou") do item principal: no máximo 3 por item, e uma alternativa
+    /// não tem alternativas (422). Os totais usam só os itens principais.
+    /// </remarks>
     /// <param name="planId">O Id do plano.</param>
     /// <param name="mealId">O Id da refeição.</param>
     [HttpPost]
@@ -30,6 +35,7 @@ public sealed class NutritionistMealFoodsController(ManageMealFoodsUseCase manag
     [ProducesValidationProblem]
     [ProducesProblem(StatusCodes.Status404NotFound)]
     [ProducesProblem(StatusCodes.Status409Conflict)]
+    [ProducesProblem(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Add(Guid planId, Guid mealId, AddMealFoodRequest request, CancellationToken cancellationToken)
     {
         var result = await manageMealFoodsUseCase.AddAsync(User.GetUserId(), planId, mealId, request, cancellationToken);
@@ -39,7 +45,7 @@ public sealed class NutritionistMealFoodsController(ManageMealFoodsUseCase manag
             : ToActionResult(result.Result);
     }
 
-    /// <summary>Altera a quantidade de um alimento da refeição. A cópia dos valores não muda.</summary>
+    /// <summary>Altera a quantidade de um alimento da refeição, em gramas ou em porções. A cópia dos valores não muda.</summary>
     /// <param name="planId">O Id do plano.</param>
     /// <param name="mealId">O Id da refeição.</param>
     /// <param name="mealFoodId">O Id do item da refeição (e não o do alimento).</param>
@@ -54,7 +60,7 @@ public sealed class NutritionistMealFoodsController(ManageMealFoodsUseCase manag
         return ToActionResult(result);
     }
 
-    /// <summary>Remove um alimento da refeição.</summary>
+    /// <summary>Remove um alimento da refeição. Remover um item principal remove também as alternativas dele.</summary>
     /// <param name="planId">O Id do plano.</param>
     /// <param name="mealId">O Id da refeição.</param>
     /// <param name="mealFoodId">O Id do item da refeição (e não o do alimento).</param>
@@ -85,6 +91,9 @@ public sealed class NutritionistMealFoodsController(ManageMealFoodsUseCase manag
             title: $"Uma refeição pode ter no máximo {Meal.MaxFoods} alimentos."),
         ManageMealFoodResult.NotFound => Problem(
             statusCode: StatusCodes.Status404NotFound,
-            title: "Plano, refeição ou alimento da refeição não encontrado.")
+            title: "Plano, refeição ou alimento da refeição não encontrado."),
+        ManageMealFoodResult.PortionNotFound => Problem(
+            statusCode: StatusCodes.Status404NotFound,
+            title: "Porção não encontrada para este alimento.")
     };
 }

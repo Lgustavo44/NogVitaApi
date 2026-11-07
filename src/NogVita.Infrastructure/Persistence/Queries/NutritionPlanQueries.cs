@@ -129,11 +129,21 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
                     f.Snapshot.Nutrients.Carbohydrate,
                     f.Snapshot.Nutrients.Fat,
                     f.Snapshot.Nutrients.Fiber,
-                    f.Snapshot.Nutrients.SodiumMg)
+                    f.Snapshot.Nutrients.SodiumMg),
+                f.SubstituteForId,
+                f.PortionName,
+                f.PortionGrams,
+                f.PortionQuantity
             })
             .ToListAsync(cancellationToken);
 
-        var foodsByMeal = foods.ToLookup(f => f.MealId, f => f.Item);
+        var foodsByMeal = foods.ToLookup(
+            f => f.MealId,
+            f => f.Item with
+            {
+                SubstituteForId = f.SubstituteForId,
+                Measure = f.PortionName is null ? null : new MeasureResponse(f.PortionName, f.PortionGrams!.Value, f.PortionQuantity!.Value)
+            });
 
         // A rotina atual do paciente: se ela mudar, o aviso das refeições acompanha, sem editar o plano.
         var routine = await context.PatientProfiles
@@ -149,7 +159,7 @@ internal sealed class NutritionPlanQueries(NogVitaDbContext context) : INutritio
                 m.Notes,
                 m.Order,
                 m.SuggestedTime,
-                foodsByMeal[m.Id].ToList(),
+                MealFoodResponse.GroupSubstitutes(foodsByMeal[m.Id].ToList()),
                 AwakeWindow.IsOutside(m.SuggestedTime, routine?.WakeUpTime, routine?.BedTime)))
             .ToList();
 

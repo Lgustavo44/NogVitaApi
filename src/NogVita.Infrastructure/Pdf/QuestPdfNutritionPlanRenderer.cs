@@ -111,7 +111,7 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
                 table.ColumnsDefinition(columns =>
                 {
                     columns.RelativeColumn(4);
-                    columns.RelativeColumn(1.4f);
+                    columns.RelativeColumn(2.6f);
                     // kcal, os três macros (só quando visíveis) e fibra.
                     for (var i = 0; i < (meal.MacrosVisible ? 5 : 2); i++)
                     {
@@ -133,19 +133,13 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
 
                 foreach (var food in meal.Foods)
                 {
-                    var name = food.Brand is null ? food.Name : $"{food.Name} ({food.Brand})";
+                    FoodRow(table, food, meal.MacrosVisible, substitute: false);
 
-                    BodyCell(table.Cell()).Text(name);
-                    BodyCell(table.Cell()).AlignRight().Text($"{food.QuantityInGrams.ToString("0.#", PtBr)} g");
-                    BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.EnergyKcal));
-                    if (meal.MacrosVisible)
+                    // D-V2-36: as alternativas logo abaixo do item principal, como "ou …".
+                    foreach (var substitute in food.Substitutes)
                     {
-                        BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Protein));
-                        BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Carbohydrate));
-                        BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Fat));
+                        FoodRow(table, substitute, meal.MacrosVisible, substitute: true);
                     }
-
-                    BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Fiber));
                 }
 
                 // Total da refeição: o rótulo ocupa as duas primeiras colunas (alimento e quantidade).
@@ -161,6 +155,38 @@ internal sealed class QuestPdfNutritionPlanRenderer : INutritionPlanPdfRenderer
                 TotalCell(table.Cell()).AlignRight().Text(Format(meal.Totals.Fiber)).Bold();
             });
         });
+    }
+
+    private static void FoodRow(TableDescriptor table, MealFoodResponse food, bool macrosVisible, bool substitute)
+    {
+        var name = food.Brand is null ? food.Name : $"{food.Name} ({food.Brand})";
+        var grams = $"{food.QuantityInGrams.ToString("0.#", PtBr)} g";
+
+        // A porção caseira vem antes dos gramas: "2 × unidade média (100 g)" (D-V2-34).
+        var quantity = food.Measure is { } measure
+            ? $"{measure.Quantity.ToString("0.##", PtBr)} × {measure.Name} ({grams})"
+            : grams;
+
+        var nameCell = BodyCell(table.Cell());
+        if (substitute)
+        {
+            nameCell.PaddingLeft(12).Text($"ou {name}").Italic().FontColor(Muted);
+        }
+        else
+        {
+            nameCell.Text(name);
+        }
+
+        BodyCell(table.Cell()).AlignRight().Text(quantity);
+        BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.EnergyKcal));
+        if (macrosVisible)
+        {
+            BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Protein));
+            BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Carbohydrate));
+            BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Fat));
+        }
+
+        BodyCell(table.Cell()).AlignRight().Text(Format(food.Portion.Fiber));
     }
 
     private static void HeaderCell(IContainer cell, string label, bool alignRight)

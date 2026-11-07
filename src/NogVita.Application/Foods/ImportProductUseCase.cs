@@ -73,6 +73,18 @@ public sealed class ImportProductUseCase(
             return new ImportProductResult(ImportProductStatus.InvalidData);
         }
 
+        // D-V2-33: a porção da embalagem, quando o produto informa. Uma porção inválida não impede a importação.
+        if (product.ServingGrams is { } servingGrams)
+        {
+            try
+            {
+                food.AddPortion(FoodPortion.PackageName(product.ServingLabel), servingGrams, FoodPortionSource.OpenFoodFacts);
+            }
+            catch (DomainException)
+            {
+            }
+        }
+
         foodRepository.Add(food);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -43,6 +43,12 @@ public class FoodConfiguration : IEntityTypeConfiguration<Food>
 
         builder.ComplexProperty(f => f.Nutrients, NutrientsMapping.Configure);
 
+        builder.HasMany(f => f.Portions)
+            .WithOne()
+            .HasForeignKey(p => p.FoodId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(f => f.Portions).UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasIndex(f => new { f.Source, f.SourceReference }, "ux_food_source_reference")
             .HasDatabaseName("ux_food_source_reference")
             .IsUnique();

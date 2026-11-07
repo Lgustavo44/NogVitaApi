@@ -18,6 +18,9 @@ public class Food : Entity
     public NutrientsPer100g Nutrients { get; private set; } = null!;
     public bool IsActive { get; private set; }
 
+    private readonly List<FoodPortion> _portions = [];
+    public IReadOnlyCollection<FoodPortion> Portions => _portions.AsReadOnly();
+
     private Food() { } // EF Core
 
     private Food(
@@ -60,6 +63,21 @@ public class Food : Entity
 
         return new Food(FoodSource.OpenFoodFacts, barcode, name, brand, barcode, category: null, nutrients);
     }
+
+    // Uma porção com o mesmo nome (sem diferenciar maiúsculas) não entra de novo: o seed pode rodar mais de uma vez.
+    public FoodPortion? AddPortion(string name, decimal grams, FoodPortionSource source)
+    {
+        if (_portions.Any(p => string.Equals(p.Name, name?.Trim(), StringComparison.OrdinalIgnoreCase)))
+        {
+            return null;
+        }
+
+        var portion = new FoodPortion(Id, name!, grams, source);
+        _portions.Add(portion);
+        return portion;
+    }
+
+    public FoodPortion? FindPortion(Guid portionId) => _portions.FirstOrDefault(p => p.Id == portionId);
 
     public void Activate() => IsActive = true;
 

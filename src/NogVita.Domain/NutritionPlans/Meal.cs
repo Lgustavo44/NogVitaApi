@@ -8,6 +8,7 @@ public class Meal : Entity
     public const int NameMaxLength = 60;
     public const int NotesMaxLength = 500;
     public const int MaxFoods = 20;
+    public const int MaxSubstitutesPerFood = 3;
 
     private readonly List<MealFood> _foods = [];
 
@@ -38,7 +39,7 @@ public class Meal : Entity
 
     // Alimentos da refeição
 
-    internal MealFood AddFood(Food food, decimal quantityInGrams, DateTime nowUtc)
+    internal MealFood AddFood(Food food, FoodQuantity quantity, DateTime nowUtc, Guid? substituteForId = null)
     {
         ArgumentNullException.ThrowIfNull(food);
 
@@ -54,22 +55,42 @@ public class Meal : Entity
             throw new DomainException("Este alimento já está na refeição. Altere a quantidade dele.");
         }
 
-        // D142
+        // D142: o limite conta as alternativas.
         if (_foods.Count >= MaxFoods)
         {
             throw new DomainException($"Uma refeição pode ter no máximo {MaxFoods} alimentos.");
         }
 
-        var mealFood = new MealFood(Id, food.Id, FoodSnapshot.From(food, nowUtc), quantityInGrams);
+        if (substituteForId is { } mainId)
+        {
+            var main = GetFood(mainId);
+
+            if (main.IsSubstitute)
+            {
+                throw new DomainException("Uma alternativa não pode ter alternativas. Escolha o alimento principal.");
+            }
+
+            if (_foods.Count(f => f.SubstituteForId == mainId) >= MaxSubstitutesPerFood)
+            {
+                throw new DomainException($"Um alimento pode ter no máximo {MaxSubstitutesPerFood} alternativas.");
+            }
+        }
+
+        var mealFood = new MealFood(Id, food.Id, FoodSnapshot.From(food, nowUtc), quantity, substituteForId);
         _foods.Add(mealFood);
         return mealFood;
     }
 
-    internal void UpdateFoodQuantity(Guid mealFoodId, decimal quantityInGrams) =>
-        GetFood(mealFoodId).SetQuantity(quantityInGrams);
+    internal void UpdateFoodQuantity(Guid mealFoodId, FoodQuantity quantity) =>
+        GetFood(mealFoodId).SetQuantity(quantity);
 
-    internal void RemoveFood(Guid mealFoodId) =>
-        _foods.Remove(GetFood(mealFoodId));
+    // Remover o principal remove também as alternativas dele.
+    internal void RemoveFood(Guid mealFoodId)
+    {
+        var food = GetFood(mealFoodId);
+        _foods.RemoveAll(f => f.SubstituteForId == food.Id);
+        _foods.Remove(food);
+    }
 
     private void SetDetails(string name, string? notes, TimeOnly? suggestedTime)
     {
