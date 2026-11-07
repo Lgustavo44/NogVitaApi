@@ -1,0 +1,1319 @@
+numero_alimento,porcao,gramas,codigo_ibge,alimento_ibge
+1,colher de sopa cheia,20.0,6300201,Arroz integral
+1,escumadeira média cheia,59.0,6300201,Arroz integral
+1,colher de arroz cheia,63.0,6300201,Arroz integral
+1,prato fundo raso,100.0,6300201,Arroz integral
+1,concha média cheia,117.0,6300201,Arroz integral
+1,porção (Guia Alimentar),198.0,6300201,Arroz integral
+1,prato fundo cheio,200.0,6300201,Arroz integral
+3,colher de sopa cheia,25.0,6300101,"Arroz (polido, parboilizado)"
+3,colher de arroz cheia,45.0,6300101,"Arroz (polido, parboilizado)"
+3,escumadeira média cheia,85.0,6300101,"Arroz (polido, parboilizado)"
+3,concha média cheia,100.0,6300101,"Arroz (polido, parboilizado)"
+3,prato fundo raso,100.0,6300101,"Arroz (polido, parboilizado)"
+3,porção (Guia Alimentar),125.0,6300101,"Arroz (polido, parboilizado)"
+3,prato fundo cheio,200.0,6300101,"Arroz (polido, parboilizado)"
+5,colher de sopa cheia,25.0,6300101,"Arroz (polido, parboilizado)"
+5,colher de arroz cheia,45.0,6300101,"Arroz (polido, parboilizado)"
+5,escumadeira média cheia,85.0,6300101,"Arroz (polido, parboilizado)"
+5,concha média cheia,100.0,6300101,"Arroz (polido, parboilizado)"
+5,prato fundo raso,100.0,6300101,"Arroz (polido, parboilizado)"
+5,porção (Guia Alimentar),125.0,6300101,"Arroz (polido, parboilizado)"
+5,prato fundo cheio,200.0,6300101,"Arroz (polido, parboilizado)"
+8,unidade,5.0,8002301,Biscoito doce
+8,punhado,17.0,8002301,Biscoito doce
+8,porção (Guia Alimentar),35.0,8002301,Biscoito doce
+9,unidade,5.0,8002301,Biscoito doce
+9,punhado,17.0,8002301,Biscoito doce
+9,porção (Guia Alimentar),35.0,8002301,Biscoito doce
+10,unidade,5.0,8002301,Biscoito doce
+10,punhado,17.0,8002301,Biscoito doce
+10,porção (Guia Alimentar),35.0,8002301,Biscoito doce
+11,unidade,5.0,8002301,Biscoito doce
+11,punhado,17.0,8002301,Biscoito doce
+11,porção (Guia Alimentar),35.0,8002301,Biscoito doce
+12,unidade,5.0,8002301,Biscoito doce
+12,punhado,17.0,8002301,Biscoito doce
+12,porção (Guia Alimentar),35.0,8002301,Biscoito doce
+13,unidade,5.0,8002201,Biscoito salgado
+13,punhado,17.0,8002201,Biscoito salgado
+13,porção (Guia Alimentar),32.5,8002201,Biscoito salgado
+14,porção (Guia Alimentar),50.0,8002601,Bolo de milho
+14,fatia média,60.0,8002601,Bolo de milho
+15,fatia média,80.0,8002701,Bolo de aipim
+16,porção (Guia Alimentar),35.0,8003801,Bolo de chocolate
+16,fatia média,60.0,8003801,Bolo de chocolate
+17,fatia média,60.0,8004101,Bolo de coco
+18,porção (Guia Alimentar),50.0,8002601,Bolo de milho
+18,fatia média,60.0,8002601,Bolo de milho
+21,colher de sopa cheia,4.0,6502102,Flocos de cereais
+21,copo pequeno cheio,25.0,6502102,Flocos de cereais
+21,copo duplo cheio,29.5,6502102,Flocos de cereais
+21,porção,30.0,6502102,Flocos de cereais
+21,xícara,30.0,6502102,Flocos de cereais
+22,colher de sopa cheia,4.0,6502102,Flocos de cereais
+22,copo pequeno cheio,25.0,6502102,Flocos de cereais
+22,copo duplo cheio,29.5,6502102,Flocos de cereais
+22,porção,30.0,6502102,Flocos de cereais
+22,xícara,30.0,6502102,Flocos de cereais
+25,colher de sopa cheia,4.0,6500903,Cereal matinal de milho em flocos
+25,punhado,9.0,6500903,Cereal matinal de milho em flocos
+25,copo pequeno cheio,25.0,6500903,Cereal matinal de milho em flocos
+25,copo duplo cheio,29.5,6500903,Cereal matinal de milho em flocos
+25,porção,30.0,6500903,Cereal matinal de milho em flocos
+25,xícara,30.0,6500903,Cereal matinal de milho em flocos
+26,colher de sopa cheia,4.0,6500903,Cereal matinal de milho em flocos
+26,punhado,9.0,6500903,Cereal matinal de milho em flocos
+26,copo pequeno cheio,25.0,6500903,Cereal matinal de milho em flocos
+26,copo duplo cheio,29.5,6500903,Cereal matinal de milho em flocos
+26,porção,30.0,6500903,Cereal matinal de milho em flocos
+26,xícara,30.0,6500903,Cereal matinal de milho em flocos
+33,colher de sopa,12.0,6500603,Farinha de milho
+33,porção (Guia Alimentar),42.0,6500603,Farinha de milho
+34,colher de chá cheia,4.0,6500301,Farinha de aveia
+34,colher de sobremesa cheia,8.0,6500301,Farinha de aveia
+34,colher de sopa cheia,18.0,6500301,Farinha de aveia
+34,porção (Guia Alimentar),37.5,6500301,Farinha de aveia
+35,colher de chá cheia,4.0,6500301,Farinha de aveia
+35,colher de sobremesa cheia,8.0,6500301,Farinha de aveia
+35,colher de sopa cheia,18.0,6500301,Farinha de aveia
+35,porção (Guia Alimentar),37.5,6500301,Farinha de aveia
+36,colher de sopa cheia,20.0,6502001,Farinha láctea
+36,porção rótulo,30.0,6502001,Farinha láctea
+36,prato raso,195.0,6502001,Farinha láctea
+36,prato fundo cheio,375.0,6502001,Farinha láctea
+39,colher de sopa cheia,25.0,6504802,Macarrão instântaneo
+39,garfada,30.0,6504802,Macarrão instântaneo
+39,colher de arroz cheia,50.0,6504802,Macarrão instântaneo
+39,porção (Guia Alimentar),105.0,6504802,Macarrão instântaneo
+39,escumadeira média cheia,110.0,6504802,Macarrão instântaneo
+39,pegador,110.0,6504802,Macarrão instântaneo
+39,prato raso cheio,320.0,6504802,Macarrão instântaneo
+39,prato fundo cheio,400.0,6504802,Macarrão instântaneo
+45,colher de sobremesa cheia,17.0,7700401,Milho verde em conserva
+45,colher de sopa,24.0,7700401,Milho verde em conserva
+45,colher de arroz cheia,38.0,7700401,Milho verde em conserva
+45,porção (Guia Alimentar),172.0,7700401,Milho verde em conserva
+49,porção,35.0,6805901,Fruta-pão
+49,fatia média,70.0,6805901,Fruta-pão
+51,porção (Guia Alimentar),70.0,8001101,Pão de milho
+51,unidade média,70.0,8001101,Pão de milho
+53,porção (Guia Alimentar),50.0,8000105,Pão de sal
+53,unidade,50.0,8000105,Pão de sal
+56,unidade pequena,8.0,8500202,"Pastel (queijo, carne, palmito, etc.)"
+56,unidade média,32.0,8500202,"Pastel (queijo, carne, palmito, etc.)"
+58,unidade pequena,8.0,8500202,"Pastel (queijo, carne, palmito, etc.)"
+58,unidade média,32.0,8500202,"Pastel (queijo, carne, palmito, etc.)"
+60,unidade pequena,8.0,8500202,"Pastel (queijo, carne, palmito, etc.)"
+60,unidade média,32.0,8500202,"Pastel (queijo, carne, palmito, etc.)"
+62,colher de sopa cheia,35.0,8500218,Polenta
+62,colher de arroz cheia,60.0,8500218,Polenta
+62,porção (Guia Alimentar),105.0,8500218,Polenta
+62,concha média cheia,150.0,8500218,Polenta
+62,pedaço médio,150.0,8500218,Polenta
+62,prato raso,300.0,8500218,Polenta
+62,prato fundo,500.0,8500218,Polenta
+63,porção (Guia Alimentar),50.0,8000105,Pão de sal
+63,unidade,50.0,8000105,Pão de sal
+64,colher de sopa cheia,36.0,6703901,Abóbora
+64,pedaço médio,50.0,6703901,Abóbora
+64,porção (Guia Alimentar),70.0,6703901,Abóbora
+64,escumadeira média cheia,100.0,6703901,Abóbora
+65,colher de sopa cheia,36.0,6703901,Abóbora
+65,pedaço médio,50.0,6703901,Abóbora
+65,porção (Guia Alimentar),70.0,6703901,Abóbora
+66,colher de sopa cheia,36.0,6703901,Abóbora
+66,pedaço médio,50.0,6703901,Abóbora
+66,porção (Guia Alimentar),70.0,6703901,Abóbora
+67,colher de sopa cheia,36.0,6703901,Abóbora
+67,pedaço médio,50.0,6703901,Abóbora
+67,porção (Guia Alimentar),70.0,6703901,Abóbora
+68,colher de sopa cheia,30.0,6703901,Abóbora
+68,pedaço médio,50.0,6703901,Abóbora
+68,porção (Guia Alimentar),70.0,6703901,Abóbora
+68,escumadeira média cheia,105.0,6703901,Abóbora
+69,colher de sopa cheia,36.0,6703901,Abóbora
+69,pedaço médio,50.0,6703901,Abóbora
+69,porção (Guia Alimentar),70.0,6703901,Abóbora
+70,pedaço,17.0,6703701,Abobrinha
+70,rodela,18.0,6703701,Abobrinha
+70,colher de sopa cheia,30.0,6703701,Abobrinha
+70,porção (Guia Alimentar),57.0,6703701,Abobrinha
+70,fatia,61.0,6703701,Abobrinha
+70,colher de arroz cheia,70.0,6703701,Abobrinha
+70,escumadeira média cheia,90.0,6703701,Abobrinha
+70,unidade,335.0,6703701,Abobrinha
+71,colher de sopa cheia,30.0,6703701,Abobrinha
+71,porção (Guia Alimentar),57.0,6703701,Abobrinha
+71,colher de arroz cheia,70.0,6703701,Abobrinha
+71,escumadeira média cheia,90.0,6703701,Abobrinha
+72,pedaço,17.0,6703701,Abobrinha
+72,rodela,18.0,6703701,Abobrinha
+72,colher de sopa cheia,30.0,6703701,Abobrinha
+72,porção (Guia Alimentar),57.0,6703701,Abobrinha
+72,colher de arroz cheia,70.0,6703701,Abobrinha
+72,escumadeira média cheia,90.0,6703701,Abobrinha
+72,unidade,335.0,6703701,Abobrinha
+73,colher de sopa cheia,30.0,6703701,Abobrinha
+73,porção (Guia Alimentar),57.0,6703701,Abobrinha
+73,colher de arroz cheia,70.0,6703701,Abobrinha
+73,escumadeira média cheia,90.0,6703701,Abobrinha
+74,colher de sopa cheia picada,6.0,6701501,Acelga
+74,colher de arroz cheia,10.0,6701501,Acelga
+74,folha média,10.0,6701501,Acelga
+74,porção,60.0,6701501,Acelga
+74,prato raso raso picada,60.0,6701501,Acelga
+75,ramo médio,5.0,6701301,Agrião
+75,colher de sopa cheia picada,7.0,6701301,Agrião
+75,pires cheio picado,10.0,6701301,Agrião
+75,garfada,30.0,6701301,Agrião
+75,porção média,37.5,6701301,Agrião
+75,colher de arroz cheia,50.0,6701301,Agrião
+75,prato raso cheio picado,80.0,6701301,Agrião
+77,colher de sopa cheia picada,8.0,6700101,Alface
+77,folha média,10.0,6700101,Alface
+77,pires de folha,20.0,6700101,Alface
+77,porção média,27.0,6700101,Alface
+77,prato de sobremesa cheio picada,30.0,6700101,Alface
+77,prato raso,50.0,6700101,Alface
+77,prato fundo,60.0,6700101,Alface
+77,unidade pequena,130.0,6700101,Alface
+77,unidade média,200.0,6700101,Alface
+78,colher de sopa cheia picada,8.0,6700101,Alface
+78,folha média,10.0,6700101,Alface
+78,pires de folha,20.0,6700101,Alface
+78,porção média,27.0,6700101,Alface
+78,prato de sobremesa cheio picada,30.0,6700101,Alface
+78,prato raso,50.0,6700101,Alface
+78,prato fundo,60.0,6700101,Alface
+78,unidade pequena,130.0,6700101,Alface
+78,unidade média,200.0,6700101,Alface
+79,colher de sopa cheia picada,8.0,6700101,Alface
+79,folha média,10.0,6700101,Alface
+79,pires de folha,20.0,6700101,Alface
+79,porção média,27.0,6700101,Alface
+79,prato de sobremesa cheio picada,30.0,6700101,Alface
+79,prato raso,50.0,6700101,Alface
+79,prato fundo,60.0,6700101,Alface
+79,unidade pequena,130.0,6700101,Alface
+79,unidade média,200.0,6700101,Alface
+80,colher de sopa cheia picada,8.0,6700101,Alface
+80,folha média,10.0,6700101,Alface
+80,pires de folha,20.0,6700101,Alface
+80,porção média,27.0,6700101,Alface
+80,prato de sobremesa cheio picada,30.0,6700101,Alface
+80,prato raso,50.0,6700101,Alface
+80,prato fundo,60.0,6700101,Alface
+80,unidade pequena,130.0,6700101,Alface
+80,unidade média,200.0,6700101,Alface
+82,unidade,4.4,6706201,Alho
+83,unidade,4.4,6706201,Alho
+84,folha,12.0,6701601,Almeirão
+84,colher de sopa,25.0,6701601,Almeirão
+84,porção média,27.0,6701601,Almeirão
+85,colher de sopa,25.0,6701601,Almeirão
+85,porção média,27.0,6701601,Almeirão
+86,pedaço pequeno,16.0,6400802,Batata (não especificada)
+86,colher de sopa cheia,30.0,6400802,Batata (não especificada)
+86,colher de arroz cheia,60.0,6400802,Batata (não especificada)
+86,unidade pequena,70.0,6400802,Batata (não especificada)
+86,escumadeira média cheia,80.0,6400802,Batata (não especificada)
+86,porção (Guia Alimentar),90.0,6400802,Batata (não especificada)
+86,prato de sobremesa,100.0,6400802,Batata (não especificada)
+86,unidade média,140.0,6400802,Batata (não especificada)
+88,colher de sopa cheia,42.0,6400401,Batata-doce
+88,fatia média,70.0,6400401,Batata-doce
+88,colher de servir,100.0,6400401,Batata-doce
+88,porção (Guia Alimentar),150.0,6400401,Batata-doce
+88,unidade média,355.0,6400401,Batata-doce
+90,pedaço pequeno,16.0,6400802,Batata (não especificada)
+90,colher de sopa cheia,25.0,6400802,Batata (não especificada)
+90,colher de arroz cheia,50.0,6400802,Batata (não especificada)
+90,escumadeira média cheia,65.0,6400802,Batata (não especificada)
+90,unidade pequena,70.0,6400802,Batata (não especificada)
+90,prato de sobremesa,78.0,6400802,Batata (não especificada)
+90,porção (Guia Alimentar),110.0,6400802,Batata (não especificada)
+90,unidade média,140.0,6400802,Batata (não especificada)
+91,pedaço pequeno,16.0,6400101,Batata-inglesa
+91,colher de sopa cheia,30.0,6400101,Batata-inglesa
+91,colher de arroz cheia,60.0,6400101,Batata-inglesa
+91,unidade pequena,70.0,6400101,Batata-inglesa
+91,escumadeira média cheia,80.0,6400101,Batata-inglesa
+91,porção (Guia Alimentar),90.0,6400101,Batata-inglesa
+91,prato de sobremesa,100.0,6400101,Batata-inglesa
+91,unidade média,140.0,6400101,Batata-inglesa
+93,pedaço pequeno,16.0,6400101,Batata-inglesa
+93,colher de sopa cheia,25.0,6400101,Batata-inglesa
+93,colher de arroz cheia,50.0,6400101,Batata-inglesa
+93,escumadeira média cheia,65.0,6400101,Batata-inglesa
+93,unidade pequena,70.0,6400101,Batata-inglesa
+93,prato de sobremesa,78.0,6400101,Batata-inglesa
+93,porção (Guia Alimentar),110.0,6400101,Batata-inglesa
+93,unidade média,140.0,6400101,Batata-inglesa
+94,pedaço pequeno,16.0,6400101,Batata-inglesa
+94,colher de sopa cheia,30.0,6400101,Batata-inglesa
+94,unidade pequena,70.0,6400101,Batata-inglesa
+94,colher de arroz cheia,80.0,6400101,Batata-inglesa
+94,porção (Guia Alimentar),100.0,6400101,Batata-inglesa
+94,unidade média,110.0,6400101,Batata-inglesa
+95,fatia média,20.0,6705401,Berinjela
+95,colher de sopa cheia,25.0,6705401,Berinjela
+95,porção (Guia Alimentar),60.0,6705401,Berinjela
+95,colher de arroz cheia,75.0,6705401,Berinjela
+95,escumadeira média cheia,125.0,6705401,Berinjela
+96,porção (Guia Alimentar),60.0,6705401,Berinjela
+97,fatia média,12.0,6401101,Beterraba
+97,colher de sopa cheia,20.0,6401101,Beterraba
+97,colher de arroz cheia,38.0,6401101,Beterraba
+97,porção (Guia Alimentar),43.0,6401101,Beterraba
+97,escumadeira média rasa picada,45.0,6401101,Beterraba
+97,unidade pequena,75.0,6401101,Beterraba
+97,unidade média,125.0,6401101,Beterraba
+97,prato de sobremesa,168.0,6401101,Beterraba
+98,fatia média,12.0,6401101,Beterraba
+98,colher de sopa cheia ralada,16.0,6401101,Beterraba
+98,colher de arroz cheia,38.0,6401101,Beterraba
+98,porção (Guia Alimentar),42.0,6401101,Beterraba
+98,unidade média,140.0,6401101,Beterraba
+98,prato de sobremesa,168.0,6401101,Beterraba
+99,unidade,5.0,8002301,Biscoito doce
+99,punhado,17.0,8002301,Biscoito doce
+99,porção (Guia Alimentar),35.0,8002301,Biscoito doce
+100,colher de sopa cheia picada,10.0,6701704,Brócolis
+100,porção (Guia Alimentar),60.0,6701704,Brócolis
+100,ramo médio,60.0,6701704,Brócolis
+100,pires,75.0,6701704,Brócolis
+101,porção (Guia Alimentar),60.0,6701704,Brócolis
+102,colher de sopa cheia picada,30.0,6400701,Cará
+102,colher de arroz cheia picada,60.0,6400701,Cará
+102,pedaço médio,100.0,6400701,Cará
+102,porção (Guia Alimentar),126.0,6400701,Cará
+106,porção (Guia Alimentar),42.0,6705801,Catalonha
+107,fatia média,6.0,6705701,Cebola
+107,colher de sopa cheia,10.0,6705701,Cebola
+107,unidade pequena,30.0,6705701,Cebola
+107,unidade média,70.0,6705701,Cebola
+108,colher de sopa,2.3,6701101,Cebolinha
+108,ramo,6.2,6701101,Cebolinha
+109,fatia,5.0,6401201,Cenoura
+109,colher sopa cheia picada,25.0,6401201,Cenoura
+109,porção (Guia Alimentar),35.0,6401201,Cenoura
+109,colher arroz cheia picada,40.0,6401201,Cenoura
+109,unidade pequena,46.0,6401201,Cenoura
+109,escumadeira média rasa picada,48.0,6401201,Cenoura
+109,unidade média,100.0,6401201,Cenoura
+110,fatia,5.0,6401201,Cenoura
+110,colher de sopa cheia ralada,12.0,6401201,Cenoura
+110,porção (Guia Alimentar),38.0,6401201,Cenoura
+110,colher arroz cheia picada,40.0,6401201,Cenoura
+110,escumadeira média rasa picada,48.0,6401201,Cenoura
+110,unidade pequena,55.0,6401201,Cenoura
+110,unidade média,120.0,6401201,Cenoura
+111,folha média,12.0,6700301,Chicória
+111,porção (Guia Alimentar),42.0,6700301,Chicória
+111,colher de sopa cheia,45.0,6700301,Chicória
+111,escumadeira média cheia,136.0,6700301,Chicória
+112,colher de sopa cheia,20.0,6704101,Chuchu
+112,pedaço,30.0,6704101,Chuchu
+112,colher de arroz cheia,45.0,6704101,Chuchu
+112,porção (Guia Alimentar),57.0,6704101,Chuchu
+112,escumadeira média cheia,110.0,6704101,Chuchu
+112,unidade pequena,145.0,6704101,Chuchu
+112,unidade média,230.0,6704101,Chuchu
+113,colher de sopa cheia,20.0,6704101,Chuchu
+113,pedaço,30.0,6704101,Chuchu
+113,colher de arroz cheia,45.0,6704101,Chuchu
+113,porção (Guia Alimentar),57.0,6704101,Chuchu
+113,escumadeira média cheia,110.0,6704101,Chuchu
+113,unidade média,230.0,6704101,Chuchu
+114,colher de sopa,8.0,7002601,Coentro
+115,colher de sopa cheia picada,20.0,6700501,Couve
+115,folha média,20.0,6700501,Couve
+115,colher de servir,42.0,6700501,Couve
+115,porção (Guia Alimentar),42.0,6700501,Couve
+115,prato cheio,120.0,6700501,Couve
+116,colher de sopa cheia picada,20.0,6700501,Couve
+116,folha média,25.0,6700501,Couve
+116,colher de servir,42.0,6700501,Couve
+116,porção (Guia Alimentar),42.0,6700501,Couve
+116,prato cheio,120.0,6700501,Couve
+117,colher de sopa cheia,25.0,6700601,Couve-flor
+117,ramo médio,60.0,6700601,Couve-flor
+117,porção (Guia Alimentar),69.0,6700601,Couve-flor
+118,colher de sopa cheia,25.0,6700601,Couve-flor
+118,ramo médio,60.0,6700601,Couve-flor
+118,porção (Guia Alimentar),69.0,6700601,Couve-flor
+118,prato de sobremesa,100.0,6700601,Couve-flor
+119,colher de sopa cheia,25.0,6700701,Espinafre
+119,porção (Guia Alimentar),67.0,6700701,Espinafre
+120,colher de sopa cheia,25.0,6700701,Espinafre
+120,porção (Guia Alimentar),67.0,6700701,Espinafre
+121,colher de café,3.0,6501401,Farinha de mandioca
+121,colher de chá cheia,5.0,6501401,Farinha de mandioca
+121,colher de sobremesa cheia,10.0,6501401,Farinha de mandioca
+121,colher de sopa cheia,16.0,6501401,Farinha de mandioca
+121,punhado,23.0,6501401,Farinha de mandioca
+121,colher de arroz,33.0,6501401,Farinha de mandioca
+121,porção (Guia Alimentar),40.0,6501401,Farinha de mandioca
+121,prato de sobremesa,101.0,6501401,Farinha de mandioca
+121,concha,110.0,6501401,Farinha de mandioca
+121,copo pequeno,127.0,6501401,Farinha de mandioca
+121,tigela,148.0,6501401,Farinha de mandioca
+121,xícara de chá,148.0,6501401,Farinha de mandioca
+121,prato raso,150.0,6501401,Farinha de mandioca
+121,caneca,171.0,6501401,Farinha de mandioca
+121,copo médio,172.0,6501401,Farinha de mandioca
+121,prato fundo,271.0,6501401,Farinha de mandioca
+122,colher de café,3.0,6501401,Farinha de mandioca
+122,colher de chá cheia,5.0,6501401,Farinha de mandioca
+122,colher de sobremesa cheia,10.0,6501401,Farinha de mandioca
+122,colher de sopa cheia,16.0,6501401,Farinha de mandioca
+122,punhado,23.0,6501401,Farinha de mandioca
+122,colher de arroz,33.0,6501401,Farinha de mandioca
+122,porção (Guia Alimentar),40.0,6501401,Farinha de mandioca
+122,prato de sobremesa,101.0,6501401,Farinha de mandioca
+122,concha,110.0,6501401,Farinha de mandioca
+122,copo pequeno,127.0,6501401,Farinha de mandioca
+122,tigela,148.0,6501401,Farinha de mandioca
+122,xícara de chá,148.0,6501401,Farinha de mandioca
+122,prato raso,150.0,6501401,Farinha de mandioca
+122,caneca,171.0,6501401,Farinha de mandioca
+122,copo médio,172.0,6501401,Farinha de mandioca
+122,prato fundo,271.0,6501401,Farinha de mandioca
+123,colher de chá cheia,4.0,6500301,Farinha de aveia
+123,colher de sobremesa cheia,8.0,6500301,Farinha de aveia
+123,colher de sopa cheia,18.0,6500301,Farinha de aveia
+123,porção (Guia Alimentar),37.5,6500301,Farinha de aveia
+127,unidade média,26.0,6704201,Jiló
+127,porção (Guia Alimentar),40.0,6704201,Jiló
+127,colher de sopa cheia,60.0,6704201,Jiló
+127,colher de arroz cheia,95.0,6704201,Jiló
+128,unidade,10.0,6808201,Jurubeba
+129,colher de sopa cheia picada,30.0,6400601,Mandioca
+129,colher de arroz cheia picada,60.0,6400601,Mandioca
+129,pedaço médio,100.0,6400601,Mandioca
+129,porção (Guia Alimentar),128.0,6400601,Mandioca
+131,colher de sopa,20.0,6400601,Mandioca
+131,colher de sopa cheia picada,32.5,6400601,Mandioca
+131,colher de arroz cheia picada,60.0,6400601,Mandioca
+131,pedaço médio,100.0,6400601,Mandioca
+131,porção (Guia Alimentar),128.0,6400601,Mandioca
+131,concha média cheia,130.0,6400601,Mandioca
+131,prato fundo,520.0,6400601,Mandioca
+132,colher de sopa cheia picada,35.0,6400601,Mandioca
+132,colher de arroz cheia,60.0,6400601,Mandioca
+132,pedaço médio,80.0,6400601,Mandioca
+132,porção,80.0,6400601,Mandioca
+134,colher de sopa cheia,40.0,6704301,Maxixe
+135,folha,10.0,6700801,Mostarda (verdura)
+135,colher de sopa cheia,45.0,6700801,Mostarda (verdura)
+136,colher de sopa cheia,30.0,8500905,Nhoque
+136,colher de arroz cheia,70.0,8500905,Nhoque
+136,escumadeira média cheia,100.0,8500905,Nhoque
+137,unidade pequena,30.0,7705201,Nabo em conserva
+138,colher de sopa rasa picado,15.0,7700501,Palmito em conserva
+138,porção rótulo,50.0,7700501,Palmito em conserva
+138,unidade média,100.0,7700501,Palmito em conserva
+139,colher de sopa rasa picado,15.0,7700501,Palmito em conserva
+139,porção rótulo,50.0,7700501,Palmito em conserva
+139,unidade média,100.0,7700501,Palmito em conserva
+140,unidade pequena,10.0,8000801,Pão de queijo
+140,unidade média,20.0,8000801,Pão de queijo
+140,porção (Guia Alimentar),58.0,8000801,Pão de queijo
+141,unidade pequena,10.0,8000801,Pão de queijo
+141,unidade média,20.0,8000801,Pão de queijo
+141,porção (Guia Alimentar),58.0,8000801,Pão de queijo
+142,fatia pequena,3.0,6704001,Pepino
+142,colher de sopa cheia picada,18.0,6704001,Pepino
+142,unidade média,100.0,6704001,Pepino
+147,unidade,18.0,6705001,Quiabo
+147,colher de sopa cheia,40.0,6705001,Quiabo
+148,fatia média,4.0,6401001,Rabanete
+148,colher de sopa,11.0,6401001,Rabanete
+148,unidade média,25.0,6401001,Rabanete
+148,porção (Guia Alimentar),90.0,6401001,Rabanete
+152,ramo,6.0,6702001,Rúcula
+152,colher de sopa cheia,8.0,6702001,Rúcula
+152,pires cheio picada,20.0,6702001,Rúcula
+152,porção média,27.0,6702001,Rúcula
+152,prato de sobremesa cheio picada,30.0,6702001,Rúcula
+152,prato fundo,60.0,6702001,Rúcula
+152,prato raso cheio picada,80.0,6702001,Rúcula
+153,colher de sopa cheia,35.0,6400303,Mandioquinha salsa (Batata-baroa)
+154,porção (Guia Alimentar),34.0,6706102,Seleta (jardineira)
+155,colher de sopa cheia,25.0,6701801,Serralha
+155,porção (Guia Alimentar),67.0,6701801,Serralha
+156,porção (Guia Alimentar),42.0,6701401,Taioba
+157,fatia média,15.0,6705101,Tomate
+157,colher de sopa cheia em tiras,30.0,6705101,Tomate
+157,unidade pequena,50.0,6705101,Tomate
+157,pires pequeno,60.0,6705101,Tomate
+157,porção (Guia Alimentar),80.0,6705101,Tomate
+157,unidade média,100.0,6705101,Tomate
+158,fatia média,15.0,6705101,Tomate
+158,colher de sopa cheia em tiras,30.0,6705101,Tomate
+158,unidade pequena,50.0,6705101,Tomate
+158,pires pequeno,60.0,6705101,Tomate
+158,porção (Guia Alimentar),80.0,6705101,Tomate
+158,unidade média,100.0,6705101,Tomate
+159,colher de sobremesa,17.0,7004801,Molho de tomate
+159,colher de sopa,20.0,7004801,Molho de tomate
+159,porção,20.0,7004801,Molho de tomate
+159,colher de arroz,45.0,7004801,Molho de tomate
+160,fatia média,15.0,6705101,Tomate
+160,colher de sopa cheia em tiras,30.0,6705101,Tomate
+160,unidade pequena,50.0,6705101,Tomate
+160,pires pequeno,60.0,6705101,Tomate
+160,porção (Guia Alimentar),80.0,6705101,Tomate
+160,unidade média,100.0,6705101,Tomate
+161,fatia média,15.0,6705101,Tomate
+161,colher de sopa cheia em tiras,30.0,6705101,Tomate
+161,unidade pequena,50.0,6705101,Tomate
+161,pires pequeno,60.0,6705101,Tomate
+161,porção (Guia Alimentar),80.0,6705101,Tomate
+161,unidade média,100.0,6705101,Tomate
+162,colher de sopa cheia,20.0,6705201,Vagem
+162,porção (Guia Alimentar),44.0,6705201,Vagem
+163,colher de sopa cheia picado,45.0,6802701,Abacate
+163,porção (Guia Alimentar),45.0,6802701,Abacate
+163,copo duplo cheio picado,200.0,6802701,Abacate
+163,unidade pequena,370.0,6802701,Abacate
+163,unidade média,430.0,6802701,Abacate
+164,fatia média,75.0,6802601,Abacaxi
+164,porção (Guia Alimentar),130.0,6802601,Abacaxi
+164,unidade pequena,480.0,6802601,Abacaxi
+164,unidade média,750.0,6802601,Abacaxi
+165,fatia média,75.0,6802601,Abacaxi
+165,porção (Guia Alimentar),130.0,6802601,Abacaxi
+165,unidade pequena,480.0,6802601,Abacaxi
+165,unidade média,750.0,6802601,Abacaxi
+166,unidade média,50.0,6808001,Abiu
+168,concha,101.0,6601706,Açaí
+168,tigela,202.0,6601706,Açaí
+168,copo médio,230.0,6601706,Açaí
+168,copo grande,326.0,6601706,Açaí
+169,unidade,12.0,6807701,Acerola
+169,porção (Guia Alimentar),224.0,6807701,Acerola
+170,unidade,12.0,6807701,Acerola
+170,porção (Guia Alimentar),224.0,6807701,Acerola
+171,colher de sopa,25.0,6804301,Ameixa
+171,porção (Guia Alimentar),30.0,6804301,Ameixa
+171,unidade pequena,34.0,6804301,Ameixa
+171,unidade média,42.0,6804301,Ameixa
+172,colher de sopa,25.0,6804301,Ameixa
+172,porção (Guia Alimentar),30.0,6804301,Ameixa
+172,unidade pequena,34.0,6804301,Ameixa
+172,unidade média,42.0,6804301,Ameixa
+174,unidade,227.0,6805401,Atemoia (fruta)
+175,pedaço,16.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+175,fatia,26.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+175,unidade,75.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+175,porção (Guia Alimentar),86.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+175,prato de sobremesa,170.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+175,prato raso,235.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+175,prato fundo,326.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+177,pedaço,16.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+177,fatia,26.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+177,unidade,75.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+177,porção (Guia Alimentar),86.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+177,prato de sobremesa,170.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+177,prato raso,235.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+177,prato fundo,326.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+178,pedaço,16.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+178,fatia,26.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+178,unidade,75.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+178,porção (Guia Alimentar),86.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+178,prato de sobremesa,170.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+178,prato raso,235.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+178,prato fundo,326.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+179,pedaço,16.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+179,fatia,26.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+179,unidade,75.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+179,porção (Guia Alimentar),86.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+179,prato de sobremesa,170.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+179,prato raso,235.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+179,prato fundo,326.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+180,pedaço,16.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+180,fatia,26.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+180,unidade,75.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+180,porção (Guia Alimentar),86.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+180,prato de sobremesa,170.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+180,prato raso,235.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+180,prato fundo,326.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+181,pedaço,16.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+181,fatia,26.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+181,unidade,75.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+181,porção (Guia Alimentar),86.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+181,prato de sobremesa,170.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+181,prato raso,235.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+181,prato fundo,326.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+182,pedaço,16.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+182,fatia,26.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+182,unidade,75.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+182,porção (Guia Alimentar),86.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+182,prato de sobremesa,170.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+182,prato raso,235.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+182,prato fundo,326.0,6801101,"Banana (ouro, prata, d´água, da terra, etc.)"
+183,unidade,91.2,6806301,Cacau
+184,unidade pequena,40.0,6804601,Cajá-manga
+184,unidade média,55.0,6804601,Cajá-manga
+186,unidade pequena,80.0,6804401,Caju
+186,unidade média,90.0,6804401,Caju
+187,unidade pequena,80.0,6804401,Caju
+187,unidade média,90.0,6804401,Caju
+189,unidade pequena,85.0,6802801,Caqui
+189,unidade média,110.0,6802801,Caqui
+190,unidade média,75.0,6804801,Carambola
+190,porção,130.0,6804801,Carambola
+191,unidade,10.0,6806901,Ciriguela
+191,porção,50.0,6806901,Ciriguela
+192,colher de sopa,20.0,6807301,Cupuaçu
+192,porção,60.0,6807301,Cupuaçu
+193,colher de sopa,20.0,6807301,Cupuaçu
+193,porção,60.0,6807301,Cupuaçu
+194,unidade média,55.0,6802901,Figo
+194,porção,60.0,6802901,Figo
+195,unidade média,55.0,6802901,Figo
+195,porção,60.0,6802901,Figo
+196,porção,35.0,6805901,Fruta-pão
+196,fatia média,70.0,6805901,Fruta-pão
+197,unidade pequena,50.0,6804201,Goiaba
+197,unidade média,170.0,6804201,Goiaba
+200,unidade pequena,50.0,6804201,Goiaba
+200,unidade média,170.0,6804201,Goiaba
+201,porção,70.0,6805001,Graviola
+201,unidade,227.0,6805001,Graviola
+202,porção,70.0,6805001,Graviola
+202,unidade,227.0,6805001,Graviola
+204,bago,12.0,6804101,Jaca
+204,porção (Guia Alimentar),132.0,6804101,Jaca
+205,unidade média,40.0,6805301,Jambo
+206,unidade,5.0,6810201,Jamelão (jamburão)
+207,rodela,11.0,6807801,Kiwi
+207,unidade média,94.0,6807801,Kiwi
+208,gomo,18.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+208,unidade pequena,90.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+208,porção (Guia Alimentar),144.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+208,unidade média,180.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+209,taça,150.0,8500407,Suco de laranja
+210,gomo,18.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+210,unidade pequena,90.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+210,porção (Guia Alimentar),144.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+210,unidade média,180.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+211,gomo,18.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+211,unidade pequena,90.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+211,porção (Guia Alimentar),144.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+211,unidade média,180.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+212,gomo,18.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+212,unidade pequena,90.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+212,porção (Guia Alimentar),144.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+212,unidade média,180.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+213,gomo,18.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+213,unidade pequena,90.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+213,porção (Guia Alimentar),144.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+213,unidade média,180.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+214,gomo,18.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+214,unidade pequena,90.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+214,porção (Guia Alimentar),144.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+214,unidade média,180.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+215,gomo,18.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+215,unidade pequena,90.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+215,porção (Guia Alimentar),144.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+215,unidade média,180.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+216,gomo,18.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+216,unidade pequena,90.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+216,porção (Guia Alimentar),144.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+216,unidade média,180.0,6801801,"Laranja (pera, seleta, lima, da terra, etc.)"
+217,taça,150.0,8500407,Suco de laranja
+218,1 unidade para o preparo de um copo médio,84.0,6802001,"Limão (comum, galego, etc.)"
+218,unidade,84.0,6802001,"Limão (comum, galego, etc.)"
+218,1 unidade para o preparo de um copo grande,105.0,6802001,"Limão (comum, galego, etc.)"
+218,porção (Guia Alimentar),252.0,6802001,"Limão (comum, galego, etc.)"
+219,1 unidade para o preparo de um copo médio,84.0,6802001,"Limão (comum, galego, etc.)"
+219,unidade,84.0,6802001,"Limão (comum, galego, etc.)"
+219,1 unidade para o preparo de um copo grande,105.0,6802001,"Limão (comum, galego, etc.)"
+219,porção (Guia Alimentar),252.0,6802001,"Limão (comum, galego, etc.)"
+220,1 unidade para o preparo de um copo médio,84.0,6802001,"Limão (comum, galego, etc.)"
+220,unidade,84.0,6802001,"Limão (comum, galego, etc.)"
+220,1 unidade para o preparo de um copo grande,105.0,6802001,"Limão (comum, galego, etc.)"
+220,porção (Guia Alimentar),252.0,6802001,"Limão (comum, galego, etc.)"
+221,unidade pequena,90.0,6803001,Maçã
+221,porção (Guia Alimentar),130.0,6803001,Maçã
+221,unidade média,150.0,6803001,Maçã
+222,unidade pequena,90.0,6803001,Maçã
+222,porção (Guia Alimentar),130.0,6803001,Maçã
+222,unidade média,150.0,6803001,Maçã
+225,colher de sopa cheia,40.0,6803101,Mamão
+225,colher de arroz cheia,70.0,6803101,Mamão
+225,pedaço pequeno,120.0,6803101,Mamão
+225,porção (Guia Alimentar),160.0,6803101,Mamão
+225,fatia média,170.0,6803101,Mamão
+225,unidade pequena,270.0,6803101,Mamão
+225,unidade média,310.0,6803101,Mamão
+226,colher de sopa cheia,40.0,6803101,Mamão
+226,colher de arroz cheia,70.0,6803101,Mamão
+226,pedaço pequeno,120.0,6803101,Mamão
+226,porção (Guia Alimentar),160.0,6803101,Mamão
+226,fatia média,170.0,6803101,Mamão
+226,unidade pequena,270.0,6803101,Mamão
+226,unidade média,310.0,6803101,Mamão
+228,fatia,22.0,6803201,Manga
+228,porção (Guia Alimentar),110.0,6803201,Manga
+229,fatia,22.0,6803201,Manga
+229,porção (Guia Alimentar),110.0,6803201,Manga
+230,fatia,22.0,6803201,Manga
+230,porção (Guia Alimentar),110.0,6803201,Manga
+231,fatia,22.0,6803201,Manga
+231,porção (Guia Alimentar),110.0,6803201,Manga
+232,unidade média,45.0,6803301,Maracujá
+233,unidade média,45.0,6803301,Maracujá
+234,taça,150.0,8500414,Suco de maracujá
+235,pedaço médio,150.0,6803401,Melancia
+235,fatia média,200.0,6803401,Melancia
+235,porção (Guia Alimentar),296.0,6803401,Melancia
+236,fatia média,90.0,6803501,Melão
+236,porção (Guia Alimentar),230.0,6803501,Melão
+236,unidade média,660.0,6803501,Melão
+237,unidade pequena,100.0,6802202,Mexerica
+237,unidade média,135.0,6802202,Mexerica
+238,unidade pequena,100.0,6802202,Mexerica
+238,unidade média,135.0,6802202,Mexerica
+239,unidade pequena,7.0,6805201,Morango
+239,unidade média,12.0,6805201,Morango
+239,porção (Guia Alimentar),120.0,6805201,Morango
+240,unidade média,27.0,6805801,Nêspera
+242,unidade média,130.0,6803601,Pera
+243,unidade média,130.0,6803601,Pera
+244,unidade pequena,32.0,6803701,Pêssego
+244,unidade média,60.0,6803701,Pêssego
+244,porção (Guia Alimentar),226.0,6803701,Pêssego
+245,unidade pequena,32.0,6803701,Pêssego
+245,unidade média,60.0,6803701,Pêssego
+245,porção (Guia Alimentar),226.0,6803701,Pêssego
+246,unidade média,60.0,6803802,Pinha (fruta de conde)
+247,unidade,10.0,6806801,Pitanga
+248,unidade,10.0,6806801,Pitanga
+249,unidade pequena,70.0,6807601,Romã
+250,unidade,8.1,6806201,Tamarindo
+250,porção,25.0,6806201,Tamarindo
+251,unidade pequena,100.0,6802201,Tangerina
+251,unidade média,135.0,6802201,Tangerina
+252,unidade pequena,100.0,6802201,Tangerina
+252,unidade média,135.0,6802201,Tangerina
+253,unidade média,11.7,6601108,Tucumã
+254,unidade grande,33.3,6807101,Umbu
+255,unidade grande,33.3,6807101,Umbu
+256,unidade pequena,4.0,6803901,Uva
+256,unidade média,8.0,6803901,Uva
+256,porção (Guia Alimentar),99.2,6803901,Uva
+256,cacho pequeno,170.0,6803901,Uva
+257,unidade pequena,4.0,6803901,Uva
+257,unidade média,8.0,6803901,Uva
+257,porção (Guia Alimentar),99.2,6803901,Uva
+257,cacho pequeno,170.0,6803901,Uva
+259,colher de café,1.0,8400101,Azeite de oliva
+259,colher de chá,2.0,8400101,Azeite de oliva
+259,colher de sobremesa,5.0,8400101,Azeite de oliva
+259,porção (Guia Alimentar) Óleos e gorduras,7.6,8400101,Azeite de oliva
+259,colher de sopa,8.0,8400101,Azeite de oliva
+260,colher de café,1.0,8400101,Azeite de oliva
+260,colher de chá,2.0,8400101,Azeite de oliva
+260,colher de sobremesa,5.0,8400101,Azeite de oliva
+260,porção (Guia Alimentar) Óleos e gorduras,7.6,8400101,Azeite de oliva
+260,colher de sopa,8.0,8400101,Azeite de oliva
+261,ponta de faca,5.0,7901501,Manteiga com ou sem sal
+261,colher de chá cheia,8.0,7901501,Manteiga com ou sem sal
+261,porção (Guia Alimentar),9.8,7901501,Manteiga com ou sem sal
+261,colher de sobremesa cheia,23.0,7901501,Manteiga com ou sem sal
+261,colher de sopa cheia,32.0,7901501,Manteiga com ou sem sal
+262,ponta de faca,5.0,7901501,Manteiga com ou sem sal
+262,colher de chá cheia,8.0,7901501,Manteiga com ou sem sal
+262,porção (Guia Alimentar),9.8,7901501,Manteiga com ou sem sal
+262,colher de sobremesa cheia,23.0,7901501,Manteiga com ou sem sal
+262,colher de sopa cheia,32.0,7901501,Manteiga com ou sem sal
+263,ponta de faca,5.0,7901602,Margarina com ou sem sal
+263,colher de chá cheia,8.0,7901602,Margarina com ou sem sal
+263,porção (Guia Alimentar),9.8,7901602,Margarina com ou sem sal
+263,colher de sobremesa cheia,23.0,7901602,Margarina com ou sem sal
+263,colher de sopa cheia,32.0,7901602,Margarina com ou sem sal
+263,xícara de chá,155.0,7901602,Margarina com ou sem sal
+264,ponta de faca,5.0,7901602,Margarina com ou sem sal
+264,colher de chá cheia,8.0,7901602,Margarina com ou sem sal
+264,porção (Guia Alimentar),9.8,7901602,Margarina com ou sem sal
+264,colher de sobremesa cheia,23.0,7901602,Margarina com ou sem sal
+264,colher de sopa cheia,32.0,7901602,Margarina com ou sem sal
+264,xícara de chá,155.0,7901602,Margarina com ou sem sal
+265,ponta de faca,5.0,7901602,Margarina com ou sem sal
+265,colher de chá cheia,8.0,7901602,Margarina com ou sem sal
+265,porção (Guia Alimentar),9.8,7901602,Margarina com ou sem sal
+265,colher de sobremesa cheia,23.0,7901602,Margarina com ou sem sal
+265,colher de sopa cheia,32.0,7901602,Margarina com ou sem sal
+265,xícara de chá,155.0,7901602,Margarina com ou sem sal
+266,ponta de faca,5.0,7901602,Margarina com ou sem sal
+266,colher de chá cheia,8.0,7901602,Margarina com ou sem sal
+266,porção (Guia Alimentar),9.8,7901602,Margarina com ou sem sal
+266,colher de sobremesa cheia,23.0,7901602,Margarina com ou sem sal
+266,colher de sopa cheia,32.0,7901602,Margarina com ou sem sal
+266,xícara de chá,155.0,7901602,Margarina com ou sem sal
+267,colher de café,1.0,8400301,Óleo de soja
+267,colher de chá,2.0,8400301,Óleo de soja
+267,colher de sopa,8.0,8400301,Óleo de soja
+268,colher de café,1.0,8400301,Óleo de soja
+268,colher de chá,2.0,8400301,Óleo de soja
+268,colher de sopa,8.0,8400301,Óleo de soja
+269,colher de café,1.0,8400301,Óleo de soja
+269,colher de chá,2.0,8400301,Óleo de soja
+269,colher de sopa,8.0,8400301,Óleo de soja
+270,colher de café,1.0,8400301,Óleo de soja
+270,colher de chá,2.0,8400301,Óleo de soja
+270,colher de sopa,8.0,8400301,Óleo de soja
+271,colher de café,1.0,8400301,Óleo de soja
+271,colher de chá,2.0,8400301,Óleo de soja
+271,colher de sopa,8.0,8400301,Óleo de soja
+272,colher de café,1.0,8400301,Óleo de soja
+272,colher de chá,2.0,8400301,Óleo de soja
+272,colher de sopa,8.0,8400301,Óleo de soja
+277,colher de sobremesa cheia,10.0,7703402,Atum em conserva
+277,colher de sopa cheia,16.0,7703402,Atum em conserva
+277,porção (Guia Alimentar),112.0,7703402,Atum em conserva
+284,colher de sopa cheia,20.0,7260101,Camarão
+284,unidade grande,30.0,7260101,Camarão
+284,colher de arroz cheia,35.0,7260101,Camarão
+284,porção (Guia Alimentar),190.0,7260101,Camarão
+285,colher de sopa cheia,20.0,7260101,Camarão
+285,porção (Guia Alimentar),190.0,7260101,Camarão
+287,unidade,20.0,7262101,Caranguejo
+318,colher de sobremesa cheia,10.0,7703002,Sardinha em conserva
+318,colher de sopa cheia,16.0,7703002,Sardinha em conserva
+318,porção (Guia Alimentar),41.5,7703002,Sardinha em conserva
+318,unidade média,41.5,7703002,Sardinha em conserva
+319,colher de sobremesa cheia,10.0,7703002,Sardinha em conserva
+319,colher de sopa cheia,16.0,7703002,Sardinha em conserva
+319,porção (Guia Alimentar),41.5,7703002,Sardinha em conserva
+319,unidade média,41.5,7703002,Sardinha em conserva
+320,colher de sobremesa cheia,10.0,7703002,Sardinha em conserva
+320,colher de sopa cheia,16.0,7703002,Sardinha em conserva
+320,porção (Guia Alimentar),41.5,7703002,Sardinha em conserva
+320,unidade média,41.5,7703002,Sardinha em conserva
+323,fatia média,15.0,8103601,Apresuntado
+324,colher de sopa cheia,20.0,8503202,Caldo de carne
+324,concha média cheia,130.0,8503202,Caldo de carne
+324,prato raso,325.0,8503202,Caldo de carne
+324,prato fundo,520.0,8503202,Caldo de carne
+326,colher de sopa cheia,30.0,7109101,Carne bovina
+326,pedaço médio,35.0,7109101,Carne bovina
+326,colher de arroz cheia,70.0,7109101,Carne bovina
+326,porção (Guia Alimentar),75.0,7109101,Carne bovina
+326,fatia média,90.0,7109101,Carne bovina
+328,colher de sopa cheia,30.0,7109101,Carne bovina
+328,pedaço médio,35.0,7109101,Carne bovina
+328,colher de arroz cheia,70.0,7109101,Carne bovina
+328,porção (Guia Alimentar),75.0,7109101,Carne bovina
+328,fatia média,90.0,7109101,Carne bovina
+330,colher de sopa cheia,30.0,7109101,Carne bovina
+330,pedaço médio,35.0,7109101,Carne bovina
+330,colher de arroz cheia,70.0,7109101,Carne bovina
+330,porção (Guia Alimentar),75.0,7109101,Carne bovina
+330,fatia média,90.0,7109101,Carne bovina
+330,prato fundo,520.0,7109101,Carne bovina
+331,colher de sopa cheia,30.0,7109101,Carne bovina
+331,pedaço médio,35.0,7109101,Carne bovina
+331,colher de arroz cheia,70.0,7109101,Carne bovina
+331,porção (Guia Alimentar),75.0,7109101,Carne bovina
+331,fatia média,90.0,7109101,Carne bovina
+331,prato fundo,520.0,7109101,Carne bovina
+332,colher de sopa cheia,30.0,7109101,Carne bovina
+332,pedaço médio,35.0,7109101,Carne bovina
+332,colher de arroz cheia,70.0,7109101,Carne bovina
+332,porção (Guia Alimentar),75.0,7109101,Carne bovina
+332,fatia média,90.0,7109101,Carne bovina
+335,pedaço médio,35.0,7109101,Carne bovina
+335,colher de arroz cheia,70.0,7109101,Carne bovina
+335,porção (Guia Alimentar),75.0,7109101,Carne bovina
+335,fatia média,90.0,7109101,Carne bovina
+337,pedaço médio,35.0,7109101,Carne bovina
+337,colher de arroz cheia,70.0,7109101,Carne bovina
+337,porção (Guia Alimentar),75.0,7109101,Carne bovina
+337,fatia média,90.0,7109101,Carne bovina
+338,colher de sopa cheia,30.0,7109101,Carne bovina
+338,pedaço médio,35.0,7109101,Carne bovina
+338,colher de arroz cheia,70.0,7109101,Carne bovina
+338,porção (Guia Alimentar),75.0,7109101,Carne bovina
+338,fatia média,90.0,7109101,Carne bovina
+340,colher de sopa cheia,30.0,7109101,Carne bovina
+340,pedaço médio,35.0,7109101,Carne bovina
+340,colher de arroz cheia,70.0,7109101,Carne bovina
+340,porção (Guia Alimentar),75.0,7109101,Carne bovina
+340,fatia média,90.0,7109101,Carne bovina
+340,prato fundo,520.0,7109101,Carne bovina
+342,pedaço médio,35.0,7109101,Carne bovina
+342,colher de arroz cheia,70.0,7109101,Carne bovina
+342,porção (Guia Alimentar),75.0,7109101,Carne bovina
+342,fatia média,90.0,7109101,Carne bovina
+344,pedaço médio,35.0,7109101,Carne bovina
+344,colher de arroz cheia,70.0,7109101,Carne bovina
+344,porção (Guia Alimentar),75.0,7109101,Carne bovina
+344,fatia média,90.0,7109101,Carne bovina
+346,pedaço médio,35.0,7109101,Carne bovina
+346,colher de arroz cheia,70.0,7109101,Carne bovina
+346,porção (Guia Alimentar),75.0,7109101,Carne bovina
+346,fatia média,90.0,7109101,Carne bovina
+347,colher de sopa cheia,30.0,7109101,Carne bovina
+347,pedaço médio,35.0,7109101,Carne bovina
+347,colher de arroz cheia,70.0,7109101,Carne bovina
+347,porção (Guia Alimentar),75.0,7109101,Carne bovina
+347,fatia média,90.0,7109101,Carne bovina
+349,colher de sopa cheia,30.0,7109101,Carne bovina
+349,pedaço médio,35.0,7109101,Carne bovina
+349,colher de arroz cheia,70.0,7109101,Carne bovina
+349,porção (Guia Alimentar),75.0,7109101,Carne bovina
+349,fatia média,90.0,7109101,Carne bovina
+351,colher de sopa cheia,30.0,7109101,Carne bovina
+351,pedaço médio,35.0,7109101,Carne bovina
+351,colher de arroz cheia,70.0,7109101,Carne bovina
+351,porção (Guia Alimentar),75.0,7109101,Carne bovina
+351,fatia média,90.0,7109101,Carne bovina
+353,colher de sopa cheia,30.0,7109101,Carne bovina
+353,pedaço médio,35.0,7109101,Carne bovina
+353,colher de arroz cheia,70.0,7109101,Carne bovina
+353,porção (Guia Alimentar),75.0,7109101,Carne bovina
+353,fatia média,90.0,7109101,Carne bovina
+356,pedaço médio,35.0,7109101,Carne bovina
+356,colher de arroz cheia,70.0,7109101,Carne bovina
+356,porção (Guia Alimentar),75.0,7109101,Carne bovina
+356,fatia média,90.0,7109101,Carne bovina
+358,pedaço médio,35.0,7109101,Carne bovina
+358,colher de arroz cheia,70.0,7109101,Carne bovina
+358,porção (Guia Alimentar),75.0,7109101,Carne bovina
+358,fatia média,90.0,7109101,Carne bovina
+359,colher de sopa cheia,30.0,7109101,Carne bovina
+359,pedaço médio,35.0,7109101,Carne bovina
+359,colher de arroz cheia,70.0,7109101,Carne bovina
+359,porção (Guia Alimentar),75.0,7109101,Carne bovina
+359,fatia média,90.0,7109101,Carne bovina
+361,colher de sopa cheia,30.0,7109101,Carne bovina
+361,pedaço médio,35.0,7109101,Carne bovina
+361,colher de arroz cheia,70.0,7109101,Carne bovina
+361,porção (Guia Alimentar),75.0,7109101,Carne bovina
+361,fatia média,90.0,7109101,Carne bovina
+363,colher de sopa cheia,30.0,7109101,Carne bovina
+363,pedaço médio,35.0,7109101,Carne bovina
+363,colher de arroz cheia,70.0,7109101,Carne bovina
+363,porção (Guia Alimentar),75.0,7109101,Carne bovina
+363,fatia média,90.0,7109101,Carne bovina
+365,colher de sopa cheia,30.0,7109101,Carne bovina
+365,pedaço médio,35.0,7109101,Carne bovina
+365,colher de arroz cheia,70.0,7109101,Carne bovina
+365,porção (Guia Alimentar),75.0,7109101,Carne bovina
+365,fatia média,90.0,7109101,Carne bovina
+368,pedaço médio,35.0,7109101,Carne bovina
+368,colher de arroz cheia,70.0,7109101,Carne bovina
+368,porção (Guia Alimentar),75.0,7109101,Carne bovina
+368,fatia média,90.0,7109101,Carne bovina
+370,pedaço médio,35.0,7109101,Carne bovina
+370,colher de arroz cheia,70.0,7109101,Carne bovina
+370,porção (Guia Alimentar),75.0,7109101,Carne bovina
+370,fatia média,90.0,7109101,Carne bovina
+371,colher de sopa cheia,30.0,7109101,Carne bovina
+371,pedaço médio,35.0,7109101,Carne bovina
+371,colher de arroz cheia,70.0,7109101,Carne bovina
+371,porção (Guia Alimentar),75.0,7109101,Carne bovina
+371,fatia média,90.0,7109101,Carne bovina
+374,colher de sopa cheia,30.0,7109101,Carne bovina
+374,pedaço médio,35.0,7109101,Carne bovina
+374,colher de arroz cheia,70.0,7109101,Carne bovina
+374,porção (Guia Alimentar),75.0,7109101,Carne bovina
+374,fatia média,90.0,7109101,Carne bovina
+377,pedaço médio,35.0,7109101,Carne bovina
+377,colher de arroz cheia,70.0,7109101,Carne bovina
+377,porção (Guia Alimentar),75.0,7109101,Carne bovina
+377,fatia média,90.0,7109101,Carne bovina
+378,colher de sopa cheia,30.0,7109101,Carne bovina
+378,pedaço médio,35.0,7109101,Carne bovina
+378,colher de arroz cheia,70.0,7109101,Carne bovina
+378,porção (Guia Alimentar),75.0,7109101,Carne bovina
+378,fatia média,90.0,7109101,Carne bovina
+381,pedaço médio,35.0,7109101,Carne bovina
+381,colher de arroz cheia,70.0,7109101,Carne bovina
+381,porção (Guia Alimentar),75.0,7109101,Carne bovina
+381,fatia média,90.0,7109101,Carne bovina
+383,pedaço médio,35.0,7109101,Carne bovina
+383,colher de arroz cheia,70.0,7109101,Carne bovina
+383,porção (Guia Alimentar),75.0,7109101,Carne bovina
+383,fatia média,90.0,7109101,Carne bovina
+384,colher de sopa cheia,30.0,7109101,Carne bovina
+384,pedaço médio,35.0,7109101,Carne bovina
+384,colher de arroz cheia,70.0,7109101,Carne bovina
+384,porção (Guia Alimentar),75.0,7109101,Carne bovina
+384,fatia média,90.0,7109101,Carne bovina
+386,unidade pequena,20.0,8500205,Coxinha
+386,unidade média,50.0,8500205,Coxinha
+388,unidade pequena,10.0,8500203,Croquete
+388,unidade grande,55.0,8500203,Croquete
+389,unidade pequena,12.0,8500206,"Empada (queijo, carne, camarão, etc.)"
+389,unidade,55.0,8500206,"Empada (queijo, carne, camarão, etc.)"
+389,fatia média,110.0,8500206,"Empada (queijo, carne, camarão, etc.)"
+390,unidade pequena,12.0,8500206,"Empada (queijo, carne, camarão, etc.)"
+390,unidade,55.0,8500206,"Empada (queijo, carne, camarão, etc.)"
+390,fatia média,110.0,8500206,"Empada (queijo, carne, camarão, etc.)"
+392,pescoço médio,10.0,7800103,Frango inteiro
+392,asa média,40.0,7800103,Frango inteiro
+392,coxa grande,55.0,7800103,Frango inteiro
+392,costela média,60.0,7800103,Frango inteiro
+392,sobrecoxa média,65.0,7800103,Frango inteiro
+392,porção (Guia Alimentar),100.0,7800103,Frango inteiro
+392,peito médio,180.0,7800103,Frango inteiro
+393,pescoço médio,10.0,7800103,Frango inteiro
+393,asa média,40.0,7800103,Frango inteiro
+393,coxa grande,55.0,7800103,Frango inteiro
+393,costela média,60.0,7800103,Frango inteiro
+393,sobrecoxa média,65.0,7800103,Frango inteiro
+393,porção (Guia Alimentar),100.0,7800103,Frango inteiro
+393,peito médio,180.0,7800103,Frango inteiro
+395,unidade média,5.0,7801202,Coração de frango
+395,miúdos cozidos - porção,100.0,7801202,Coração de frango
+401,colher de sopa cheia desfiado,20.0,7800402,Filé de frango
+401,filé médio,100.0,7800402,Filé de frango
+401,porção (Guia Alimentar),100.0,7800402,Filé de frango
+401,peito médio,180.0,7800402,Filé de frango
+403,asa média,40.0,7800103,Frango inteiro
+403,coxa grande,55.0,7800103,Frango inteiro
+403,sobrecoxa média,65.0,7800103,Frango inteiro
+403,porção (Guia Alimentar),100.0,7800103,Frango inteiro
+403,peito médio,180.0,7800103,Frango inteiro
+404,pescoço médio,10.0,7800103,Frango inteiro
+404,asa média,40.0,7800103,Frango inteiro
+404,coxa grande,55.0,7800103,Frango inteiro
+404,costela média,60.0,7800103,Frango inteiro
+404,sobrecoxa média,65.0,7800103,Frango inteiro
+404,porção (Guia Alimentar),100.0,7800103,Frango inteiro
+404,peito médio,180.0,7800103,Frango inteiro
+406,filé médio,100.0,7800401,Peito de galinha ou frango
+406,porção (Guia Alimentar),100.0,7800401,Peito de galinha ou frango
+406,peito médio,180.0,7800401,Peito de galinha ou frango
+408,colher de sopa cheia desfiado,20.0,7800401,Peito de galinha ou frango
+408,filé médio,100.0,7800401,Peito de galinha ou frango
+408,porção (Guia Alimentar),100.0,7800401,Peito de galinha ou frango
+408,peito médio,180.0,7800401,Peito de galinha ou frango
+410,filé médio,100.0,7800401,Peito de galinha ou frango
+410,porção (Guia Alimentar),100.0,7800401,Peito de galinha ou frango
+410,peito médio,180.0,7800401,Peito de galinha ou frango
+416,unidade média,125.0,8500303,Hambúrguer (sanduíche)
+417,unidade média,125.0,8500303,Hambúrguer (sanduíche)
+419,gomo/fatia média,10.0,8102207,Linguiça de frango
+419,porção (Guia Alimentar),50.0,8102207,Linguiça de frango
+419,gomo,60.0,8102207,Linguiça de frango
+420,gomo,60.0,8102207,Linguiça de frango
+422,gomo/fatia média,10.0,8102204,"Linguiça (suína, bovina, mista, etc.)"
+422,colher de sopa cheia picada,22.0,8102204,"Linguiça (suína, bovina, mista, etc.)"
+422,colher de arroz cheia picada,36.0,8102204,"Linguiça (suína, bovina, mista, etc.)"
+422,porção (Guia Alimentar),50.0,8102204,"Linguiça (suína, bovina, mista, etc.)"
+422,gomo,60.0,8102204,"Linguiça (suína, bovina, mista, etc.)"
+423,porção (Guia Alimentar),50.0,8102204,"Linguiça (suína, bovina, mista, etc.)"
+423,gomo,60.0,8102204,"Linguiça (suína, bovina, mista, etc.)"
+424,fatia média,15.0,8102601,Mortadela
+424,porção (Guia Alimentar),62.0,8102601,Mortadela
+425,fatia média,32.0,7801801,Peito de peru
+425,filé médio,100.0,7801801,Peito de peru
+426,fatia média,32.0,7801801,Peito de peru
+428,porção (Guia Alimentar),7.5,8103901,Pururuca de porco
+429,porção (Guia Alimentar),7.5,8103901,Pururuca de porco
+430,porção (Guia Alimentar),7.5,8103901,Pururuca de porco
+432,porção (Guia Alimentar),7.5,8103901,Pururuca de porco
+435,porção (Guia Alimentar),7.5,8103901,Pururuca de porco
+438,fatia média,15.0,8102901,Presunto
+439,fatia média,15.0,8102901,Presunto
+440,unidade pequena,12.0,8500211,Quibe
+440,unidade média,50.0,8500211,Quibe
+442,unidade pequena,12.0,8500211,Quibe
+442,unidade média,50.0,8500211,Quibe
+443,fatia média,20.0,8102701,Salame
+443,porção (Guia Alimentar),62.0,8102701,Salame
+445,porção (Guia Alimentar),7.5,7103801,Toucinho
+447,colher de chá cheia,5.0,7901001,Creme de leite
+447,colher de sopa rasa,15.0,7901001,Creme de leite
+447,colher de sobremesa cheia,20.0,7901001,Creme de leite
+448,colher de sopa rasa,15.0,7901204,Iogurte natural
+450,colher de sopa rasa,15.0,7901201,Iogurte de qualquer sabor
+450,porção (Guia Alimentar),165.0,7901201,Iogurte de qualquer sabor
+451,colher de sopa rasa,15.0,7901201,Iogurte de qualquer sabor
+451,porção (Guia Alimentar),165.0,7901201,Iogurte de qualquer sabor
+452,colher de sopa rasa,15.0,7901201,Iogurte de qualquer sabor
+452,porção (Guia Alimentar),165.0,7901201,Iogurte de qualquer sabor
+453,colher de chá,2.0,7900901,Leite condensado
+453,colher de sobremesa,10.0,7900901,Leite condensado
+453,colher de sopa,15.0,7900901,Leite condensado
+454,colher de sopa,20.0,7003801,Leite de coco
+455,porção (Guia Alimentar),182.0,7900201,Leite de vaca fresco
+456,colher de sopa cheia,10.0,7900710,Leite em pó desnatado
+457,porção (Guia Alimentar),270.0,7903601,Leite de vaca desnatado
+458,porção (Guia Alimentar),182.0,7900101,Leite de vaca integral
+459,colher de sobremesa cheia,9.0,7900601,Leite em pó integral
+459,colher de sopa cheia,16.0,7900601,Leite em pó integral
+460,unidade,80.0,7901304,Leite fermentado
+461,fatia média,30.0,7907301,Queijo de minas frescal orgânico
+462,fatia média,45.0,7902001,Queijo de minas
+462,porção (Guia Alimentar),50.0,7902001,Queijo de minas
+463,fatia média,15.0,7901701,Queijo prato
+463,porção (Guia Alimentar),30.0,7901701,Queijo prato
+464,fatia média,15.0,7901701,Queijo prato
+464,porção (Guia Alimentar),30.0,7901701,Queijo prato
+465,fatia média,15.0,7901701,Queijo prato
+465,porção (Guia Alimentar),30.0,7901701,Queijo prato
+467,fatia média,15.0,7901701,Queijo prato
+467,porção (Guia Alimentar),30.0,7901701,Queijo prato
+468,ponta de faca,6.0,7902902,Queijo cremoso
+468,colher de sopa cheia,30.0,7902902,Queijo cremoso
+468,porção (Guia Alimentar),45.0,7902902,Queijo cremoso
+469,ponta de faca,6.0,7902201,Queijo ricota
+469,fatia média,35.0,7902201,Queijo ricota
+469,colher de sopa cheia,44.0,7902201,Queijo ricota
+469,porção (Guia Alimentar),100.0,7902201,Queijo ricota
+471,taça,150.0,8501302,Café
+472,pedaço de 3cm,19.0,6802501,Cana-de-açúcar
+473,pedaço de 3cm,19.0,6802501,Cana-de-açúcar
+474,taça,150.0,8300101,Cerveja (com ou sem álcool)
+476,taça,150.0,8206301,"Chá (preto, camomila, erva cidreira, capim limão, etc.)"
+477,taça,150.0,8206301,"Chá (preto, camomila, erva cidreira, capim limão, etc.)"
+478,unidade,340.0,8202101,Água de coco
+480,taça,150.0,8200101,Refrigerante de cola tradicional
+484,fatia média,10.0,8506501,Omelete
+484,colher de sopa cheia,15.0,8506501,Omelete
+484,colher de arroz cheia,45.0,8506501,Omelete
+484,unidade pequena com 1 ovo,65.0,8506501,Omelete
+484,porção (Guia Alimentar),110.0,8506501,Omelete
+486,colher de sopa cheia,15.0,7803301,Ovo de galinha
+486,colher de arroz cheia,45.0,7803301,Ovo de galinha
+486,unidade média,45.0,7803301,Ovo de galinha
+486,porção (Guia Alimentar),90.0,7803301,Ovo de galinha
+487,colher de sopa cheia,15.0,7803301,Ovo de galinha
+487,colher de arroz cheia,45.0,7803301,Ovo de galinha
+487,unidade média,45.0,7803301,Ovo de galinha
+487,porção (Guia Alimentar),90.0,7803301,Ovo de galinha
+488,colher de sopa cheia,15.0,7803301,Ovo de galinha
+488,colher de arroz cheia,45.0,7803301,Ovo de galinha
+488,unidade média,45.0,7803301,Ovo de galinha
+488,porção (Guia Alimentar),90.0,7803301,Ovo de galinha
+490,fatia média,10.0,7803301,Ovo de galinha
+490,colher de sopa cheia,15.0,7803301,Ovo de galinha
+490,colher de arroz cheia,45.0,7803301,Ovo de galinha
+490,escumadeira média rasa,45.0,7803301,Ovo de galinha
+490,porção (Guia Alimentar),50.0,7803301,Ovo de galinha
+490,unidade média,50.0,7803301,Ovo de galinha
+491,colher de café cheia,2.0,6900821,Achocolatado em pó
+491,colher de chá cheia,4.0,6900821,Achocolatado em pó
+491,colher de sobremesa cheia,11.0,6900821,Achocolatado em pó
+491,colher de sopa cheia,16.0,6900821,Achocolatado em pó
+491,porção rótulo,20.0,6900821,Achocolatado em pó
+492,colher de café cheia,2.0,6906602,Açúcar
+492,colher de chá cheia,5.0,6906602,Açúcar
+492,colher de sobremesa cheia,16.0,6906602,Açúcar
+492,colher de sopa cheia,24.0,6906602,Açúcar
+492,porção (Guia Alimentar),28.0,6906602,Açúcar
+492,copo pequeno nivelado,160.0,6906602,Açúcar
+492,copo duplo nivelado,219.0,6906602,Açúcar
+493,colher de sopa cheia,19.0,6900304,Açúcar mascavo
+494,colher de café cheia,2.0,6906602,Açúcar
+494,colher de chá cheia,5.0,6906602,Açúcar
+494,colher de sobremesa cheia,16.0,6906602,Açúcar
+494,colher de sopa cheia,24.0,6906602,Açúcar
+494,porção (Guia Alimentar),28.0,6906602,Açúcar
+494,copo pequeno nivelado,160.0,6906602,Açúcar
+494,copo duplo nivelado,219.0,6906602,Açúcar
+495,tablete,6.3,8507601,Chocolate
+495,porção,25.0,8507601,Chocolate
+495,unidade,170.0,8507601,Chocolate
+496,tablete,6.3,8507601,Chocolate
+496,porção,25.0,8507601,Chocolate
+496,unidade,170.0,8507601,Chocolate
+497,tablete,6.3,8507601,Chocolate
+497,porção,25.0,8507601,Chocolate
+497,unidade,170.0,8507601,Chocolate
+498,tablete,6.3,8507601,Chocolate
+498,porção,25.0,8507601,Chocolate
+498,unidade,170.0,8507601,Chocolate
+499,colher de sobremesa cheia,30.0,6903101,Cocada
+499,colher de sopa cheia,50.0,6903101,Cocada
+499,unidade média,70.0,6903101,Cocada
+501,colher de café cheia,8.0,6904201,Doce a base de leite
+501,colher de chá cheia,12.0,6904201,Doce a base de leite
+501,colher de sobremesa cheia,25.0,6904201,Doce a base de leite
+501,colher de sopa cheia,40.0,6904201,Doce a base de leite
+501,porção (Guia Alimentar),50.0,6904201,Doce a base de leite
+501,fatia média,130.0,6904201,Doce a base de leite
+501,copo pequeno,220.0,6904201,Doce a base de leite
+501,copo duplo,270.0,6904201,Doce a base de leite
+502,porção rótulo,20.0,6901101,Geleia de mocotó
+504,unidade,5.0,8002335,Maria maluca (bolacha doce)
+504,punhado,17.0,8002335,Maria maluca (bolacha doce)
+506,porção (Guia Alimentar),45.0,6901206,Marmelada
+506,fatia média,60.0,6901206,Marmelada
+507,colher de café,2.0,6901602,Mel
+507,colher de chá,3.0,6901602,Mel
+507,colher de sobremesa,9.0,6901602,Mel
+507,colher de sopa,15.0,6901602,Mel
+507,porção (Guia Alimentar),37.5,6901602,Mel
+508,colher de café,2.0,6901501,Melado
+508,colher de chá,3.0,6901501,Melado
+508,colher de sobremesa,9.0,6901501,Melado
+508,colher de sopa,15.0,6901501,Melado
+509,unidade média,35.0,6904105,Quindim
+510,porção (Guia Alimentar),27.0,6900401,Rapadura
+510,pedaço médio,55.0,6900401,Rapadura
+516,ponta de faca,5.0,7901501,Manteiga com ou sem sal
+516,colher de chá cheia,8.0,7901501,Manteiga com ou sem sal
+516,porção (Guia Alimentar),9.8,7901501,Manteiga com ou sem sal
+516,colher de sobremesa cheia,23.0,7901501,Manteiga com ou sem sal
+516,colher de sopa cheia,32.0,7901501,Manteiga com ou sem sal
+517,ponta de faca,5.0,7901501,Manteiga com ou sem sal
+517,colher de chá cheia,8.0,7901501,Manteiga com ou sem sal
+517,porção (Guia Alimentar),9.8,7901501,Manteiga com ou sem sal
+517,colher de sobremesa cheia,23.0,7901501,Manteiga com ou sem sal
+517,colher de sopa cheia,32.0,7901501,Manteiga com ou sem sal
+520,unidade média verde,4.0,7700101,Azeitona
+520,colher de sobremesa,14.0,7700101,Azeitona
+520,porção rótulo,20.0,7700101,Azeitona
+520,colher de sopa,25.0,7700101,Azeitona
+520,punhado,45.0,7700101,Azeitona
+520,copo pequeno,132.0,7700101,Azeitona
+523,colher de sopa,20.0,7003801,Leite de coco
+524,ponta de faca,4.0,7004301,Maionese (molho)
+524,colher de chá cheia,6.0,7004301,Maionese (molho)
+524,sachê,8.0,7004301,Maionese (molho)
+524,colher de sobremesa cheia,17.0,7004301,Maionese (molho)
+524,colher de sopa cheia,27.0,7004301,Maionese (molho)
+524,colher de arroz cheia,50.0,7004301,Maionese (molho)
+525,unidade média,100.0,8500209,Acarajé
+526,colher de arroz cheia,60.0,8579002,Arroz carreteiro
+526,prato fundo raso,100.0,8579002,Arroz carreteiro
+526,porção,180.0,8579002,Arroz carreteiro
+526,prato fundo cheio,200.0,8579002,Arroz carreteiro
+527,colher de sopa,21.0,8503501,Baião de dois
+527,colher de arroz,55.0,8503501,Baião de dois
+527,concha,95.0,8503501,Baião de dois
+527,escumadeira médias,111.0,8503501,Baião de dois
+530,unidade média,45.0,8500228,Bolinho de aipim
+531,colher de sopa cheia,20.0,7260101,Camarão
+531,colher de arroz cheia,35.0,7260101,Camarão
+531,porção (Guia Alimentar),190.0,7260101,Camarão
+532,unidade,30.0,8505201,Charuto de repolho pronto
+533,colher de sopa,12.0,6902901,Cuscuz
+533,porção (Guia Alimentar),42.0,6902901,Cuscuz
+533,pedaço médio,135.0,6902901,Cuscuz
+534,colher de sopa cheia,35.0,8505801,Cuscuz paulista
+534,colher de arroz cheia,60.0,8505801,Cuscuz paulista
+534,prato raso,300.0,8505801,Cuscuz paulista
+534,prato fundo,500.0,8505801,Cuscuz paulista
+535,colher de sopa cheia picada,20.0,6701906,Cuxá
+535,colher de servir,42.0,6701906,Cuxá
+535,porção (Guia Alimentar),42.0,6701906,Cuxá
+536,colher de arroz cheia,70.0,7102402,Dobradinha fresca
+536,concha,150.0,7102402,Dobradinha fresca
+536,porção,200.0,7102402,Dobradinha fresca
+539,colher de sopa cheia,17.0,8506101,Feijão tropeiro
+539,colher de arroz cheia,35.0,8506101,Feijão tropeiro
+539,concha média cheia,140.0,8506101,Feijão tropeiro
+540,colher de sopa cheia,35.0,7701901,Feijoada
+540,colher de arroz cheia,70.0,7701901,Feijoada
+540,porção rótulo,120.0,7701901,Feijoada
+540,concha média cheia,225.0,7701901,Feijoada
+541,coxa grande,55.0,7800103,Frango inteiro
+542,colher de sopa,20.0,6503401,Macarrão
+542,colher de sopa cheia,25.0,6503401,Macarrão
+542,garfada,30.0,6503401,Macarrão
+542,colher de arroz cheia,50.0,6503401,Macarrão
+542,porção (Guia Alimentar),105.0,6503401,Macarrão
+542,escumadeira média cheia,110.0,6503401,Macarrão
+542,pegador,110.0,6503401,Macarrão
+542,concha média cheia,160.0,6503401,Macarrão
+542,prato raso raso,200.0,6503401,Macarrão
+542,cumbuca,300.0,6503401,Macarrão
+542,prato raso cheio,320.0,6503401,Macarrão
+542,prato raso,325.0,6503401,Macarrão
+542,prato fundo cheio,400.0,6503401,Macarrão
+542,prato fundo,520.0,6503401,Macarrão
+543,colher de arroz cheia,70.0,8507201,Maniçoba
+543,concha média cheia,225.0,8507201,Maniçoba
+544,colher de sobremesa cheia,24.0,8506701,Quibebe
+544,colher de sopa cheia,35.0,8506701,Quibebe
+544,escumadeira média cheia,100.0,8506701,Quibebe
+545,colher de sopa cheia,38.0,8500802,Salada de maionese
+545,colher de arroz cheia,70.0,8500802,Salada de maionese
+545,escumadeira média cheia,90.0,8500802,Salada de maionese
+547,colher de sopa cheia,25.0,8504801,Salpicão
+547,colher de arroz cheia,40.0,8504801,Salpicão
+547,escumadeira média cheia,50.0,8504801,Salpicão
+548,colher de sopa,14.0,7103907,Sarapatel suíno fresco
+548,colher de arroz,117.0,7103907,Sarapatel suíno fresco
+548,concha,142.0,7103907,Sarapatel suíno fresco
+548,porção,150.0,7103907,Sarapatel suíno fresco
+550,cumbuca,300.0,8502401,Tacacá
+551,colher de sopa cheia,16.0,6501510,Farinha de tapioca
+551,punhado,23.0,6501510,Farinha de tapioca
+551,colher de arroz,33.0,6501510,Farinha de tapioca
+551,porção (Guia Alimentar),40.0,6501510,Farinha de tapioca
+551,concha,110.0,6501510,Farinha de tapioca
+551,copo pequeno,127.0,6501510,Farinha de tapioca
+551,tigela,148.0,6501510,Farinha de tapioca
+551,xícara de chá,148.0,6501510,Farinha de tapioca
+551,copo médio,172.0,6501510,Farinha de tapioca
+552,concha média cheia,130.0,7007101,Tucupi em caldo sem pimenta
+553,concha média cheia,130.0,8508301,Vaca atolada
+553,prato fundo,520.0,8508301,Vaca atolada
+554,colher de sopa,25.0,8502801,Vatapá
+554,colher de arroz,77.0,8502801,Vatapá
+554,concha,150.0,8502801,Vatapá
+556,colher de arroz cheia,50.0,7701406,Yakisoba
+556,prato raso,90.0,7701406,Yakisoba
+556,porção (Guia Alimentar),105.0,7701406,Yakisoba
+556,escumadeira média cheia,110.0,7701406,Yakisoba
+556,prato cheio,265.0,7701406,Yakisoba
+561,colher de sopa cheia,17.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+561,colher de arroz cheia,35.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+561,porção (Guia Alimentar),50.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+561,concha média cheia,140.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+563,colher de sopa cheia,17.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+563,colher de arroz cheia,35.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+563,porção (Guia Alimentar),50.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+563,concha média cheia,140.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+565,colher de sopa cheia,17.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+565,colher de arroz cheia,35.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+565,porção (Guia Alimentar),50.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+565,concha média cheia,140.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+567,colher de sopa cheia,17.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+567,colher de arroz cheia,35.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+567,porção (Guia Alimentar),50.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+567,concha média cheia,140.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+569,colher de sopa cheia,17.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+569,colher de arroz cheia,35.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+569,porção (Guia Alimentar),50.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+569,concha média cheia,140.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+571,colher de sopa cheia,17.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+571,colher de arroz cheia,35.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+571,porção (Guia Alimentar),50.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+571,concha média cheia,140.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+573,colher de sopa cheia,17.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+573,colher de arroz cheia,35.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+573,porção (Guia Alimentar),50.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+573,concha média cheia,140.0,6303102,"Feijão (preto, mulatinho, roxo, rosinha, etc.)"
+577,colher de sopa,18.0,6302901,Lentilha
+577,colher de arroz,32.0,6302901,Lentilha
+577,porção (Guia Alimentar),48.0,6302901,Lentilha
+577,concha média cheia,160.0,6302901,Lentilha
+579,unidade,30.0,6903203,Paçoca
+579,porção,32.0,6903203,Paçoca
+579,colher de sopa cheia,50.0,6903203,Paçoca
+580,unidade,17.0,6903202,Pé de moleque
+580,porção,40.0,6903202,Pé de moleque
+581,colher de sopa cheia,24.0,6303001,Soja em grão
+581,colher de servir,28.7,6303001,Soja em grão
+581,porção (Guia Alimentar),43.0,6303001,Soja em grão
+587,unidade,1.0,6600501,Amêndoa
+588,unidade média,2.5,6600801,Castanha de caju
+588,porção (Guia Alimentar),10.0,6600801,Castanha de caju
+588,punhado,40.0,6600801,Castanha de caju
+594,colher de sobremesa,3.0,6302001,Semente de linhaça
+594,colher de sopa,13.0,6302001,Semente de linhaça
+595,unidade,4.0,6600401,Pinhão
+596,unidade média,22.5,6601805,Pupunha
+596,porção,45.0,6601805,Pupunha
