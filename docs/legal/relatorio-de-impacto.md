@@ -1,7 +1,7 @@
 # Relatório de impacto à proteção de dados pessoais (RIPD)
 
 > **Base:** LGPD, art. 38. A ANPD pode exigir este relatório, "inclusive de dados sensíveis". Pelo parágrafo único, ele contém no mínimo: os tipos de dados coletados, a metodologia de coleta e de garantia da segurança, e a análise das medidas, salvaguardas e mecanismos de mitigação de risco.
-> **Última revisão:** 03/11/2026 · **Documento interno.** Revise a cada épico que trate um dado de saúde novo (o E5, o E6.1, o E6.2, o E6.3 e o E6.6 do `docs/v2/plano-v2.md`).
+> **Última revisão:** 07/11/2026 · **Documento interno.** Revise a cada épico que trate um dado de saúde novo (o E5, o E6.1, o E6.2, o E6.3 e o E6.6 do `docs/v2/plano-v2.md`).
 > **Aviso:** isto não é um parecer jurídico. O NogVita é um projeto de estudo, sem fins comerciais.
 
 ## 1. O tratamento
@@ -18,7 +18,7 @@ O NogVita conecta pacientes e nutricionistas. O nutricionista monta o plano alim
 ## 2. Os tipos de dados
 
 - **Cadastrais:** nome, e-mail, CPF e *hash* da senha.
-- **Sensíveis (saúde):** data de nascimento, sexo biológico, altura, objetivo, rotina, peso, planos alimentares e fotos de evolução corporal.
+- **Sensíveis (saúde):** data de nascimento, sexo biológico, altura, objetivo, rotina, peso, planos alimentares, respostas da anamnese, diário alimentar, check-ins semanais e fotos de evolução corporal.
 - **Profissionais:** CRN, apresentação e foto do nutricionista (públicos para os usuários conectados).
 - **Técnicos:** *hash* dos tokens, datas, registros de consentimento e de emissão dos PDFs. O IP não é guardado.
 
@@ -59,6 +59,7 @@ Probabilidade e impacto: **B** (baixo), **M** (médio), **A** (alto).
 | R8 | Os pacientes antigos sem o aceite novo | A | M | `GET /patients/me/health-data-consent` diz quem precisa aceitar | **M** até o front pedir o aceite a eles |
 | R9 | Apagar o prontuário quando a conta é excluída (E6.3 e E6.5) | — | A | Ainda não existe: o desenho exige a guarda por 20 anos (Res. CFN 594/2017 e Lei 13.787/2018) | Tratar no desenho do E6.3 |
 | R10 | Indisponibilidade (o plano gratuito dorme e pausa) | A | B | Os dados ficam guardados; o serviço volta sozinho | B (aceito, por ser um projeto de estudo) |
+| R11 | O diário expor hábitos alimentares (ex.: um transtorno alimentar) a quem não deveria | B | A | O mesmo acesso do plano: só o paciente e o nutricionista com vínculo ativo; os macros seguem a escolha do nutricionista (D-V2-25); sem compartilhamento | B |
 
 ## 6. Pendências
 

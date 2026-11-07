@@ -22,6 +22,7 @@ Este guia é para quem vai **consumir** a API (frontend, apps, testes manuais). 
   - [Alimentos](#alimentos)
   - [Plano alimentar](#plano-alimentar)
   - [Anamnese](#anamnese)
+  - [Diário alimentar](#diário-alimentar)
   - [Convite de nutricionista](#convite-de-nutricionista)
   - [Administração](#administração)
 - [Fluxos](#fluxos)
@@ -196,7 +197,7 @@ Cria a conta e o perfil de paciente em uma etapa. A conta nasce **inativa**, e a
   "biologicalSex": "Female",
   "heightInCm": 165,
   "goal": "WeightLoss",
-  "healthDataConsentVersion": "1",
+  "healthDataConsentVersion": "2",
   "acceptHealthData": true,
   "acceptInternationalTransfer": true
 }
@@ -771,7 +772,7 @@ A base combina duas fontes, indicadas no campo `source`:
 
 **Atribuição obrigatória:** toda resposta de alimento traz o campo `attribution` (por exemplo, `"TACO 4ª edição, NEPA/UNICAMP"` ou `"Open Food Facts, licença ODbL"`). Mostre esse texto nas telas que exibem os dados: as duas fontes exigem a citação.
 
-Todas as rotas desta seção são para `Nutritionist` e `Admin` 🥗 🛡️, exceto as de `/admin`, que são só `Admin`.
+A busca e o detalhe (`GET /foods` e `GET /foods/{id}`) são para `Nutritionist`, `Admin` e `Patient` 🥗 🛡️ 🧑 (o paciente busca para o [diário](#diário-alimentar)). A prévia e a importação por código de barras são só para `Nutritionist` e `Admin`, e as rotas de `/admin`, só para `Admin`.
 
 #### Formato do alimento (`FoodResponse`)
 
@@ -794,9 +795,16 @@ Usado na busca, no detalhe e na importação. Exemplo com os valores reais do ar
   "fiberPer100g": 1.561,
   "sodiumMgPer100g": 1.2007,
   "attribution": "TACO 4ª edição, NEPA/UNICAMP",
-  "isComplete": true
+  "isComplete": true,
+  "portions": [
+    { "id": "…", "name": "colher de sopa cheia", "grams": 25 },
+    { "id": "…", "name": "colher de arroz cheia", "grams": 45 },
+    { "id": "…", "name": "escumadeira média cheia", "grams": 85 }
+  ]
 }
 ```
+
+**Porções (`portions`):** as medidas caseiras do alimento, da menor para a maior. Elas vêm só de fontes automáticas: a *Tabela de Medidas Referidas* do IBGE (POF 2008-2009) para a TACO, e a porção da embalagem para o Open Food Facts ("porção da embalagem (30g)"). Ninguém cria uma porção à mão. Lista vazia: o alimento só aceita gramas, que valem para todos.
 
 - `brand` e `barcode` só existem em produtos do Open Food Facts. `category` só existe nos da TACO.
 - `isComplete` é `false` quando falta energia, proteína, carboidrato, gordura ou fibra. Vale sinalizar esses alimentos na hora de montar um plano.
@@ -1147,7 +1155,9 @@ Define a ordem nova. A lista precisa ter **todas** as refeições do plano, cada
 
 #### Alimentos da refeição 🥗
 
-Os alimentos entram na refeição com a quantidade em gramas, só enquanto o plano estiver em `Draft` ou `Active`. Uma refeição tem **no máximo 20 alimentos**, e o mesmo alimento entra **uma vez** por refeição (para mudar, altere a quantidade). Para buscar o alimento, use a [busca de alimentos](#get-apiv1foodssearcharrozsourcetaco).
+Os alimentos entram na refeição com a quantidade **em gramas** ou **em porções** ("2 × colher de sopa cheia"), só enquanto o plano estiver em `Draft` ou `Active`. Uma refeição tem **no máximo 20 alimentos** (contando as alternativas), e o mesmo alimento entra **uma vez** por refeição (para mudar, altere a quantidade).
+
+**Substituições ("ou"):** um item pode ter **até 3 alternativas** ("100 g de frango **ou** 100 g de patinho"). A alternativa aponta para o item principal com `substituteForId`, vem dentro dele em `substitutes` e **não entra nos totais**. Uma alternativa não tem alternativas, e remover o item principal remove as alternativas dele. Para buscar o alimento, use a [busca de alimentos](#get-apiv1foodssearcharrozsourcetaco).
 
 **Cópia dos valores:** ao entrar na refeição, o alimento é **copiado** (nome, marca, fonte e valores por 100 g, com a data da cópia em `snapshotTakenAtUtc`). Uma correção posterior na base de alimentos, ou a desativação do alimento, não muda o que já está no plano.
 
@@ -1179,11 +1189,27 @@ Vem em `meals[].foods` no detalhe do plano.
     "fat": 0.3,
     "fiber": 2.3,
     "sodiumMg": 1.8
-  }
+  },
+  "measure": { "name": "colher de sopa cheia", "grams": 25, "quantity": 6 },
+  "substitutes": [
+    {
+      "id": "…",
+      "name": "Macarrão, trigo, cozido",
+      "quantityInGrams": 150,
+      "portion": { "energyKcal": 151.5, "…": "…" },
+      "measure": null,
+      "substitutes": [],
+      "difference": { "energyKcal": -40.9, "protein": 1.2, "carbohydrate": -10.1, "fat": 0.6, "fiber": -1.5, "sodiumMg": 0 },
+      "…": "os demais campos de um item"
+    }
+  ],
+  "difference": null
 }
 ```
 
 - `id` é o Id do **item da refeição**, usado no `PUT` e no `DELETE`. `foodId` é o Id do alimento na base.
+- `measure` é a porção escolhida (o retrato: mudar a tabela de porções não muda o plano), ou `null` quando a quantidade foi dada em gramas. Mostre "6 × colher de sopa cheia (150 g)".
+- `substitutes` são as alternativas do item, e `difference` é quanto a alternativa tem a mais (ou a menos) que o principal. Nos itens principais, `difference` vem `null`. Para o paciente sem macros, a diferença também vem sem eles.
 - `portion` é o valor da quantidade servida (os valores por 100 g × `quantityInGrams` ÷ 100), arredondado em 1 casa. Um nutriente sem informação vem `null` também em `portion`.
 - Mostre o `attribution`, como nas outras telas de alimentos.
 
@@ -1193,10 +1219,18 @@ Vem em `meals[].foods` no detalhe do plano.
 { "foodId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "quantityInGrams": 150 }
 ```
 
+Ou, numa porção, e como alternativa de outro item:
+
+```json
+{ "foodId": "…", "portionId": "<id de uma das portions do alimento>", "portionQuantity": 2, "substituteForId": "<id do item principal>" }
+```
+
 | Campo | Regras |
 |---|---|
 | `foodId` | Obrigatório. Um alimento ativo da base |
 | `quantityInGrams` | Maior que 0 e no máximo **2000**. Aceita decimais (por exemplo, `12.5`) |
+| `portionId` + `portionQuantity` | No lugar de `quantityInGrams` (os dois juntos não). A porção precisa ser do alimento; `portionQuantity` vai de 0,01 a 50, e o total em gramas continua limitado a 2000 |
+| `substituteForId` | Opcional: o Id de um item principal **desta** refeição |
 
 - `201` → `{ "id": "<id do item da refeição>" }`
 - `400` → erros de validação, com as mensagens "A quantidade precisa ser maior que zero." e "A quantidade pode ser no máximo 2000 g." no campo `QuantityInGrams`
@@ -1205,14 +1239,18 @@ Vem em `meals[].foods` no detalhe do plano.
 - `409` → "Este alimento já está na refeição. Altere a quantidade dele."
 - `409` → "Uma refeição pode ter no máximo 20 alimentos."
 - `409` → "Um plano finalizado ou cancelado não pode ser alterado."
+- `404` → "Porção não encontrada para este alimento."
+- `422` → "Um alimento pode ter no máximo 3 alternativas." ou "Uma alternativa não pode ter alternativas. Escolha o alimento principal."
 
 ##### `PUT /api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}`
 
-Altera só a quantidade. A cópia dos valores não muda.
+Altera só a quantidade, em gramas ou em porções. A cópia dos valores não muda.
 
 ```json
 { "quantityInGrams": 200 }
 ```
+
+ou `{ "portionId": "…", "portionQuantity": 3 }`.
 
 - `204` → atualizada
 - `400` → as mesmas regras de `quantityInGrams` do `POST`
@@ -1221,7 +1259,7 @@ Altera só a quantidade. A cópia dos valores não muda.
 
 ##### `DELETE /api/v1/nutritionists/me/nutrition-plans/{planId}/meals/{mealId}/foods/{mealFoodId}`
 
-- `204` → removido
+- `204` → removido (com as alternativas, se era um item principal)
 - `404` ou `409` (plano finalizado ou cancelado)
 
 > Depois de qualquer alteração, recarregue o detalhe do plano: os totais da refeição, os do dia e a comparação com a meta são calculados pela API.
@@ -1473,6 +1511,166 @@ Uma cópia da anamnese respondida em PDF, igual à do nutricionista. Mesmas resp
 - `404` → "Anamnese não encontrada."
 - `409` → "Esta anamnese já foi respondida." ou "Este questionário não está mais disponível." (o acompanhamento com quem enviou acabou)
 - `422` → uma regra das respostas, com a mensagem pronta para mostrar ("Responda a pergunta obrigatória "…".", "Escolha uma opção só na pergunta "…".", "Escolha entre as opções da pergunta "…"."), ou o termo dos dados de saúde não aceito ("Autorize o tratamento dos seus dados de saúde para continuar. O termo está na sua área de paciente."). No segundo caso, leve o paciente à tela do termo.
+
+### Diário alimentar
+
+O paciente conta como foi o dia: se **seguiu** cada refeição do plano ativo (`Followed`, `Partial` ou `Skipped`), o que comeu **fora do plano** (pela busca de alimentos, em gramas ou em porções) e, uma vez por semana, um **check-in** que o nutricionista responde.
+
+**Regras:**
+- As escritas exigem o aceite do termo dos dados de saúde (`422` sem ele) e valem **de hoje até 7 dias atrás** (`422` fora disso). As datas vão em `AAAA-MM-DD`, no horário de Brasília.
+- O check-in de uma refeição guarda o **retrato do planejado** naquele momento: editar o plano depois não muda o histórico.
+- O **consumido** é uma estimativa: o planejado das refeições seguidas mais os extras. `consumedIsComplete` vem `false` quando há refeição "em parte" ou sem resposta.
+- Os **macros** seguem a regra do plano (`patientSeesMacros`): sem ela, o paciente vê só as kcal, as fibras e o sódio. O nutricionista vê tudo.
+- O nutricionista só lê com o acompanhamento ativo (`404` fora disso).
+
+#### Formato do dia (`DiaryDayResponse`)
+
+```json
+{
+  "date": "2026-11-07",
+  "hasActivePlan": true,
+  "meals": [
+    {
+      "mealId": "…",
+      "name": "Almoço",
+      "order": 2,
+      "suggestedTime": "12:30:00",
+      "planned": { "energyKcal": { "value": 640.5, "isComplete": true }, "protein": null, "…": "…" },
+      "adherence": "Followed",
+      "notes": "Troquei o arroz pelo macarrão",
+      "extras": []
+    }
+  ],
+  "extrasOutsideMeals": [
+    {
+      "id": "…",
+      "foodId": "…",
+      "name": "Banana, prata, crua",
+      "brand": null,
+      "source": "Taco",
+      "quantityInGrams": 86,
+      "measure": { "name": "porção (Guia Alimentar)", "grams": 86, "quantity": 1 },
+      "amounts": { "energyKcal": 84.3, "protein": null, "…": "…" },
+      "attribution": "TACO 4ª edição, NEPA/UNICAMP"
+    }
+  ],
+  "planned": { "energyKcal": { "value": 1980.4, "isComplete": true }, "…": "…" },
+  "consumed": { "energyKcal": { "value": 724.8, "isComplete": true }, "…": "…" },
+  "consumedIsComplete": false,
+  "macrosVisible": false
+}
+```
+
+- No dia pedido, `meals` traz **todas** as refeições do plano ativo: as respondidas e as ainda sem resposta (`adherence: null`).
+- `adherence`: `Followed` (seguiu), `Partial` (em parte) ou `Skipped` (não seguiu).
+
+#### Paciente 🧑
+
+##### `GET /api/v1/patients/me/diary/{date}`
+
+O dia, no formato acima.
+
+##### `GET /api/v1/patients/me/diary?from=2026-11-01&to=2026-11-07`
+
+Os dias registrados no período (padrão: os últimos 7 dias; no máximo 31), do mais recente para o mais antigo, e a adesão:
+
+```json
+{ "from": "2026-11-01", "to": "2026-11-07", "days": [ { "…": "DiaryDayResponse" } ], "adherence": { "followed": 9, "partial": 2, "skipped": 1, "answered": 12, "followedPercent": 75.0 } }
+```
+
+No histórico, cada dia traz só o que foi registrado (as refeições respondidas e os extras).
+
+##### `PUT /api/v1/patients/me/diary/{date}/meals/{mealId}`
+
+```json
+{ "adherence": "Partial", "notes": "Comi metade" }
+```
+
+- `204` → respondida (responder de novo substitui)
+- `400` → `adherence` inválido ou `notes` com mais de 300 caracteres
+- `404` → "Você não tem um plano ativo." ou "Refeição não encontrada no seu plano ativo."
+- `422` → data fora da janela, ou o termo dos dados de saúde não aceito
+
+##### `DELETE /api/v1/patients/me/diary/{date}/meals/{mealId}`
+
+Apaga a resposta. `204`, ou `404` "Registro não encontrado no diário."
+
+##### `POST /api/v1/patients/me/diary/{date}/extras`
+
+```json
+{ "foodId": "…", "mealId": null, "portionId": "…", "portionQuantity": 1 }
+```
+
+- A quantidade segue as mesmas regras do plano: `quantityInGrams` **ou** `portionId` + `portionQuantity`.
+- `mealId` liga o extra a uma refeição do plano; `null` é "fora das refeições".
+- `201` → `{ "id": "<id do extra>" }`
+- `404` → "Alimento não encontrado ou indisponível.", "Porção não encontrada para este alimento." ou "Refeição não encontrada no seu plano ativo."
+- `422` → data fora da janela, mais de 30 extras no dia, ou o termo não aceito
+
+##### `DELETE /api/v1/patients/me/diary/{date}/extras/{extraId}`
+
+`204`, ou `404`.
+
+##### `GET /api/v1/patients/me/weekly-check-ins`
+
+As últimas 12 semanas, da mais recente para a mais antiga:
+
+```json
+[
+  {
+    "id": "…",
+    "weekStart": "2026-11-02",
+    "hunger": 3,
+    "energy": 4,
+    "sleep": 2,
+    "difficulties": "Fome à noite",
+    "comment": null,
+    "feedback": "Vamos reforçar o lanche da tarde.",
+    "feedbackAtUtc": "2026-11-07T18:00:00Z",
+    "updatedAt": "2026-11-06T22:10:00Z"
+  }
+]
+```
+
+##### `PUT /api/v1/patients/me/weekly-check-ins/{weekStart}`
+
+`weekStart` é a **segunda-feira** da semana (até 4 semanas atrás).
+
+```json
+{ "hunger": 3, "energy": 4, "sleep": 2, "difficulties": "Fome à noite", "comment": null }
+```
+
+- `200` → o check-in salvo (cria ou altera)
+- `400` → notas fora de 1 a 5, ou textos com mais de 1000 caracteres
+- `422` → "O nutricionista já respondeu este check-in. Ele não pode mais ser alterado.", "A semana começa na segunda-feira." ou o termo não aceito
+
+#### Nutricionista 🥗
+
+##### `GET /api/v1/nutritionists/me/patients/{patientId}/diary?from=&to=`
+
+O mesmo formato do histórico do paciente, sempre com os macros. `404` → "Paciente não encontrado." (sem o acompanhamento ativo).
+
+##### `GET /api/v1/nutritionists/me/patients/{patientId}/weekly-check-ins`
+
+As últimas 12 semanas do paciente. `404` sem o acompanhamento ativo.
+
+##### `GET /api/v1/nutritionists/me/weekly-check-ins/awaiting-feedback`
+
+Os check-ins dos pacientes acompanhados que ainda esperam a devolutiva, para o início do nutricionista:
+
+```json
+[ { "id": "…", "patientId": "…", "patientName": "Maria Silva", "weekStart": "2026-11-02", "updatedAt": "2026-11-06T22:10:00Z" } ]
+```
+
+##### `PUT /api/v1/nutritionists/me/weekly-check-ins/{id}/feedback`
+
+```json
+{ "feedback": "Vamos reforçar o lanche da tarde." }
+```
+
+- `200` → o check-in com a devolutiva. Depois dela, o paciente não altera mais o check-in.
+- `400` → devolutiva vazia ou com mais de 1000 caracteres
+- `404` → "Check-in semanal não encontrado." (também sem o acompanhamento ativo)
 
 ### Convite de nutricionista
 
@@ -1768,6 +1966,10 @@ Convite que nunca foi aceito (isProfileActive: false):
 - [ ] Cadastro com **dois checkboxes separados e desmarcados** (dados de saúde e transferência internacional), com os textos de `GET /patients/health-data-consent`
 - [ ] Depois do login de um paciente, `GET /patients/me/health-data-consent`: com `accepted: false`, pedir o aceite em destaque
 - [ ] Página pública `/verificar-documento/{code}`, que chama `GET /plan-documents/{code}`
+- [ ] Seletor de alimento com as porções (`portions`): "2 × colher de sopa cheia" ou gramas, no plano e no diário
+- [ ] Alternativas ("ou") no editor de plano, no detalhe do paciente e no PDF, com a diferença para o principal
+- [ ] Tela do diário (`/paciente/diario`): o check-in de cada refeição, os extras, o resumo do dia e o check-in da semana
+- [ ] Diário e check-ins semanais no detalhe do paciente do nutricionista, e os check-ins aguardando devolutiva no início
 - [ ] PDFs da política e dos termos em `public/legal`, gerados por `npm run legal:pdf -- <pasta docs/legal da API>` sempre que o texto mudar
 - [ ] Login tratando o `403` com a opção de reenviar o link
 - [ ] Enviar `Authorization: Bearer <accessToken>` nas rotas protegidas

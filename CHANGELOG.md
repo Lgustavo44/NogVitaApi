@@ -12,6 +12,11 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 
 ### Adicionado
 
+- **Porções:** a resposta do alimento traz `portions` (as medidas caseiras, do IBGE para a TACO e da embalagem para o Open Food Facts). Um item do plano pode ser adicionado ou alterado em porções (`portionId` + `portionQuantity`, no lugar de `quantityInGrams`), e traz `measure`. O PDF mostra "2 × unidade média (100 g)".
+- **Substituições:** `substituteForId` no `POST .../meals/{mealId}/foods` cria uma alternativa ("ou") do item principal; o item traz `substitutes`, cada uma com `difference`. As alternativas ficam fora dos totais e aparecem no PDF.
+- **Diário alimentar:** `GET /api/v1/patients/me/diary` e `.../diary/{date}`, `PUT`/`DELETE .../diary/{date}/meals/{mealId}` (seguiu, em parte, não seguiu), `POST .../diary/{date}/extras` e `DELETE .../extras/{extraId}` (o que foi comido fora do plano). O nutricionista lê em `GET /api/v1/nutritionists/me/patients/{patientId}/diary`.
+- **Check-in semanal:** `GET` e `PUT /api/v1/patients/me/weekly-check-ins/{weekStart}`; o nutricionista lista em `GET .../patients/{patientId}/weekly-check-ins` e `GET .../weekly-check-ins/awaiting-feedback`, e responde em `PUT .../weekly-check-ins/{id}/feedback`.
+
 - `GET /api/v1/nutritionists/me/anamneses/{id}/pdf` e `GET /api/v1/patients/me/anamneses/{id}/pdf`: a anamnese respondida em PDF, com o CRN, a data e a hora da emissão e o código verificador, como o PDF do plano.
 - `GET /api/v1/plan-documents/{code}` passou a conferir também os PDFs de anamnese, e a resposta ganhou o campo `kind` (`NutritionPlan` ou `Anamnesis`). Os códigos já emitidos continuam valendo.
 - Anamnese: o nutricionista monta questionários (`/api/v1/nutritionists/me/questionnaires`, com o modelo base em `.../template`), envia um ao paciente que acompanha (`POST /api/v1/nutritionists/me/patients/{patientId}/anamneses`) e lê as respostas. O paciente lista e responde as dele em `/api/v1/patients/me/anamneses`, uma vez só, e com o aceite do termo dos dados de saúde.
@@ -28,6 +33,10 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 - O documento OpenAPI descreve, em português, cada endpoint e todas as respostas possíveis, com os tipos (`/openapi/v1.json` e a tela do Swagger no staging).
 
 ### Alterado
+
+- `GET /api/v1/foods` e `GET /api/v1/foods/{id}` passaram a aceitar o paciente (para o diário).
+- ⚠️ O termo dos dados de saúde foi para a **versão 2** (cita a anamnese, o diário e os check-ins). Os pacientes aceitam de novo pela plataforma, e o cadastro precisa mandar `healthDataConsentVersion: "2"`.
+- `quantityInGrams` do item do plano ficou opcional quando a quantidade vem em porções. Os clientes que mandam gramas continuam funcionando.
 
 - ⚠️ **Mudança de tipo:** na visão do paciente, os macros vêm `null` quando o nutricionista não liberou (o padrão): `protein`, `carbohydrate` e `fat` nos totais e na meta, os `*Per100g` dos alimentos e os `target*Grams` do plano. O detalhe ganhou `macrosVisible`. As kcal, as fibras e o sódio continuam vindo. O PDF do paciente também não mostra os macros. O front do paciente precisa esconder o que vier `null`.
 - ⚠️ **Mudança no contrato:** `POST /api/v1/auth/register/patient` passou a exigir `healthDataConsentVersion`, `acceptHealthData: true` e `acceptInternationalTransfer: true`. Sem eles, a resposta é `400`. É uma exigência legal (o consentimento dos dados de saúde precisa ser específico, destacado e provado), e o front precisa ser publicado junto.

@@ -1,15 +1,17 @@
 # Política de Privacidade do NogVita
 
-**Última atualização:** 03/11/2026 · **Versão do termo dos dados de saúde:** 1
+**Última atualização:** 07/11/2026 · **Versão do termo dos dados de saúde:** 2
 
-> **O que mudou nesta versão (03/11/2026)**
+> **O que mudou nesta versão (07/11/2026)**
 >
-> - **Fotos:** a política passa a tratar da foto de perfil e das fotos de evolução, e do serviço que guarda os arquivos (Supabase Storage).
-> - **Consentimento separado:** os dados de saúde e a transferência internacional agora têm cada um o seu próprio aceite, com a data e a versão do texto guardadas. Quem já era paciente precisa aceitar na plataforma.
-> - **Transferência internacional:** a seção 5 passa a citar a hipótese da lei que se aplica a cada tipo de dado.
-> - **PDF do plano:** cada PDF ganha um código verificador. O registro da emissão fica guardado, e qualquer pessoa pode conferir o documento pelo código (seção 4).
+> - **Diário alimentar:** o paciente pode registrar se seguiu cada refeição do plano, o que comeu fora dele e um check-in por semana, que o nutricionista responde. São dados de saúde, tratados como os outros (seções 2 e 4).
+> - **Anamnese:** as respostas do questionário que o nutricionista envia passam a constar na lista de dados de saúde.
+> - **Porções:** as medidas caseiras dos alimentos (do IBGE e das embalagens) não são dados pessoais, mas aparecem no plano e no diário.
+> - **Termo dos dados de saúde, versão 2:** o texto passou a citar a anamnese, o diário e os check-ins. Quem já era paciente precisa aceitar de novo na plataforma.
 >
 > Se você não concordar com as mudanças, pode revogar o seu consentimento e pedir a exclusão da conta (seção 7).
+>
+> **Versão anterior (03/11/2026):** a política passou a tratar das fotos e do Supabase Storage, os dados de saúde e a transferência internacional ganharam aceites separados, a transferência internacional passou a citar a hipótese certa da lei, e o PDF do plano ganhou um código verificador.
 
 Esta política explica quais dados pessoais o NogVita coleta, para que eles são usados, com quem são compartilhados e quais são os seus direitos, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, a LGPD).
 
@@ -39,8 +41,11 @@ Para qualquer assunto sobre privacidade, inclusive para exercer os seus direitos
 | Foto de perfil (opcional) | Nutricionistas | Aparecer na lista de nutricionistas. É **pública** para os usuários conectados |
 | Foto de perfil (opcional) | Pacientes | Identificar você para o nutricionista. É **privada** (seção 4) |
 | Fotos de evolução corporal (opcionais), com a data e o ângulo (frente, lado ou costas) | Pacientes | Acompanhar a sua evolução junto com o nutricionista. Só são aceitas depois de um consentimento próprio |
+| Respostas da anamnese (o questionário que o nutricionista envia) | Pacientes | Conhecer o seu histórico, os seus hábitos e as suas restrições antes da consulta |
+| Diário alimentar: se seguiu cada refeição do plano (sim, em parte ou não), observações e os alimentos comidos fora do plano, com a quantidade | Pacientes | Acompanhar a adesão ao plano e estimar o que foi consumido no dia |
+| Check-in semanal: notas de 1 a 5 para fome, energia e sono, as dificuldades e um comentário; e a devolutiva do nutricionista | Pacientes e nutricionistas | Conversar sobre a semana e ajustar o acompanhamento |
 
-**Dados de saúde são dados sensíveis.** A data de nascimento, o sexo biológico, a altura, o objetivo e a rotina, junto com os planos alimentares, os registros de peso e as fotos de evolução, são dados pessoais sensíveis (art. 5º, II, da LGPD). Por isso, só são tratados com o seu **consentimento específico e destacado** e apenas para o acompanhamento nutricional (art. 11, I).
+**Dados de saúde são dados sensíveis.** A data de nascimento, o sexo biológico, a altura, o objetivo e a rotina, junto com os planos alimentares, os registros de peso, as respostas da anamnese, o diário alimentar, os check-ins semanais e as fotos de evolução, são dados pessoais sensíveis (art. 5º, II, da LGPD). Por isso, só são tratados com o seu **consentimento específico e destacado** e apenas para o acompanhamento nutricional (art. 11, I).
 
 **Como o consentimento é dado e guardado.** No cadastro de paciente, há dois aceites separados, cada um com o seu texto: um para os dados de saúde e outro para a transferência internacional (seção 5). Sem os dois, a conta de paciente não é criada, porque esses dados são **condição para usar o NogVita como paciente** (art. 9º, §3º). Guardamos a data e a versão do texto aceito, como prova do consentimento (art. 8º, §2º). As fotos de evolução têm um terceiro aceite, também com a data e a versão, pedido antes do primeiro envio.
 
@@ -70,7 +75,7 @@ Você pode retirar o consentimento a qualquer momento (seção 7). Como os dados
 
 ## 4. Quem pode ver os seus dados
 
-- **Nutricionista que acompanha você:** vê o seu nome, a sua **idade** (calculada, e não a data de nascimento), o sexo biológico, a altura, o objetivo, a sua rotina (horários de acordar, dormir e treinar), a data de início do acompanhamento e o seu **histórico de peso** (inclusive os pesos que você registrou), com o peso mais recente e o IMC calculado a partir dele, além dos planos alimentares que ele mesmo criou. Ele também pode registrar o peso medido na consulta. **Ele não vê o seu CPF nem o seu e-mail.** Ele só tem acesso enquanto o acompanhamento estiver ativo, e só aos próprios pacientes. Se a conta do nutricionista for desativada pelo administrador, o acompanhamento é encerrado, ele perde o acesso aos seus dados e você recebe um aviso por e-mail. Se a **sua** conta for desativada, o nutricionista também deixa de ver os seus dados enquanto ela estiver desativada.
+- **Nutricionista que acompanha você:** vê o seu nome, a sua **idade** (calculada, e não a data de nascimento), o sexo biológico, a altura, o objetivo, a sua rotina (horários de acordar, dormir e treinar), a data de início do acompanhamento e o seu **histórico de peso** (inclusive os pesos que você registrou), com o peso mais recente e o IMC calculado a partir dele, além dos planos alimentares que ele mesmo criou. Ele também vê as respostas das anamneses que enviou, o seu diário alimentar (as refeições seguidas e o que você comeu fora do plano) e os seus check-ins semanais, que ele pode responder. Ele também pode registrar o peso medido na consulta. **Ele não vê o seu CPF nem o seu e-mail.** Ele só tem acesso enquanto o acompanhamento estiver ativo, e só aos próprios pacientes. Se a conta do nutricionista for desativada pelo administrador, o acompanhamento é encerrado, ele perde o acesso aos seus dados e você recebe um aviso por e-mail. Se a **sua** conta for desativada, o nutricionista também deixa de ver os seus dados enquanto ela estiver desativada.
 - **Nutricionista que recebe a sua solicitação:** vê o seu nome, a sua foto de perfil (se houver) e a mensagem que você escreveu.
 - **Fotos de evolução:** só você e o nutricionista que acompanha você **no momento** podem vê-las. Quando o acompanhamento termina, ele perde o acesso. As fotos ficam num espaço privado, e a plataforma só as mostra por links temporários, que expiram em poucos minutos. **As fotos nunca são públicas** e não podem ser divulgadas: o Código de Ética dos nutricionistas proíbe divulgar fotos de "antes e depois" de pacientes.
 - **Foto de perfil do paciente:** é privada. Só a veem você, os nutricionistas com uma solicitação sua pendente e o nutricionista que acompanha você.
@@ -106,6 +111,7 @@ Só usamos fornecedores com medidas de segurança, como conexão cifrada e contr
 - **Se a conta for desativada,** os dados continuam guardados, para que ela possa ser reativada. Para apagá-los, peça a exclusão (seção 7).
 - **Histórico de acompanhamentos:** quando um acompanhamento termina, o registro de início e de fim é mantido como histórico.
 - **Registros de peso:** ficam guardados até serem apagados por quem os registrou, ou até a exclusão da conta. Quando um acompanhamento termina, o nutricionista deixa de ver o seu histórico de peso, mas os registros continuam na sua conta.
+- **Diário alimentar e check-ins semanais:** ficam guardados enquanto a conta existir. O diário só pode ser preenchido ou corrigido até 7 dias depois, e o check-in da semana fica travado depois da devolutiva do nutricionista. Quando um acompanhamento termina, o nutricionista deixa de ver o seu diário.
 - **Fotos:** ficam guardadas até você apagá-las, trocar a foto de perfil, retirar o consentimento das fotos de evolução ou excluir a conta. Apagar uma foto remove o **arquivo**, e não só o registro.
 - **Registros de consentimento:** a data e a versão de cada aceite ficam guardadas enquanto a conta existir, como prova do consentimento (art. 8º, §2º).
 - **Registros de emissão dos PDFs:** o código, a data e a hora, o nome e o CRN do nutricionista e o *hash* do arquivo ficam guardados enquanto o plano ou a anamnese existir, para que o documento possa ser conferido.

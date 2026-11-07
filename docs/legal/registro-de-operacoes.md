@@ -1,7 +1,7 @@
 # Registro das operações de tratamento de dados pessoais
 
 > **Base:** LGPD, art. 37: "O controlador e o operador devem manter registro das operações de tratamento de dados pessoais que realizarem".
-> **Última revisão:** 03/11/2026 · **Documento interno.** Revise a cada feature que crie, mude ou compartilhe um dado pessoal (é um item da Definition of Done da V2).
+> **Última revisão:** 07/11/2026 · **Documento interno.** Revise a cada feature que crie, mude ou compartilhe um dado pessoal (é um item da Definition of Done da V2).
 > **Aviso:** isto não é um parecer jurídico. O NogVita é um projeto de estudo.
 
 ## Os agentes
@@ -29,12 +29,15 @@
 | 11 | *Hash* dos tokens (sessão, confirmação, convite, redefinição de senha) | Todos | Segurança da conta | Contrato (art. 7º, V) | Ninguém (só o *hash*) | Render, Supabase | Até expirar ou ser revogado |
 | 12 | Endereço IP | Todos | Limitar tentativas (*rate limit*) | Legítimo interesse (art. 7º, IX) | Ninguém: fica só na memória, durante a requisição | Render | Não é guardado |
 | 13 | Registro de auditoria do administrador (só identificadores) | Administradores e usuários afetados | Rastrear ações administrativas | Legítimo interesse (art. 7º, IX) | O controlador, pelos *logs* | Render | Pela retenção dos *logs* da Render |
+| 14 | Respostas da anamnese (o retrato do questionário e as respostas) | Paciente | Conhecer o histórico antes da consulta (prontuário, Res. CFN 594/2017) | Consentimento (art. 11, I) | O paciente e o nutricionista que enviou, com vínculo ativo | Render, Supabase | Enquanto a conta existir. ⚠️ A guarda de 20 anos do prontuário ainda está em aberto (E6.3 e E6.5) |
+| 15 | Diário alimentar: a adesão a cada refeição (com o retrato do planejado), as observações e os alimentos fora do plano | Paciente | Acompanhar a adesão e estimar o consumo | Consentimento (art. 11, I) | O paciente e o nutricionista com vínculo ativo | Render, Supabase | Enquanto a conta existir; editável só por 7 dias |
+| 16 | Check-in semanal (fome, energia, sono, dificuldades, comentário) e a devolutiva do nutricionista | Paciente e nutricionista | Conversar sobre a semana | Consentimento (art. 11, I) | O paciente e o nutricionista com vínculo ativo | Render, Supabase | Enquanto a conta existir; travado depois da devolutiva |
 
 ## A transferência internacional
 
 | Dados | Hipótese (art. 33) |
 |---|---|
-| Dados de saúde (operações 2 a 5) | VIII: consentimento específico e em destaque, num aceite separado |
+| Dados de saúde (operações 2 a 5 e 14 a 16) | VIII: consentimento específico e em destaque, num aceite separado |
 | Cadastro e o resto (operações 1, 6 a 13) | IX, combinado com o art. 7º, V: necessária à execução do contrato |
 
 **Para diminuir a transferência:** confirmar a região do projeto no Supabase. Se for São Paulo, o banco e as fotos ficam no Brasil, e sobram no exterior só a Render, a Vercel e a Brevo.

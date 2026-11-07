@@ -87,7 +87,7 @@ Na V1, o desenvolvimento foi de uma pessoa só, direto na `main`. Com dois, isso
 
 Tamanhos: **P** (até uma semana para um dev), **M** (1 a 2 semanas), **G** (mais de 2 semanas, divida em partes).
 
-### E1. Porções (P–M) ⭐ o primeiro
+### E1. Porções (P–M) ✅ concluído (07/11/2026)
 
 **O problema:** o nutricionista pensa em "2 ovos" e o paciente come "1 pão francês". O NogVita só fala em gramas.
 
@@ -111,7 +111,7 @@ Tamanhos: **P** (até uma semana para um dev), **M** (1 a 2 semanas), **G** (mai
 
 ---
 
-### E2. Substituições no plano (M)
+### E2. Substituições no plano (M) ✅ concluído (07/11/2026)
 
 **O problema:** um plano real dá opções ("frango **ou** patinho"). Hoje, cada refeição é uma lista fixa.
 
@@ -219,7 +219,7 @@ Os épicos acima ficam incompletos sem estes itens. A coluna **Prioridade** vem 
 | E6.6 | **Anamnese** configurável ✅ concluído: um questionário-modelo que o nutricionista monta e o paciente responde **antes da consulta** | **2** | É o primeiro passo de qualquer consulta (a Res. CFN 594/2017 a exige na primeira), alimenta as substituições (E2: "não sugerir lactose") e agiliza o atendimento online |
 | E6.3 | **Notas da consulta**, privadas do nutricionista | **3** | Uma consulta (E5) sem registro não serve. ⚠️ Veja abaixo a guarda de 20 anos |
 | E6.4 | **Notificações**: consulta, horário das refeições, água, nova solicitação | **4** | O e-mail é limitado (300/dia) e se perde. **Como funciona com a Render dormindo:** a consulta usa o `.ics` com alarme (E5); as refeições e a água usam **Web Push**, disparado por um **Cron Trigger da Cloudflare** que chama um endpoint da API (o que também acorda a API). ⚠️ O endpoint exige um **segredo no cabeçalho** (sem isso, quem achar a URL dispara notificações para todos). ⚠️ O cron só roda **das 6h às 22h**: acordar a Render 24 h por dia gasta ~730 das 750 horas gratuitas do mês. ⚠️ No **iPhone**, o Web Push só funciona com o NogVita **instalado na tela de início** (PWA); conferir a regra atual antes de implementar |
-| E6.1 | **Diário alimentar / check-in de adesão** ("segui o almoço? sim, parcial, não"), com o feedback da semana | **5** | Sem saber o que foi comido, não existe o "balanço do dia" do E3. **Respeita o E6.7** |
+| E6.1 | **Diário alimentar / check-in de adesão** ✅ concluído ("segui o almoço? sim, parcial, não"), com o feedback da semana | **5** | Sem saber o que foi comido, não existe o "balanço do dia" do E3. **Respeita o E6.7** |
 | E6.2 | **Medidas corporais** (cintura, quadril, % de gordura) | — | O peso sozinho engana. As medidas e as fotos (E4) contam a evolução de verdade |
 | E6.5 | **Excluir e exportar a conta (LGPD)** | — | Com as fotos e as consultas, o volume de dado sensível cresce. ⚠️ Não pode apagar as notas da consulta (abaixo) |
 | E6.9 | **Modelos de plano** | — | Quem entrega o plano na hora precisa de agilidade |
@@ -259,13 +259,11 @@ Sprints de 2 semanas. **Um épico por vez**, e dentro dele as duas pessoas pegam
 | 1 | **Já** | **O front da conformidade legal**: os dois aceites no cadastro, o aceite dos pacientes antigos, a página `/verificar-documento/{code}` e o aviso da política nova | P | A API já exige isso, e o staging tem dados de saúde. Sem o front, os pacientes antigos ficam sem o aceite |
 | 2 | **S0** | **O processo da dupla e as contas**: a proteção da `main` (sem `push --force`), o PR obrigatório, o Yuri no projeto; a conta da Cloudflare (sem cartão?) e a prova de conceito de 1 dia do Realtime (decide o vídeo do E5); confirmar a região do Supabase; baixar a tabela do IBGE (E1); **marcar as entrevistas com mais 3 ou 4 nutricionistas** | P | Sem isso, dois devs na mesma `main` repetem o problema do histórico reescrito |
 | 3 | **S1** | **E6.7. O que o paciente vê** (os macros escondidos **na API**) + **o Turnstile** no cadastro, no login e na recuperação de senha | P + P | O E6.7 é o achado mais importante da pesquisa, e é segurança do paciente. O Turnstile é uma proteção rápida e gratuita: cabe na coluna do segundo dev |
-| 4 | **S2** | **E1. Porções** | P–M | Pequeno, isolado e o pedido original da V2 |
+| ✅ | — | **E1. Porções**, **E2. Substituições** e **E6.1. Diário**, feitos juntos (D-V2-33 a D-V2-39) | — | Pequeno, isolado e o pedido original da V2 |
 | 5 | **S3** | **E6.6. Anamnese** configurável | M | A prioridade 2 da pesquisa, e exigida pelo CFN na primeira consulta. Alimenta o E2 ("não sugerir lactose") |
-| 6 | **S4** | **E2. Substituições** | M | Depende do E1 (as alternativas usam as porções) e aproveita a anamnese |
 | 7 | **S5** | **E6.4. Notificações** (Web Push + o Cron Trigger da Cloudflare) + **E6.10**, o lembrete das fotos | M | A prioridade 4 da pesquisa. Vem antes da agenda porque o E5 usa a mesma estrutura de notificação |
 | 8 | **S6–S7** | **E5. Agenda e teleconsulta** (o vídeo pelo plano escolhido no S0) | G | O maior épico, para quando a dupla já estiver afinada |
 | 9 | **S8** | **E6.3. Notas da consulta**, privadas, e **E6.5. Excluir e exportar a conta**, desenhados **juntos** (a guarda de 20 anos) | M | As notas ficam ligadas à consulta do E5, e as duas regras entram em conflito: desenhar separado obriga a refazer |
-| 10 | **S9** | **E6.1. Diário / check-in de adesão** | M | A base do "balanço do dia" do E3. Respeita o E6.7 |
 | 11 | **S10** | **E3. Atividade física e água** | M–G | O balanço do dia só faz sentido com o diário (E6.1) |
 | 12 | depois | **E6.2** (medidas), **E6.9** (modelos de plano), **E6.8** (recepção, só com clínicas), o **R2** se o 1 GB das fotos encher | — | Sem pressão da pesquisa; a ordem fica para as próximas entrevistas |
 
@@ -273,12 +271,12 @@ Sprints de 2 semanas. **Um épico por vez**, e dentro dele as duas pessoas pegam
 
 | Gustavo | Yuri | Os dois juntos | A definir |
 |---|---|---|---|
-| E4. Imagens ✅ · E2. Substituições · E6.6. Anamnese · E6.3 + E6.5. Notas e exclusão da conta · E6.1. Diário | E1. Porções · E6.4. Notificações (+ E6.10) · E3. Atividade e água | E5. Agenda e teleconsulta | E6.7 + Turnstile (S1) · E6.2 · E6.9 · E6.8 |
+| E4. Imagens ✅ · E6.6. Anamnese ✅ · E1 + E2 + E6.1 ✅ · E6.3 + E6.5. Notas e exclusão da conta | E6.4. Notificações (+ E6.10) · E3. Atividade e água | E5. Agenda e teleconsulta | E6.7 + Turnstile (S1) · E6.2 · E6.9 · E6.8 |
 
 Com cada um no seu épico, **as duas trilhas andam em paralelo**, mas três regras continuam valendo:
 - **Uma migration por vez** (seção 2): antes de gerar uma, avise o outro.
-- **O E2 do Gustavo depende do E1 do Yuri**: as alternativas usam as porções. Enquanto o E1 não estiver na `main`, o Gustavo faz a anamnese (E6.6).
-- **O E3 do Yuri depende do E6.1 do Gustavo**: o balanço do dia precisa do diário. Enquanto o E6.1 não estiver na `main`, o Yuri faz as notificações (E6.4).
+- **O E1, o E2 e o E6.1 foram feitos juntos (07/11/2026)**: os três mexem no alimento do plano, no PDF e no diário, e separados obrigariam a refazer o diário. O Yuri, que tinha o E1, começa pelas notificações (E6.4).
+- **O E3 do Yuri já pode começar**: o diário (E6.1) está na `main`, e o `consumed` do dia é a base do balanço.
 
 **Por que essa ordem:** a pesquisa com a nutricionista mudou o que vale mais. O que protege o paciente (os aceites legais, os macros escondidos) vem primeiro. Depois vêm os épicos pequenos que treinam a dupla (as porções, a anamnese). Os grandes (a agenda, o diário, a atividade) ficam para o fim. **Depois das entrevistas do S0, revisem as linhas de 5 em diante.**
 
@@ -314,6 +312,13 @@ Com cada um no seu épico, **as duas trilhas andam em paralelo**, mas três regr
 | D-V2-30 | **Só depois do vínculo:** o nutricionista que acompanha envia o questionário, e só ele vê as respostas (CareAccessService). Sem o vínculo, uma anamnese pendente não pode mais ser respondida |
 | D-V2-31 | A anamnese enviada guarda **o retrato do questionário** (o título e as perguntas), como o `FoodSnapshot` faz com o alimento. Editar ou apagar o questionário não muda as respostas antigas |
 | D-V2-32 | As perguntas e as respostas ficam numa **coluna jsonb**, gravadas por um conversor. Ninguém filtra dentro das respostas, então não há tabelas de perguntas e de respostas |
+| D-V2-33 | **As porções são só automáticas**: a *Tabela de Medidas Referidas* do IBGE para a TACO (extraída e ligada pelo nome e pelo preparo) e a porção da embalagem para o Open Food Facts. Ninguém cria porção à mão (o pedido foi não pôr esse trabalho no nutricionista). Veja `Seed/Data/SOURCE-PORCOES.md` |
+| D-V2-34 | A quantidade de um item vai **em gramas ou em porções**; o item guarda o **retrato da porção** (nome, gramas, quantidade), e o cálculo continua em gramas |
+| D-V2-35 | O paciente **busca e lê** os alimentos (para o diário); a prévia e a importação por código de barras continuam com o nutricionista e o admin |
+| D-V2-36 | Até **3 alternativas** por item, dentro de `substitutes`, com a diferença para o principal; elas **não entram nos totais**, e remover o principal remove as alternativas |
+| D-V2-37 | O diário é **um registro por paciente e por dia**, com os check-ins e os extras em jsonb, editável de **hoje até 7 dias atrás** |
+| D-V2-38 | O check-in de uma refeição guarda o **retrato do planejado**; o consumido do dia é uma **estimativa** (as refeições seguidas mais os extras), marcada como incompleta quando há "em parte" ou falta resposta |
+| D-V2-39 | O **check-in semanal** (fome, energia e sono de 1 a 5, dificuldades e comentário) é do paciente; a **devolutiva** é do nutricionista do vínculo, e depois dela o check-in fica travado |
 
 ### Em aberto (decidir no começo de cada épico)
 
