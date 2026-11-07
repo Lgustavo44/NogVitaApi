@@ -5,6 +5,7 @@ using NogVita.Application.Anamneses;
 using NogVita.Application.Auth;
 using NogVita.Application.Documents;
 using NogVita.Application.FollowUps;
+using NogVita.Application.FoodDiary;
 using NogVita.Application.Foods;
 using NogVita.Application.Nutritionists;
 using NogVita.Application.NutritionPlans;
@@ -87,6 +88,9 @@ public static class DependencyInjection
         // Anamnese (Anamneses)
         services.AddScoped<ManageQuestionnaireUseCase>();
         services.AddScoped<AnamnesisUseCase>();
+        services.AddScoped<FoodDiaryReader>();
+        services.AddScoped<FoodDiaryUseCase>();
+        services.AddScoped<WeeklyCheckInUseCase>();
         services.AddScoped<NutritionistAnamnesisQueriesUseCase>();
         services.AddScoped<AnamnesisPdfUseCase>();
 

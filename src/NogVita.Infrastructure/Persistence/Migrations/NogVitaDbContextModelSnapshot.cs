@@ -485,6 +485,118 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                     b.ToTable("tb_nutritionist_request", (string)null);
                 });
 
+            modelBuilder.Entity("NogVita.Domain.FoodDiary.DiaryDay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<string>("ExtraFoods")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("extra_foods");
+
+                    b.Property<string>("MealCheckIns")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("meal_check_ins");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_diary_day");
+
+                    b.HasIndex("PatientId", "Date")
+                        .IsUnique()
+                        .HasDatabaseName("ux_diary_day_patient_date");
+
+                    b.ToTable("tb_diary_day", (string)null);
+                });
+
+            modelBuilder.Entity("NogVita.Domain.FoodDiary.WeeklyCheckIn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Difficulties")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("difficulties");
+
+                    b.Property<int>("Energy")
+                        .HasColumnType("integer")
+                        .HasColumnName("energy");
+
+                    b.Property<string>("Feedback")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("feedback");
+
+                    b.Property<DateTime?>("FeedbackAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("feedback_at_utc");
+
+                    b.Property<int>("Hunger")
+                        .HasColumnType("integer")
+                        .HasColumnName("hunger");
+
+                    b.Property<Guid?>("NutritionistId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("nutritionist_id");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<int>("Sleep")
+                        .HasColumnType("integer")
+                        .HasColumnName("sleep");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<DateOnly>("WeekStart")
+                        .HasColumnType("date")
+                        .HasColumnName("week_start");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_weekly_check_in");
+
+                    b.HasIndex("NutritionistId", "Feedback")
+                        .HasDatabaseName("ix_weekly_check_in_awaiting");
+
+                    b.HasIndex("PatientId", "WeekStart")
+                        .IsUnique()
+                        .HasDatabaseName("ux_weekly_check_in_patient_week");
+
+                    b.ToTable("tb_weekly_check_in", (string)null);
+                });
+
             modelBuilder.Entity("NogVita.Domain.Foods.Food", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1363,6 +1475,32 @@ namespace NogVita.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tb_nutritionist_request_users_patient_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.FoodDiary.DiaryDay", b =>
+                {
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_diary_day_users_patient_id");
+                });
+
+            modelBuilder.Entity("NogVita.Domain.FoodDiary.WeeklyCheckIn", b =>
+                {
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("NutritionistId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tb_weekly_check_in_tb_user_nutritionist_id");
+
+                    b.HasOne("NogVita.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_weekly_check_in_tb_user_patient_id");
                 });
 
             modelBuilder.Entity("NogVita.Domain.Foods.FoodPortion", b =>

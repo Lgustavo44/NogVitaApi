@@ -9,11 +9,13 @@ namespace NogVita.Application.Patients;
 // ⚠️ Mantenha a política de privacidade (docs/legal) coerente com este texto.
 public static class HealthDataConsent
 {
-    public const string CurrentVersion = "1";
+    // Versão 2 (07/11/2026): o texto passou a citar a anamnese, o diário alimentar e os check-ins semanais.
+    public const string CurrentVersion = "2";
 
     public const string HealthDataText =
         "Autorizo o NogVita a tratar os meus dados de saúde (data de nascimento, sexo biológico, altura, objetivo, rotina, " +
-        "peso, planos alimentares e, se eu enviar, fotos de evolução). Eles são dados pessoais sensíveis (LGPD, art. 11, I) " +
+        "peso, planos alimentares, respostas da anamnese, diário alimentar, check-ins semanais e, se eu enviar, fotos de evolução). " +
+        "Eles são dados pessoais sensíveis (LGPD, art. 11, I) " +
         "e serão usados só para o meu acompanhamento nutricional, vistos apenas por mim e pelo nutricionista que me acompanha. " +
         "Sei que esses dados são necessários para usar o NogVita como paciente, e que posso retirar esta autorização " +
         "a qualquer momento, pedindo a exclusão da conta.";

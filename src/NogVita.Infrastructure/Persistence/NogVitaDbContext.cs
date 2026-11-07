@@ -6,6 +6,7 @@ using NogVita.Domain.Auth;
 using NogVita.Domain.Common;
 using NogVita.Domain.Documents;
 using NogVita.Domain.FollowUps;
+using NogVita.Domain.FoodDiary;
 using NogVita.Domain.Foods;
 using NogVita.Domain.Invitations;
 using NogVita.Domain.NutritionPlans;
@@ -36,6 +37,8 @@ public class NogVitaDbContext(DbContextOptions<NogVitaDbContext> options) : DbCo
     public DbSet<IssuedDocument> IssuedDocuments => Set<IssuedDocument>();
     public DbSet<Questionnaire> Questionnaires => Set<Questionnaire>();
     public DbSet<Anamnesis> Anamneses => Set<Anamnesis>();
+    public DbSet<DiaryDay> DiaryDays => Set<DiaryDay>();
+    public DbSet<WeeklyCheckIn> WeeklyCheckIns => Set<WeeklyCheckIn>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -76,6 +76,7 @@ public static class DependencyInjection
         services.AddScoped<IProgressPhotoRepository, ProgressPhotoRepository>();
         services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
         services.AddScoped<IAnamnesisRepository, AnamnesisRepository>();
+        services.AddScoped<IFoodDiaryRepository, FoodDiaryRepository>();
         services.AddScoped<IAnamnesisQueries, AnamnesisQueries>();
         services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
         services.AddSingleton(emailSettings);

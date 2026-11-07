@@ -11,11 +11,12 @@ namespace NogVita.Api.Controllers;
 /// <summary>A base de alimentos: a TACO e os produtos do Open Food Facts.</summary>
 /// <remarks>
 /// Toda resposta com dados de alimentos traz o campo `attribution` (a fonte e a licença), que precisa ser exibido.
-/// Os alimentos desativados pelo administrador não aparecem aqui.
+/// Os alimentos desativados pelo administrador não aparecem aqui. O paciente busca e lê (para o diário alimentar);
+/// a prévia e a importação por código de barras são do nutricionista e do administrador.
 /// </remarks>
 [ApiController]
 [Route("api/v1/foods")]
-[Authorize(Roles = $"{Roles.Nutritionist},{Roles.Admin}")]
+[Authorize(Roles = $"{Roles.Nutritionist},{Roles.Admin},{Roles.Patient}")]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 [ProducesProblem(StatusCodes.Status500InternalServerError)]
@@ -61,6 +62,7 @@ public sealed class FoodsController(
     /// </remarks>
     /// <param name="barcode">O código de barras (EAN-8, UPC-A, EAN-13 ou GTIN-14).</param>
     [HttpGet("barcode/{barcode}")]
+    [Authorize(Roles = $"{Roles.Nutritionist},{Roles.Admin}")]
     [EnableRateLimiting("food-lookup")]
     [ProducesResponseType<ProductPreviewResponse>(StatusCodes.Status200OK)]
     [ProducesProblem(StatusCodes.Status400BadRequest)]
@@ -93,6 +95,7 @@ public sealed class FoodsController(
     /// </remarks>
     /// <param name="barcode">O código de barras (EAN-8, UPC-A, EAN-13 ou GTIN-14).</param>
     [HttpPost("barcode/{barcode}/import")]
+    [Authorize(Roles = $"{Roles.Nutritionist},{Roles.Admin}")]
     [EnableRateLimiting("food-lookup")]
     [ProducesResponseType<FoodResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<FoodResponse>(StatusCodes.Status200OK)]

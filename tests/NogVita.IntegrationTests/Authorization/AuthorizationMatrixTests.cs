@@ -16,6 +16,7 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
     private const string Nutritionist = "Nutritionist";
     private const string Admin = "Admin";
     private const string NutritionistOrAdmin = "Nutritionist,Admin";
+    private const string AnyProfile = "Nutritionist,Admin,Patient";
 
     private static readonly (string Method, string Route, string Allowed)[] Matrix =
     [
@@ -62,6 +63,14 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("GET", "api/v1/patients/me/anamneses/{id:guid}", Patient),
         ("POST", "api/v1/patients/me/anamneses/{id:guid}/answers", Patient),
         ("GET", "api/v1/patients/me/anamneses/{id:guid}/pdf", Patient),
+        ("GET", "api/v1/patients/me/diary", Patient),
+        ("GET", "api/v1/patients/me/diary/{date}", Patient),
+        ("PUT", "api/v1/patients/me/diary/{date}/meals/{mealId:guid}", Patient),
+        ("DELETE", "api/v1/patients/me/diary/{date}/meals/{mealId:guid}", Patient),
+        ("POST", "api/v1/patients/me/diary/{date}/extras", Patient),
+        ("DELETE", "api/v1/patients/me/diary/{date}/extras/{extraId:guid}", Patient),
+        ("GET", "api/v1/patients/me/weekly-check-ins", Patient),
+        ("PUT", "api/v1/patients/me/weekly-check-ins/{weekStart}", Patient),
         ("PUT", "api/v1/patients/me/photo", Patient),
         ("DELETE", "api/v1/patients/me/photo", Patient),
         ("GET", "api/v1/patients/me/progress-photos/consent", Patient),
@@ -117,10 +126,15 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("GET", "api/v1/nutritionists/me/patients/{patientId:guid}/anamneses", Nutritionist),
         ("GET", "api/v1/nutritionists/me/anamneses/{id:guid}", Nutritionist),
         ("GET", "api/v1/nutritionists/me/anamneses/{id:guid}/pdf", Nutritionist),
+        ("GET", "api/v1/nutritionists/me/patients/{patientId:guid}/diary", Nutritionist),
+        ("GET", "api/v1/nutritionists/me/patients/{patientId:guid}/weekly-check-ins", Nutritionist),
+        ("GET", "api/v1/nutritionists/me/weekly-check-ins/awaiting-feedback", Nutritionist),
+        ("PUT", "api/v1/nutritionists/me/weekly-check-ins/{id:guid}/feedback", Nutritionist),
 
         // Alimentos: quem monta planos e quem cuida da base
-        ("GET", "api/v1/foods", NutritionistOrAdmin),
-        ("GET", "api/v1/foods/{id:guid}", NutritionistOrAdmin),
+        // O paciente busca e lê os alimentos para o diário; a prévia e a importação continuam com o nutricionista e o admin.
+        ("GET", "api/v1/foods", AnyProfile),
+        ("GET", "api/v1/foods/{id:guid}", AnyProfile),
         ("GET", "api/v1/foods/barcode/{barcode}", NutritionistOrAdmin),
         ("POST", "api/v1/foods/barcode/{barcode}/import", NutritionistOrAdmin),
 
