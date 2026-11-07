@@ -30,6 +30,14 @@ public sealed class NutritionistFoodDiaryController(FoodDiaryReader reader, Week
         return diary is null ? PatientNotFound() : Ok(diary);
     }
 
+    /// <summary>A adesão de cada paciente acompanhado nos últimos dias (padrão: 7, no máximo 31).</summary>
+    /// <remarks>Os de menor adesão vêm primeiro, e os que não registraram nada no período, no fim (`followedPercent` nulo).</remarks>
+    /// <param name="days">Quantos dias, contando hoje.</param>
+    [HttpGet("patients/adherence")]
+    [ProducesResponseType<IReadOnlyList<PatientAdherenceResponse>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ListAdherence([FromQuery] int days = 7, CancellationToken cancellationToken = default) =>
+        Ok(await reader.GetAdherenceForNutritionistAsync(User.GetUserId(), days, cancellationToken));
+
     /// <summary>Lista os check-ins semanais do paciente (as últimas 12 semanas).</summary>
     /// <param name="patientId">O Id do paciente.</param>
     [HttpGet("patients/{patientId:guid}/weekly-check-ins")]

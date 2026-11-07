@@ -60,6 +60,36 @@ public sealed class FoodDiaryReader(
             ? await RangeAsync(patientId, request, macrosVisible: true, cancellationToken)
             : null;
 
+    // A adesão de cada paciente acompanhado nos últimos dias: os de menor adesão primeiro, e os sem registro no fim.
+    public async Task<IReadOnlyList<PatientAdherenceResponse>> GetAdherenceForNutritionistAsync(
+        Guid nutritionistId, int days, CancellationToken cancellationToken = default)
+    {
+        var to = BrazilianCalendar.Today(timeProvider);
+        var from = to.AddDays(-(Math.Clamp(days, 1, DiaryRangeRequest.MaxDays) - 1));
+        var patients = await diaryRepository.ListFollowedPatientsDiaryAsync(nutritionistId, from, to, cancellationToken);
+
+        return patients
+            .Select(p => new PatientAdherenceResponse(
+                p.PatientId,
+                p.PatientName,
+                AdherenceOf(p.Days),
+                p.Days.Count == 0 ? null : p.Days.Max(d => d.Date)))
+            .OrderBy(p => p.Adherence.FollowedPercent is null)
+            .ThenBy(p => p.Adherence.FollowedPercent)
+            .ThenBy(p => p.PatientName)
+            .ToList();
+    }
+
+    private static AdherenceResponse AdherenceOf(IEnumerable<DiaryDay> days)
+    {
+        var checkIns = days.SelectMany(d => d.MealCheckIns).ToList();
+
+        return new AdherenceResponse(
+            checkIns.Count(c => c.Adherence == MealAdherence.Followed),
+            checkIns.Count(c => c.Adherence == MealAdherence.Partial),
+            checkIns.Count(c => c.Adherence == MealAdherence.Skipped));
+    }
+
     private async Task<DiaryRangeResponse> RangeAsync(Guid patientId, DiaryRangeRequest request, bool macrosVisible, CancellationToken cancellationToken)
     {
         var to = request.To ?? BrazilianCalendar.Today(timeProvider);
@@ -72,13 +102,7 @@ public sealed class FoodDiaryReader(
             .Select(d => Build(d.Date, d, plan: null, macrosVisible, includePendingMeals: false))
             .ToList();
 
-        var checkIns = days.SelectMany(d => d.MealCheckIns).ToList();
-        var adherence = new AdherenceResponse(
-            checkIns.Count(c => c.Adherence == MealAdherence.Followed),
-            checkIns.Count(c => c.Adherence == MealAdherence.Partial),
-            checkIns.Count(c => c.Adherence == MealAdherence.Skipped));
-
-        return new DiaryRangeResponse(from, to, responses, adherence);
+        return new DiaryRangeResponse(from, to, responses, AdherenceOf(days));
     }
 
     // O plano ativo com as refeições e os alimentos (o GetActiveForPatientAsync não carrega as refeições).

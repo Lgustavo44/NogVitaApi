@@ -96,6 +96,23 @@ public class FoodDiaryUseCaseTests
 
     // D-V2-06
     [Fact]
+    public async Task Adherence_Should_List_The_Lowest_First_And_Patients_Without_Entries_Last()
+    {
+        var silent = Guid.NewGuid();
+        _diary.Followed.Add((_care.Nutritionist.Id, silent, "Ana"));
+        _diary.Followed.Add((_care.Nutritionist.Id, _care.Patient.Id, "Bruno"));
+        await UseCase().CheckInMealAsync(_care.Patient.Id, Today, _lunch.Id, new(MealAdherence.Skipped, null), _ct);
+
+        var list = await Reader().GetAdherenceForNutritionistAsync(_care.Nutritionist.Id, 7, _ct);
+
+        Assert.Equal(["Bruno", "Ana"], list.Select(p => p.PatientName));
+        Assert.Equal(0m, list[0].Adherence.FollowedPercent);
+        Assert.Equal(Today, list[0].LastEntry);
+        Assert.Null(list[1].Adherence.FollowedPercent);
+        Assert.Null(list[1].LastEntry);
+    }
+
+    [Fact]
     public async Task Nutritionist_Without_The_Follow_Up_Should_Not_Read_The_Diary()
     {
         var stranger = _care.AnotherNutritionist();

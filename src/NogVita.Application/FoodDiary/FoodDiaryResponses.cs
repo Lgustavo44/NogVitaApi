@@ -50,6 +50,9 @@ public sealed record AdherenceResponse(int Followed, int Partial, int Skipped)
     public decimal? FollowedPercent => Answered == 0 ? null : Math.Round(100m * Followed / Answered, 1);
 }
 
+// A adesão de um paciente acompanhado no período, para o início do nutricionista.
+public sealed record PatientAdherenceResponse(Guid PatientId, string PatientName, AdherenceResponse Adherence, DateOnly? LastEntry);
+
 public sealed record DiaryRangeResponse(DateOnly From, DateOnly To, IReadOnlyList<DiaryDayResponse> Days, AdherenceResponse Adherence);
 
 public sealed record WeeklyCheckInResponse(

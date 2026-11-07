@@ -1654,6 +1654,14 @@ O mesmo formato do histórico do paciente, sempre com os macros. `404` → "Paci
 
 As últimas 12 semanas do paciente. `404` sem o acompanhamento ativo.
 
+##### `GET /api/v1/nutritionists/me/patients/adherence?days=7`
+
+A adesão de cada paciente acompanhado nos últimos `days` dias (padrão 7, de 1 a 31), para o início do nutricionista. Os de menor adesão vêm primeiro, e os que não registraram nada, no fim:
+
+```json
+[ { "patientId": "…", "patientName": "Maria Silva", "adherence": { "followed": 4, "partial": 1, "skipped": 2, "answered": 7, "followedPercent": 57.1 }, "lastEntry": "2026-11-06" } ]
+```
+
 ##### `GET /api/v1/nutritionists/me/weekly-check-ins/awaiting-feedback`
 
 Os check-ins dos pacientes acompanhados que ainda esperam a devolutiva, para o início do nutricionista:
@@ -1701,6 +1709,18 @@ O token vai no **fragmento** (`#`), que o navegador nunca envia a servidores. A 
 ### Administração
 
 Todas as rotas desta seção exigem o papel `Admin` 🛡️.
+
+#### `GET /api/v1/admin/overview`
+
+O resumo do início do admin:
+
+```json
+{ "patientsPendingConsent": 3, "diaryDaysLast7Days": 42, "weeklyCheckInsAwaitingFeedback": 5, "activeFoods": 25000, "activeFoodsWithPortions": 18000 }
+```
+
+- `patientsPendingConsent`: os pacientes ativos que ainda não aceitaram a versão atual do termo dos dados de saúde.
+- `diaryDaysLast7Days`: os dias com diário registrado nos últimos 7 dias (contando hoje), somando todos os pacientes.
+- `weeklyCheckInsAwaitingFeedback`: os check-ins semanais ainda sem devolutiva.
 
 #### Listagens paginadas
 

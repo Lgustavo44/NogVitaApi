@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NogVita.Application.Admin;
 using NogVita.Application.Common.Pagination;
+using NogVita.Application.Patients;
 using NogVita.Domain.Users;
 using NogVita.Infrastructure.Persistence;
 
@@ -50,6 +51,21 @@ public sealed class AdminUserQueries(NogVitaDbContext context) : IAdminUserQueri
                 u.UpdatedAt
             ))
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<AdminOverviewResponse> GetOverviewAsync(DateOnly diarySince, CancellationToken cancellationToken = default)
+    {
+        var currentConsent = HealthDataConsent.CurrentVersion;
+
+        // Contagens em sequência: o DbContext não aceita consultas paralelas.
+        var pendingConsent = await context.Users.AsNoTracking()
+            .CountAsync(u => u.IsActive && u.PatientProfile != null && u.PatientProfile.HealthDataConsentVersion != currentConsent, cancellationToken);
+        var diaryDays = await context.DiaryDays.AsNoTracking().CountAsync(d => d.Date >= diarySince, cancellationToken);
+        var awaitingFeedback = await context.WeeklyCheckIns.AsNoTracking().CountAsync(w => w.Feedback == null, cancellationToken);
+        var activeFoods = await context.Foods.AsNoTracking().CountAsync(f => f.IsActive, cancellationToken);
+        var withPortions = await context.Foods.AsNoTracking().CountAsync(f => f.IsActive && f.Portions.Any(), cancellationToken);
+
+        return new AdminOverviewResponse(pendingConsent, diaryDays, awaitingFeedback, activeFoods, withPortions);
     }
 
     private static IQueryable<User> ApplyFilters(IQueryable<User> query, AdminUserListRequest request)

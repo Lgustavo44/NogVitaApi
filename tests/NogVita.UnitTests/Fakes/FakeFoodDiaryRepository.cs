@@ -16,6 +16,17 @@ public sealed class FakeFoodDiaryRepository : IFoodDiaryRepository
 
     public void Add(DiaryDay day) => Days.Add(day);
 
+    // Os pacientes "acompanhados" do falso: os que o teste registrar aqui.
+    public List<(Guid NutritionistId, Guid PatientId, string PatientName)> Followed { get; } = [];
+
+    public Task<IReadOnlyList<(Guid PatientId, string PatientName, IReadOnlyList<DiaryDay> Days)>> ListFollowedPatientsDiaryAsync(
+        Guid nutritionistId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<(Guid, string, IReadOnlyList<DiaryDay>)>>(Followed
+            .Where(f => f.NutritionistId == nutritionistId)
+            .Select(f => (f.PatientId, f.PatientName,
+                (IReadOnlyList<DiaryDay>)Days.Where(d => d.PatientId == f.PatientId && d.Date >= from && d.Date <= to).ToList()))
+            .ToList());
+
     public Task<WeeklyCheckIn?> GetWeekAsync(Guid patientId, DateOnly weekStart, CancellationToken cancellationToken = default) =>
         Task.FromResult(Weeks.FirstOrDefault(w => w.PatientId == patientId && w.WeekStart == weekStart));
 

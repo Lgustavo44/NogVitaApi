@@ -10,6 +10,10 @@ public interface IFoodDiaryRepository
 
     void Add(DiaryDay day);
 
+    // Os pacientes que o nutricionista acompanha agora (ativos), cada um com os dias do diário no período.
+    Task<IReadOnlyList<(Guid PatientId, string PatientName, IReadOnlyList<DiaryDay> Days)>> ListFollowedPatientsDiaryAsync(
+        Guid nutritionistId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
     Task<WeeklyCheckIn?> GetWeekAsync(Guid patientId, DateOnly weekStart, CancellationToken cancellationToken = default);
 
     Task<WeeklyCheckIn?> GetWeekByIdAsync(Guid id, CancellationToken cancellationToken = default);

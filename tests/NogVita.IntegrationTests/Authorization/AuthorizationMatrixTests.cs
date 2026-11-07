@@ -129,6 +129,7 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("GET", "api/v1/nutritionists/me/patients/{patientId:guid}/diary", Nutritionist),
         ("GET", "api/v1/nutritionists/me/patients/{patientId:guid}/weekly-check-ins", Nutritionist),
         ("GET", "api/v1/nutritionists/me/weekly-check-ins/awaiting-feedback", Nutritionist),
+        ("GET", "api/v1/nutritionists/me/patients/adherence", Nutritionist),
         ("PUT", "api/v1/nutritionists/me/weekly-check-ins/{id:guid}/feedback", Nutritionist),
 
         // Alimentos: quem monta planos e quem cuida da base
@@ -139,6 +140,7 @@ public class AuthorizationMatrixTests(NogVitaApiFixture fixture)
         ("POST", "api/v1/foods/barcode/{barcode}/import", NutritionistOrAdmin),
 
         // Administração
+        ("GET", "api/v1/admin/overview", Admin),
         ("GET", "api/v1/admin/users", Admin),
         ("GET", "api/v1/admin/users/{id:guid}", Admin),
         ("POST", "api/v1/admin/users/{id:guid}/deactivate", Admin),

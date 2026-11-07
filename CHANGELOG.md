@@ -16,6 +16,7 @@ Enquanto só existir a `v1`, as entradas ficam em **Não lançado**. Uma mudanç
 - **Substituições:** `substituteForId` no `POST .../meals/{mealId}/foods` cria uma alternativa ("ou") do item principal; o item traz `substitutes`, cada uma com `difference`. As alternativas ficam fora dos totais e aparecem no PDF.
 - **Diário alimentar:** `GET /api/v1/patients/me/diary` e `.../diary/{date}`, `PUT`/`DELETE .../diary/{date}/meals/{mealId}` (seguiu, em parte, não seguiu), `POST .../diary/{date}/extras` e `DELETE .../extras/{extraId}` (o que foi comido fora do plano). O nutricionista lê em `GET /api/v1/nutritionists/me/patients/{patientId}/diary`.
 - **Check-in semanal:** `GET` e `PUT /api/v1/patients/me/weekly-check-ins/{weekStart}`; o nutricionista lista em `GET .../patients/{patientId}/weekly-check-ins` e `GET .../weekly-check-ins/awaiting-feedback`, e responde em `PUT .../weekly-check-ins/{id}/feedback`.
+- **Inícios:** `GET /api/v1/nutritionists/me/patients/adherence?days=7` (a adesão de cada paciente acompanhado, a menor primeiro) e `GET /api/v1/admin/overview` (termo pendente, uso do diário, check-ins sem devolutiva e alimentos com porções).
 
 - `GET /api/v1/nutritionists/me/anamneses/{id}/pdf` e `GET /api/v1/patients/me/anamneses/{id}/pdf`: a anamnese respondida em PDF, com o CRN, a data e a hora da emissão e o código verificador, como o PDF do plano.
 - `GET /api/v1/plan-documents/{code}` passou a conferir também os PDFs de anamnese, e a resposta ganhou o campo `kind` (`NutritionPlan` ou `Anamnesis`). Os códigos já emitidos continuam valendo.

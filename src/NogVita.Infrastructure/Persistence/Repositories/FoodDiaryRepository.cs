@@ -18,6 +18,29 @@ internal sealed class FoodDiaryRepository(NogVitaDbContext context) : IFoodDiary
 
     public void Add(DiaryDay day) => context.DiaryDays.Add(day);
 
+    public async Task<IReadOnlyList<(Guid PatientId, string PatientName, IReadOnlyList<DiaryDay> Days)>> ListFollowedPatientsDiaryAsync(
+        Guid nutritionistId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        var patients = await (
+                from r in context.CareRelationships.AsNoTracking()
+                join patient in context.Users on r.PatientId equals patient.Id
+                where r.NutritionistId == nutritionistId && r.EndedAtUtc == null && patient.IsActive
+                select new { patient.Id, patient.Name })
+            .ToListAsync(cancellationToken);
+
+        var ids = patients.Select(p => p.Id).ToList();
+        var days = await context.DiaryDays
+            .AsNoTracking()
+            .Where(d => ids.Contains(d.PatientId) && d.Date >= from && d.Date <= to)
+            .ToListAsync(cancellationToken);
+
+        var byPatient = days.ToLookup(d => d.PatientId);
+
+        return patients
+            .Select(p => (p.Id, p.Name, (IReadOnlyList<DiaryDay>)byPatient[p.Id].ToList()))
+            .ToList();
+    }
+
     public Task<WeeklyCheckIn?> GetWeekAsync(Guid patientId, DateOnly weekStart, CancellationToken cancellationToken = default) =>
         context.WeeklyCheckIns.FirstOrDefaultAsync(w => w.PatientId == patientId && w.WeekStart == weekStart, cancellationToken);
 
